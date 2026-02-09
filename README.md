@@ -4,6 +4,8 @@ A custom Lovelace card for the **Shopping List Manager** integration.
 
 This card provides the user interface only and communicates with the integration via WebSocket.
 
+![Alt text for the GIF](media/shopping-list-manager-card.gif)
+
 ---
 
 ## 1. Installation (HACS)
