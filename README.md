@@ -1,0 +1,1 @@
+# shopping-list-manager-card
