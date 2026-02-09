@@ -33,12 +33,25 @@ Add the card to your dashboard:
 
 ```yaml
 type: custom:shopping-list-manager
+title: Shopping List
+list_id: groceries
+```
+and to add HA Card Grids
+```yaml
+type: custom:shopping-list-card
+title: Shopping List
+list_id: groceries
+grid_options:
+  columns: 12
+  rows: auto
 ```
 ## 3. Requirements
 
+Home Assistant with HACS
+
 Shopping List Manager integration installed
 
-Home Assistant with HACS
+[![Open your Home Assistant instance and open this repository inside the Home Assistant Community Store.](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=thekiwismarthome&repository=shopping-list-manager&category=integration)
 
 ## 4. Notes
 
