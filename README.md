@@ -4,7 +4,9 @@ A custom Lovelace card for the **Shopping List Manager** integration.
 
 This card provides the user interface only and communicates with the integration via WebSocket.
 
-![Alt text for the GIF](images/shopping_list_manager_card.gif)
+Sorry for the quality.
+
+<img src="assets/images/shopping_list_manager_card.gif" alt="Alt text for the GIF" width="30%" height="auto">
 
 ---
 
