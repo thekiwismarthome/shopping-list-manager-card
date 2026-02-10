@@ -2017,12 +2017,12 @@ class ShoppingListCard extends HTMLElement {
 
 }
 
-customElements.define('shopping-list-card', ShoppingListCard);
+customElements.define('shopping-list-manager-card', ShoppingListManagerCard);
 
 window.customCards = window.customCards || [];
 window.customCards.push({
-  type: 'shopping-list-card',
-  name: 'Shopping List Card',
+  type: 'shopping-list-manager-card',
+  name: 'Shopping List Manager Card',
   description: 'A shopping list card with search, categories, and product images.',
   preview: false
 });
