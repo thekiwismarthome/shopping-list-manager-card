@@ -105,6 +105,10 @@ class ShoppingListManagerCard extends HTMLElement {
     if (!oldHass && hass) {
       this._loadData();
       this._startPolling();
+    
+      if (!this._lists) {
+        this._fetchLists().then(() => this._updateContent());
+      }
     }
   }
 
@@ -235,7 +239,7 @@ class ShoppingListManagerCard extends HTMLElement {
         // On first load, do full render. On updates, just update content
         if (isFirstLoad) {
           this._render();
-        } else {
+        } else if (this._lists !== undefined) {
           this._updateContent();
         }
       } else {
@@ -245,7 +249,9 @@ class ShoppingListManagerCard extends HTMLElement {
       this._isLoading = false;
       // Only update content on error, don't rebuild entire UI
       if (this.shadowRoot.querySelector('.card-content')) {
-        this._updateContent();
+        if (this._lists !== undefined) {
+          this._updateContent();
+        }
       } else {
         this._render();
       }
@@ -274,6 +280,73 @@ class ShoppingListManagerCard extends HTMLElement {
       }
     };
     document.addEventListener('visibilitychange', this._visibilityHandler);
+  }
+
+  async _fetchLists() {
+    try {
+      this._lists = await this._hass.connection.sendMessagePromise({
+        type: 'shopping_list_manager/get_lists'
+      });
+    } catch (e) {
+      console.error('Failed to fetch lists', e);
+      this._lists = {};
+    }
+    console.log('Lists loaded in card:', this._lists);
+    console.log('Number of lists:', Object.keys(this._lists).length);
+    
+    // Update the header to show dropdown
+    this._updateHeader();
+  }
+
+  /**
+   * Update the card header (title + dropdown if multiple lists)
+   */
+  _updateHeader() {
+    const header = this.shadowRoot.querySelector('.card-header');
+    if (!header) {
+      console.warn('Header element not found');
+      return;
+    }
+    
+    const numLists = this._lists ? Object.keys(this._lists).length : 0;
+    console.log('Updating header, lists available:', numLists);
+    
+    header.innerHTML = `
+      <div class="card-title">
+        ${this._formatListId(this._listId)}
+      </div>
+
+      ${this._lists && Object.keys(this._lists).length > 1
+        ? `
+          <select class="list-selector" title="Switch list">
+            ${Object.keys(this._lists).map(
+              (id) => `
+                <option value="${id}" ${id === this._listId ? 'selected' : ''}>
+                  ${this._formatListId(id)}
+                </option>
+              `
+            ).join('')}
+          </select>
+        `
+        : ''
+      }
+    `;
+    
+    console.log('Header HTML updated, dropdown should be visible:', numLists > 1);
+    
+    // Attach listener for dropdown
+    const selector = header.querySelector('.list-selector');
+    if (selector) {
+      console.log('Dropdown selector found, attaching listener');
+      selector.addEventListener('change', (e) => {
+        console.log('List changed to:', e.target.value);
+        this._listId = e.target.value;
+        this._loadData();
+        this._hapticFeedback();
+      });
+    } else {
+      console.log('No dropdown selector found (expected if only 1 list)');
+    }
   }
 
   /**
@@ -1291,7 +1364,28 @@ class ShoppingListManagerCard extends HTMLElement {
           max-width: 100%;
           overflow: hidden;
         }
-        
+        .card-header {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          gap: 8px;
+          margin-bottom: 12px;
+        }
+
+        .card-title {
+          font-size: 1.2em;
+          font-weight: 500;
+          color: var(--primary-text-color);
+        }
+
+        .list-selector {
+          background: var(--card-background-color);
+          color: var(--primary-text-color);
+          border: 1px solid var(--divider-color);
+          border-radius: 6px;
+          padding: 4px 8px;
+        }
+
         .search-container {
           display: flex;
           gap: 8px;
@@ -1651,8 +1745,29 @@ class ShoppingListManagerCard extends HTMLElement {
         }
       </style>
       
-      <ha-card header="${this._config.title || this._listId}">
+      <ha-card>
         <div class="card-content">
+          <div class="card-header">
+            <div class="card-title">
+              ${this._formatListId(this._listId)}
+            </div>
+
+            ${this._lists && Object.keys(this._lists).length > 1
+              ? `
+                <select class="list-selector" title="Switch list">
+                  ${Object.keys(this._lists).map(
+                    (id) => `
+                      <option value="${id}" ${id === this._listId ? 'selected' : ''}>
+                        ${this._formatListId(id)}
+                      </option>
+                    `
+                  ).join('')}
+                </select>
+              `
+              : ''
+            }
+          </div>
+
           <div class="search-container">
             <div class="search-wrapper">
               <input
@@ -1808,7 +1923,16 @@ class ShoppingListManagerCard extends HTMLElement {
     const searchBar = this.shadowRoot.querySelector('.search-bar');
     const searchClear = this.shadowRoot.querySelector('.search-clear');
     const settingsBtn = this.shadowRoot.querySelector('.settings-btn');
-    
+    const selector = this.shadowRoot.querySelector('.list-selector');
+
+    if (selector && !selector._listenerAttached) {
+      selector._listenerAttached = true;
+      selector.addEventListener('change', (e) => {
+        this._listId = e.target.value;
+        this._loadData();
+      });
+    }
+
     if (searchBar) {
       searchBar.addEventListener('input', (e) => {
         this._searchQuery = e.target.value;
