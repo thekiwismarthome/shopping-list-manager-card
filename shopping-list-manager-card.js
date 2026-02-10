@@ -26,7 +26,7 @@ const CATEGORY_MAP = CATEGORIES.reduce((map, cat) => {
   return map;
 }, {});
 
-class ShoppingListCard extends HTMLElement {
+class ShoppingListManagerCard extends HTMLElement {
   constructor() {
     super();
     this.attachShadow({ mode: 'open' });
