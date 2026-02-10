@@ -4,7 +4,7 @@ A custom Lovelace card for the **Shopping List Manager** integration.
 
 This card provides the user interface only and communicates with the integration via WebSocket.
 
-👉 [What This Card Can Do](#what-this-card-can-do)
+👉 [What This Card Can Do](#-what-this-card-can-do)
 
 Sorry for the quality.
 
