@@ -112,10 +112,11 @@ class ShoppingListCard extends HTMLElement {
     if (!config || typeof config !== 'object') {
       throw new Error('Invalid configuration');
     }
-  
+    const listId = config.list_id ?? 'groceries';
     // Normalize + freeze config shape here
     this._config = {
-      title: config.title ?? 'Shopping List',
+      title: config.title ?? this._formatListId(listId),
+      list_id: listId,
       card_id: config.card_id,
       products_per_row: config.products_per_row ?? 'auto',
       layout: config.layout ?? 'grid',
@@ -123,7 +124,9 @@ class ShoppingListCard extends HTMLElement {
       hide_completed: !!config.hide_completed,
       compact_headers: !!config.compact_headers
     };
-  
+
+    this._listId = listId;
+
     // Derive a stable per-card storage key
     const idSource =
       this._config.card_id ||
@@ -155,6 +158,11 @@ class ShoppingListCard extends HTMLElement {
     }
   }
 
+  _formatListId(listId) {
+  return listId
+    .replace(/_/g, ' ')
+    .replace(/\b\w/g, (l) => l.toUpperCase());
+  }
 
   /**
    * Load data using Home Assistant's connection.sendMessagePromise
@@ -203,10 +211,12 @@ class ShoppingListCard extends HTMLElement {
     try {
       const [products, activeList] = await Promise.all([
         this._hass.connection.sendMessagePromise({
-          type: 'shopping_list_manager/get_products'
+          type: 'shopping_list_manager/get_products',
+          list_id: this._listId
         }),
         this._hass.connection.sendMessagePromise({
-          type: 'shopping_list_manager/get_active'
+          type: 'shopping_list_manager/get_active',
+          list_id: this._listId
         })
       ]);
       
@@ -537,6 +547,7 @@ class ShoppingListCard extends HTMLElement {
     try {
       await this._hass.connection.sendMessagePromise({
         type: 'shopping_list_manager/add_product',
+        list_id: this._listId,
         key: key,
         name: result.name,
         category: result.category,
@@ -546,6 +557,7 @@ class ShoppingListCard extends HTMLElement {
       
       await this._hass.connection.sendMessagePromise({
         type: 'shopping_list_manager/set_qty',
+        list_id: this._listId,
         key: key,
         qty: 1
       });
@@ -743,6 +755,7 @@ class ShoppingListCard extends HTMLElement {
         // Delete product
         await this._hass.connection.sendMessagePromise({
           type: 'shopping_list_manager/delete_product',
+          list_id: this._listId,
           key: productKey
         });
         
@@ -753,6 +766,7 @@ class ShoppingListCard extends HTMLElement {
         // Update product
         await this._hass.connection.sendMessagePromise({
           type: 'shopping_list_manager/add_product',
+          list_id: this._listId,
           key: productKey,
           name: result.name,
           category: result.category,
@@ -788,6 +802,7 @@ class ShoppingListCard extends HTMLElement {
     try {
       await this._hass.connection.sendMessagePromise({
         type: 'shopping_list_manager/set_qty',
+        list_id: this._listId,
         key: productKey,
         qty: qty
       });
@@ -1636,7 +1651,7 @@ class ShoppingListCard extends HTMLElement {
         }
       </style>
       
-      <ha-card header="${(this._config && this._config.title) || 'Shopping List'}">
+      <ha-card header="${this._config.title || this._listId}">
         <div class="card-content">
           <div class="search-container">
             <div class="search-wrapper">
