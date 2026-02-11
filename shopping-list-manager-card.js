@@ -1445,10 +1445,42 @@ class ShoppingListManagerCard extends HTMLElement {
   _initialRender() {
     this.shadowRoot.innerHTML = `
       <style>
+        :host {
+          display: block;
+          height: 100vh;
+          max-height: 100vh;
+        }
+
         ha-card {
-          padding: 0px;
+          height: 100%;
+          display: flex;
+          flex-direction: column;
           overflow: hidden;
         }
+
+        .card-content.full-height {
+          display: flex;
+          flex-direction: column;
+          height: 100%;
+        }
+
+        .scroll-container {
+          flex: 1;
+          overflow-y: auto;
+          -webkit-overflow-scrolling: touch;
+          padding-bottom: 8px;
+        }
+
+        .bottom-nav {
+          flex-shrink: 0;
+          position: sticky;
+          bottom: 0;
+          padding-bottom: env(safe-area-inset-bottom);
+          background: var(--card-background-color);
+          border-top: 1px solid var(--divider-color);
+          z-index: 5;
+        }
+
         
         .card-content {
           max-width: 100%;
@@ -1865,7 +1897,8 @@ class ShoppingListManagerCard extends HTMLElement {
       </style>
       
       <ha-card>
-        <div class="card-content">
+        <div class="card-content full-height">
+
           <div class="card-header">
             <div class="card-title">
               ${this._formatListId(this._listId)}
@@ -1909,7 +1942,10 @@ class ShoppingListManagerCard extends HTMLElement {
             </button>
           </div>
           
-          <div class="content-area"></div>
+          <div class="scroll-container">
+            <div class="content-area"></div>
+          </div>
+
 
           <div class="bottom-nav">
             <button class="nav-btn active" data-tab="lists">📋<span>Lists</span></button>
