@@ -67,6 +67,8 @@ class ShoppingListManagerCard extends HTMLElement {
     
     // Settings (load from localStorage or defaults)
     this._settings = this._loadSettings();
+    this._activeTab = 'lists'; // 'lists' | 'cards' | 'settings'
+
   }
   
   /**
@@ -1443,10 +1445,71 @@ class ShoppingListManagerCard extends HTMLElement {
   _initialRender() {
     this.shadowRoot.innerHTML = `
       <style>
+        :host {
+          display: block;
+          height: 100vh;
+          max-height: 100vh;
+        }
+
         ha-card {
-          padding: 0px;
+          height: 100%;
+          display: flex;
+          flex-direction: column;
           overflow: hidden;
         }
+
+        .header-wrapper {
+          transition: all 0.25s ease;
+          overflow: hidden;
+        }
+
+        .header-wrapper.collapsed .search-container,
+        .header-wrapper.collapsed .controls {
+          max-height: 0;
+          opacity: 0;
+          transform: translateY(-8px);
+          margin: 0;
+          padding-top: 0;
+          padding-bottom: 0;
+          pointer-events: none;
+        }
+
+        .header-wrapper.collapsed {
+          padding-bottom: 4px;
+          box-shadow: 0 2px 6px rgba(0,0,0,0.15)
+        }
+
+        .header-wrapper.collapsed .card-header {
+          margin-bottom: 4px;
+        }
+
+        .header-wrapper.collapsed .card-title {
+          font-size: 1em;
+          transform: translateY(-2px);
+        }
+        .card-content.full-height {
+          display: flex;
+          flex-direction: column;
+          height: 100%;
+        }
+
+        .scroll-container {
+          flex: 1;
+          overflow-y: auto;
+          -webkit-overflow-scrolling: touch;
+          padding-bottom: 8px;
+        }
+
+        .bottom-nav {
+          flex-shrink: 0;
+          position: sticky;
+          bottom: 0;
+          padding-bottom: env(safe-area-inset-bottom);
+          background: var(--card-background-color);
+          border-top: 1px solid var(--divider-color);
+          z-index: 5;
+        }
+
         
         .card-content {
           max-width: 100%;
@@ -1461,6 +1524,7 @@ class ShoppingListManagerCard extends HTMLElement {
         }
 
         .card-title {
+          transition: font-size 0.25s ease, transform 0.25s ease;
           font-size: 1.2em;
           font-weight: 500;
           color: var(--primary-text-color);
@@ -1482,6 +1546,22 @@ class ShoppingListManagerCard extends HTMLElement {
           width: 100%;
         }
         
+        .search-container,
+        .controls {
+          transition:
+            max-height 0.35s cubic-bezier(.4,0,.2,1),
+            opacity 0.25s ease,
+            transform 0.25s ease,
+            padding 0.25s ease,
+            margin 0.25s ease;
+        }
+        /* Expanded state */
+        .search-container,
+        .controls {
+          max-height: 200px; /* large enough to fit content */
+          opacity: 1;
+          transform: translateY(0);
+        }
         .search-wrapper {
           position: relative;
           flex: 1;
@@ -1831,60 +1911,102 @@ class ShoppingListManagerCard extends HTMLElement {
           padding: 32px;
           color: var(--secondary-text-color);
         }
+        .bottom-nav {
+          display: flex;
+          justify-content: space-around;
+          border-top: 1px solid var(--divider-color);
+          padding: 8px 0;
+          margin-top: 12px;
+        }
+
+        .nav-btn {
+          background: none;
+          border: none;
+          color: var(--secondary-text-color);
+          font-size: 18px;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          gap: 2px;
+          cursor: pointer;
+        }
+
+        .nav-btn span {
+          font-size: 10px;
+        }
+
+        .nav-btn.active {
+          color: var(--primary-color);
+          font-weight: 600;
+        }
+
       </style>
       
       <ha-card>
-        <div class="card-content">
-          <div class="card-header">
-            <div class="card-title">
-              ${this._formatListId(this._listId)}
+        <div class="card-content full-height">
+          <div class="header-wrapper">
+            <div class="card-header">
+              <div class="card-title">
+                ${this._formatListId(this._listId)}
+              </div>
+
+              ${this._lists && Object.keys(this._lists).length > 1
+                ? `
+                  <select class="list-selector" title="Switch list">
+                    ${Object.keys(this._lists).map(
+                      (id) => `
+                        <option value="${id}" ${id === this._listId ? 'selected' : ''}>
+                          ${this._formatListId(id)}
+                        </option>
+                      `
+                    ).join('')}
+                  </select>
+                `
+                : ''
+              }
             </div>
 
-            ${this._lists && Object.keys(this._lists).length > 1
-              ? `
-                <select class="list-selector" title="Switch list">
-                  ${Object.keys(this._lists).map(
-                    (id) => `
-                      <option value="${id}" ${id === this._listId ? 'selected' : ''}>
-                        ${this._formatListId(id)}
-                      </option>
-                    `
-                  ).join('')}
-                </select>
-              `
-              : ''
-            }
+            <div class="search-container">
+              <div class="search-wrapper">
+                <input
+                  type="text"
+                  class="search-bar"
+                  placeholder="Search products..."
+                  value="${this._searchQuery}"
+                />
+                <button class="search-clear" style="position: absolute !important; right: 8px !important; top: 50% !important; transform: translateY(-50%) !important; background: var(--divider-color) !important; border: none !important; color: var(--primary-text-color) !important; cursor: pointer !important; font-size: 16px !important; padding: 4px 8px !important; border-radius: 4px !important; display: ${this._searchQuery ? 'block' : 'none'} !important; z-index: 10 !important;">✕</button>
+              </div>
+              <button class="settings-btn" title="Settings" style="width: 44px !important; min-width: 44px !important; height: 44px !important; border: 1px solid var(--divider-color) !important; background: var(--card-background-color) !important; color: var(--primary-text-color) !important; cursor: pointer !important; font-size: 20px !important; display: flex !important; align-items: center !important; justify-content: center !important; flex-shrink: 0 !important; border-radius: 8px !important;">⚙️</button>
+            </div>
+            
+            <div class="controls">
+              <button class="control-btn ${this._sortBy === 'category' ? 'active' : ''}" data-sort="category">
+                By Category
+              </button>
+              <button class="control-btn ${this._sortBy === 'alphabet' ? 'active' : ''}" data-sort="alphabet">
+                A-Z
+              </button>
+            </div>
+          </div>
+          <div class="scroll-container">
+            <div class="content-area"></div>
           </div>
 
-          <div class="search-container">
-            <div class="search-wrapper">
-              <input
-                type="text"
-                class="search-bar"
-                placeholder="Search products..."
-                value="${this._searchQuery}"
-              />
-              <button class="search-clear" style="position: absolute !important; right: 8px !important; top: 50% !important; transform: translateY(-50%) !important; background: var(--divider-color) !important; border: none !important; color: var(--primary-text-color) !important; cursor: pointer !important; font-size: 16px !important; padding: 4px 8px !important; border-radius: 4px !important; display: ${this._searchQuery ? 'block' : 'none'} !important; z-index: 10 !important;">✕</button>
-            </div>
-            <button class="settings-btn" title="Settings" style="width: 44px !important; min-width: 44px !important; height: 44px !important; border: 1px solid var(--divider-color) !important; background: var(--card-background-color) !important; color: var(--primary-text-color) !important; cursor: pointer !important; font-size: 20px !important; display: flex !important; align-items: center !important; justify-content: center !important; flex-shrink: 0 !important; border-radius: 8px !important;">⚙️</button>
+
+          <div class="bottom-nav">
+            <button class="nav-btn active" data-tab="lists">📋<span>Lists</span></button>
+            <button class="nav-btn" data-tab="cards">💳<span>Cards</span></button>
+            <button class="nav-btn" data-tab="settings">⚙️<span>Settings</span></button>
           </div>
-          
-          <div class="controls">
-            <button class="control-btn ${this._sortBy === 'category' ? 'active' : ''}" data-sort="category">
-              By Category
-            </button>
-            <button class="control-btn ${this._sortBy === 'alphabet' ? 'active' : ''}" data-sort="alphabet">
-              A-Z
-            </button>
-          </div>
-          
-          <div class="content-area"></div>
+
         </div>
       </ha-card>
     `;
     
+    
     this._attachPersistentListeners();
     this._updateContent();
+    this._attachScrollCollapse();
     // Update header if lists are already loaded
     if (this._lists && Object.keys(this._lists).length > 0) {
       console.log('Lists already loaded, updating header after initial render');
@@ -1896,6 +2018,22 @@ class ShoppingListManagerCard extends HTMLElement {
    * Update only the content area (not search bar)
    */
   _updateContent() {
+    if (this._activeTab === 'cards') {
+      contentArea.innerHTML = `
+        <div style="padding: 24px; text-align:center;">
+          <h3>Loyalty Cards</h3>
+          <p>Coming soon 💳</p>
+        </div>
+      `;
+      return;
+    }
+
+    if (this._activeTab === 'settings') {
+      contentArea.innerHTML = this._renderSettingsTab();
+      this._attachSettingsTabListeners();
+      return;
+    }
+
     const contentArea = this.shadowRoot.querySelector('.content-area');
     if (!contentArea) return;
     
@@ -2009,6 +2147,35 @@ class ShoppingListManagerCard extends HTMLElement {
       }).join('');
   }
   
+  _renderSettingsTab() {
+    return `
+      <div style="padding: 16px;">
+        <h3 style="margin-top:0;">Settings</h3>
+
+        <div style="margin-bottom: 20px;">
+          <strong>Haptics:</strong> ${this._settings.haptics}
+        </div>
+
+        <div style="margin-bottom: 20px;">
+          <strong>Layout:</strong> ${this._settings.layout}
+        </div>
+
+        <button class="open-settings-modal-btn"
+          style="
+            width:100%;
+            padding:12px;
+            border:none;
+            border-radius:8px;
+            background:var(--primary-color);
+            color:white;
+            cursor:pointer;
+          ">
+          Advanced Settings
+        </button>
+      </div>
+    `;
+  }
+
   /**
    * Attach listeners that persist (search bar, sort buttons)
    */
@@ -2072,6 +2239,20 @@ class ShoppingListManagerCard extends HTMLElement {
       });
     }
     
+    this.shadowRoot.querySelectorAll('.nav-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        this._activeTab = btn.dataset.tab;
+
+        // update active visual
+        this.shadowRoot.querySelectorAll('.nav-btn')
+          .forEach(b => b.classList.remove('active'));
+
+        btn.classList.add('active');
+
+        this._updateContent();
+      });
+    });
+
     const sortButtons = this.shadowRoot.querySelectorAll('.control-btn[data-sort]');
     sortButtons.forEach(btn => {
       btn.addEventListener('click', () => {
@@ -2181,6 +2362,35 @@ class ShoppingListManagerCard extends HTMLElement {
     });
   }
   
+  _attachScrollCollapse() {
+    const scrollContainer = this.shadowRoot.querySelector('.scroll-container');
+    const headerWrapper = this.shadowRoot.querySelector('.header-wrapper');
+
+    if (!scrollContainer || !headerWrapper) return;
+
+    let lastScrollTop = 0;
+
+    scrollContainer.addEventListener('scroll', () => {
+      const scrollTop = scrollContainer.scrollTop;
+
+      if (scrollTop > 80) {
+        headerWrapper.classList.add('collapsed');
+      } else if (scrollTop < 40) {
+        headerWrapper.classList.remove('collapsed');
+      }
+    });
+
+  }
+
+  _attachSettingsTabListeners() {
+    const btn = this.shadowRoot.querySelector('.open-settings-modal-btn');
+    if (!btn) return;
+
+    btn.addEventListener('click', () => {
+      this._showSettings();
+    });
+  }
+
   /**
    * Render a single product tile
    */
