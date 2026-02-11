@@ -166,8 +166,12 @@ class ShoppingListManagerCard extends HTMLElement {
   
     const newSettingsKey = `shopping_list_settings_${id}`;
     // Load last viewed list for THIS specific card
-    const listStorageKey = `shopping_list_current_${this._settingsKey}`;
+    const listStorageKey = `shopping_list_current_${id}`;  // Use 'id' not 'this._settingsKey'!
     const savedList = localStorage.getItem(listStorageKey);
+    
+    console.log('=== setConfig ===');
+    console.log('listStorageKey:', listStorageKey);
+    console.log('savedList:', savedList);
 
     // If list_id is provided in YAML, use it
     if (config.list_id) {
