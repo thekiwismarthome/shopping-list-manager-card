@@ -1463,6 +1463,31 @@ class ShoppingListManagerCard extends HTMLElement {
           flex-direction: column;
           height: 100%;
         }
+        .header-wrapper {
+          transition: all 0.25s ease;
+          overflow: hidden;
+        }
+
+        .search-container,
+        .controls {
+          transition: all 0.25s ease;
+        }
+        .header-wrapper.collapsed {
+          box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+        }
+
+        .header-wrapper.collapsed .search-container,
+        .header-wrapper.collapsed .controls {
+          opacity: 0;
+          transform: translateY(-10px);
+          pointer-events: none;
+          height: 0;
+          margin: 0;
+        }
+
+        .header-wrapper.collapsed .card-header {
+          margin-bottom: 4px;
+        }
 
         .scroll-container {
           flex: 1;
@@ -1898,49 +1923,55 @@ class ShoppingListManagerCard extends HTMLElement {
       
       <ha-card>
         <div class="card-content full-height">
+          <div class="header-wrapper">
 
-          <div class="card-header">
-            <div class="card-title">
-              ${this._formatListId(this._listId)}
+            <div class="card-header">
+              <div class="card-title">
+                ${this._formatListId(this._listId)}
+              </div>
+
+              ${this._lists && Object.keys(this._lists).length > 1
+                ? `
+                  <select class="list-selector" title="Switch list">
+                    ${Object.keys(this._lists).map(
+                      (id) => `
+                        <option value="${id}" ${id === this._listId ? 'selected' : ''}>
+                          ${this._formatListId(id)}
+                        </option>
+                      `
+                    ).join('')}
+                  </select>
+                `
+                : ''
+              }
             </div>
 
-            ${this._lists && Object.keys(this._lists).length > 1
-              ? `
-                <select class="list-selector" title="Switch list">
-                  ${Object.keys(this._lists).map(
-                    (id) => `
-                      <option value="${id}" ${id === this._listId ? 'selected' : ''}>
-                        ${this._formatListId(id)}
-                      </option>
-                    `
-                  ).join('')}
-                </select>
-              `
-              : ''
-            }
+            <div class="search-container">
+              <div class="search-wrapper">
+                <input
+                  type="text"
+                  class="search-bar"
+                  placeholder="Search products..."
+                  value="${this._searchQuery}"
+                />
+                <button class="search-clear"
+                  style="position: absolute !important; right: 8px !important; top: 50% !important; transform: translateY(-50%) !important; background: var(--divider-color) !important; border: none !important; color: var(--primary-text-color) !important; cursor: pointer !important; font-size: 16px !important; padding: 4px 8px !important; border-radius: 4px !important; display: ${this._searchQuery ? 'block' : 'none'} !important; z-index: 10 !important;">✕</button>
+              </div>
+              <button class="settings-btn" title="Settings"
+                style="width: 44px !important; min-width: 44px !important; height: 44px !important; border: 1px solid var(--divider-color) !important; background: var(--card-background-color) !important; color: var(--primary-text-color) !important; cursor: pointer !important; font-size: 20px !important; display: flex !important; align-items: center !important; justify-content: center !important; flex-shrink: 0 !important; border-radius: 8px !important;">⚙️</button>
+            </div>
+
+            <div class="controls">
+              <button class="control-btn ${this._sortBy === 'category' ? 'active' : ''}" data-sort="category">
+                By Category
+              </button>
+              <button class="control-btn ${this._sortBy === 'alphabet' ? 'active' : ''}" data-sort="alphabet">
+                A-Z
+              </button>
+            </div>
+
           </div>
 
-          <div class="search-container">
-            <div class="search-wrapper">
-              <input
-                type="text"
-                class="search-bar"
-                placeholder="Search products..."
-                value="${this._searchQuery}"
-              />
-              <button class="search-clear" style="position: absolute !important; right: 8px !important; top: 50% !important; transform: translateY(-50%) !important; background: var(--divider-color) !important; border: none !important; color: var(--primary-text-color) !important; cursor: pointer !important; font-size: 16px !important; padding: 4px 8px !important; border-radius: 4px !important; display: ${this._searchQuery ? 'block' : 'none'} !important; z-index: 10 !important;">✕</button>
-            </div>
-            <button class="settings-btn" title="Settings" style="width: 44px !important; min-width: 44px !important; height: 44px !important; border: 1px solid var(--divider-color) !important; background: var(--card-background-color) !important; color: var(--primary-text-color) !important; cursor: pointer !important; font-size: 20px !important; display: flex !important; align-items: center !important; justify-content: center !important; flex-shrink: 0 !important; border-radius: 8px !important;">⚙️</button>
-          </div>
-          
-          <div class="controls">
-            <button class="control-btn ${this._sortBy === 'category' ? 'active' : ''}" data-sort="category">
-              By Category
-            </button>
-            <button class="control-btn ${this._sortBy === 'alphabet' ? 'active' : ''}" data-sort="alphabet">
-              A-Z
-            </button>
-          </div>
           
           <div class="scroll-container">
             <div class="content-area"></div>
@@ -1959,6 +1990,8 @@ class ShoppingListManagerCard extends HTMLElement {
     
     this._attachPersistentListeners();
     this._updateContent();
+    this._attachScrollCollapse();
+
     // Update header if lists are already loaded
     if (this._lists && Object.keys(this._lists).length > 0) {
       console.log('Lists already loaded, updating header after initial render');
@@ -2221,6 +2254,32 @@ class ShoppingListManagerCard extends HTMLElement {
   /**
    * Attach listeners for content area (products, buttons)
    */
+  _attachScrollCollapse() {
+    const scrollContainer = this.shadowRoot.querySelector('.scroll-container');
+    const headerWrapper = this.shadowRoot.querySelector('.header-wrapper');
+
+    if (!scrollContainer || !headerWrapper) return;
+
+    let lastScrollTop = 0;
+
+    scrollContainer.addEventListener('scroll', () => {
+      const currentScroll = scrollContainer.scrollTop;
+
+      // Only collapse after small threshold
+      if (currentScroll > 30 && currentScroll > lastScrollTop) {
+        headerWrapper.classList.add('collapsed');
+      }
+
+      // Expand when near top or scrolling up
+      if (currentScroll < 10 || currentScroll < lastScrollTop) {
+        headerWrapper.classList.remove('collapsed');
+      }
+
+      lastScrollTop = currentScroll;
+    });
+  }
+
+
   _attachContentListeners() {
     // Product tiles - add long-press for edit
     const tiles = this.shadowRoot.querySelectorAll('.product-tile');
