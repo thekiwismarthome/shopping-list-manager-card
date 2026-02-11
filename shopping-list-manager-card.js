@@ -46,6 +46,10 @@ class ShoppingListManagerCard extends HTMLElement {
     this._imageListCache = null;  // Cached directory listing from /local/images/shopping_list_manager/
     this._cardSize = 'small'; // 'small' or 'large' - detected from card width
     
+    // Load last viewed list from localStorage (defaults to 'groceries')
+    // Note: We can't use card_id here yet because setConfig() hasn't run
+    // So we'll use a temporary default key, then update in setConfig()
+    this._listId = 'groceries'; // Default, will be overridden by setConfig()
     // Settings (load from localStorage or defaults)
     this._settings = this._loadSettings();
   }
@@ -107,7 +111,7 @@ class ShoppingListManagerCard extends HTMLElement {
       this._startPolling();
     
       if (!this._lists) {
-        this._fetchLists().then(() => this._updateContent());
+        this._fetchLists();
       }
     }
   }
@@ -116,11 +120,20 @@ class ShoppingListManagerCard extends HTMLElement {
     if (!config || typeof config !== 'object') {
       throw new Error('Invalid configuration');
     }
-    const listId = config.list_id ?? 'groceries';
+    
+    // If list_id is provided in YAML, use it as initial value
+    // Otherwise, use the value from localStorage (already loaded in constructor)
+    if (config.list_id) {
+      this._listId = config.list_id;
+      // Save to localStorage so it persists
+      localStorage.setItem('shopping_list_current_list', this._listId);
+    }
+    // If no list_id in config, _listId is already set from localStorage in constructor
+    
     // Normalize + freeze config shape here
     this._config = {
-      title: config.title ?? this._formatListId(listId),
-      list_id: listId,
+      title: config.title ?? this._formatListId(this._listId),
+      list_id: this._listId, // Use the determined list_id
       card_id: config.card_id,
       products_per_row: config.products_per_row ?? 'auto',
       layout: config.layout ?? 'grid',
@@ -129,7 +142,7 @@ class ShoppingListManagerCard extends HTMLElement {
       compact_headers: !!config.compact_headers
     };
 
-    this._listId = listId;
+    // Note: this._listId is already set above, no need to set it again
 
     // Derive a stable per-card storage key
     const idSource =
@@ -144,7 +157,25 @@ class ShoppingListManagerCard extends HTMLElement {
       .replace(/[^a-z0-9_]/g, '_');
   
     const newSettingsKey = `shopping_list_settings_${id}`;
-  
+    // Load last viewed list for THIS specific card
+    const listStorageKey = `shopping_list_current_${this._settingsKey}`;
+    const savedList = localStorage.getItem(listStorageKey);
+
+    // If list_id is provided in YAML, use it
+    if (config.list_id) {
+      this._listId = config.list_id;
+      localStorage.setItem(listStorageKey, this._listId);
+    } else if (savedList) {
+      // Use saved list if no config.list_id
+      this._listId = savedList;
+    } else {
+      // Default to groceries
+      this._listId = 'groceries';
+    }
+
+    // Store the key for later use
+    this._listStorageKey = listStorageKey;
+
     // If the card_id / title changed, reload settings
     if (this._settingsKey !== newSettingsKey) {
       this._settingsKey = newSettingsKey;
@@ -294,8 +325,14 @@ class ShoppingListManagerCard extends HTMLElement {
     console.log('Lists loaded in card:', this._lists);
     console.log('Number of lists:', Object.keys(this._lists).length);
     
-    // Update the header to show dropdown
-    this._updateHeader();
+    // Only update header if the card has been rendered
+    // (Check if .card-header exists before trying to update it)
+    if (this.shadowRoot && this.shadowRoot.querySelector('.card-header')) {
+      console.log('Card is rendered, updating header');
+      this._updateHeader();
+    } else {
+      console.log('Card not rendered yet, header will be updated on render');
+    }
   }
 
   /**
@@ -339,16 +376,34 @@ class ShoppingListManagerCard extends HTMLElement {
     if (selector) {
       console.log('Dropdown selector found, attaching listener');
       selector.addEventListener('change', (e) => {
-        console.log('List changed to:', e.target.value);
-        this._listId = e.target.value;
+        const newListId = e.target.value;
+        console.log('List changed to:', newListId);
+        
+        // Validate that the list exists
+        if (!this._lists || !this._lists[newListId]) {
+          console.warn('Attempted to switch to non-existent list:', newListId);
+          return;
+        }
+        
+        // Update state
+        this._listId = newListId;
+        
+        // Save to localStorage so it persists across refreshes (per-card key)
+        const storageKey = this._listStorageKey || 'shopping_list_current_list';
+        localStorage.setItem(storageKey, newListId);
+        console.log('Saved list to localStorage:', storageKey, '=', newListId);
+        
+        // Reload data for the new list
         this._loadData();
+        
+        // Update the title to show the new list name
+        this._updateHeader();
+        
+        // Haptic feedback
         this._hapticFeedback();
       });
-    } else {
-      console.log('No dropdown selector found (expected if only 1 list)');
     }
   }
-
   /**
    * Fetch and cache the directory listing from the shopping_list_manager image folder.
    * HA's static file server returns an HTML page with <a> links for each file.
@@ -1797,6 +1852,11 @@ class ShoppingListManagerCard extends HTMLElement {
     
     this._attachPersistentListeners();
     this._updateContent();
+    // Update header if lists are already loaded
+    if (this._lists && Object.keys(this._lists).length > 0) {
+      console.log('Lists already loaded, updating header after initial render');
+      this._updateHeader();
+    }
   }
   
   /**
