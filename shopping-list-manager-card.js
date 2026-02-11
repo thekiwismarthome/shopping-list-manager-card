@@ -67,6 +67,8 @@ class ShoppingListManagerCard extends HTMLElement {
     
     // Settings (load from localStorage or defaults)
     this._settings = this._loadSettings();
+    this._activeTab = 'lists'; // 'lists' | 'cards' | 'settings'
+
   }
   
   /**
@@ -1831,6 +1833,35 @@ class ShoppingListManagerCard extends HTMLElement {
           padding: 32px;
           color: var(--secondary-text-color);
         }
+        .bottom-nav {
+          display: flex;
+          justify-content: space-around;
+          border-top: 1px solid var(--divider-color);
+          padding: 8px 0;
+          margin-top: 12px;
+        }
+
+        .nav-btn {
+          background: none;
+          border: none;
+          color: var(--secondary-text-color);
+          font-size: 18px;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          gap: 2px;
+          cursor: pointer;
+        }
+
+        .nav-btn span {
+          font-size: 10px;
+        }
+
+        .nav-btn.active {
+          color: var(--primary-color);
+          font-weight: 600;
+        }
+
       </style>
       
       <ha-card>
@@ -1879,6 +1910,13 @@ class ShoppingListManagerCard extends HTMLElement {
           </div>
           
           <div class="content-area"></div>
+
+          <div class="bottom-nav">
+            <button class="nav-btn active" data-tab="lists">📋<span>Lists</span></button>
+            <button class="nav-btn" data-tab="cards">💳<span>Cards</span></button>
+            <button class="nav-btn" data-tab="settings">⚙️<span>Settings</span></button>
+          </div>
+
         </div>
       </ha-card>
     `;
@@ -1896,6 +1934,22 @@ class ShoppingListManagerCard extends HTMLElement {
    * Update only the content area (not search bar)
    */
   _updateContent() {
+    if (this._activeTab === 'cards') {
+      contentArea.innerHTML = `
+        <div style="padding: 24px; text-align:center;">
+          <h3>Loyalty Cards</h3>
+          <p>Coming soon 💳</p>
+        </div>
+      `;
+      return;
+    }
+
+    if (this._activeTab === 'settings') {
+      contentArea.innerHTML = this._renderSettingsTab();
+      this._attachSettingsTabListeners();
+      return;
+    }
+
     const contentArea = this.shadowRoot.querySelector('.content-area');
     if (!contentArea) return;
     
@@ -2009,6 +2063,35 @@ class ShoppingListManagerCard extends HTMLElement {
       }).join('');
   }
   
+  _renderSettingsTab() {
+    return `
+      <div style="padding: 16px;">
+        <h3 style="margin-top:0;">Settings</h3>
+
+        <div style="margin-bottom: 20px;">
+          <strong>Haptics:</strong> ${this._settings.haptics}
+        </div>
+
+        <div style="margin-bottom: 20px;">
+          <strong>Layout:</strong> ${this._settings.layout}
+        </div>
+
+        <button class="open-settings-modal-btn"
+          style="
+            width:100%;
+            padding:12px;
+            border:none;
+            border-radius:8px;
+            background:var(--primary-color);
+            color:white;
+            cursor:pointer;
+          ">
+          Advanced Settings
+        </button>
+      </div>
+    `;
+  }
+
   /**
    * Attach listeners that persist (search bar, sort buttons)
    */
@@ -2072,6 +2155,20 @@ class ShoppingListManagerCard extends HTMLElement {
       });
     }
     
+    this.shadowRoot.querySelectorAll('.nav-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        this._activeTab = btn.dataset.tab;
+
+        // update active visual
+        this.shadowRoot.querySelectorAll('.nav-btn')
+          .forEach(b => b.classList.remove('active'));
+
+        btn.classList.add('active');
+
+        this._updateContent();
+      });
+    });
+
     const sortButtons = this.shadowRoot.querySelectorAll('.control-btn[data-sort]');
     sortButtons.forEach(btn => {
       btn.addEventListener('click', () => {
@@ -2181,6 +2278,15 @@ class ShoppingListManagerCard extends HTMLElement {
     });
   }
   
+  _attachSettingsTabListeners() {
+    const btn = this.shadowRoot.querySelector('.open-settings-modal-btn');
+    if (!btn) return;
+
+    btn.addEventListener('click', () => {
+      this._showSettings();
+    });
+  }
+
   /**
    * Render a single product tile
    */
