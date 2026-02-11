@@ -45,14 +45,11 @@ class ShoppingListManagerCard extends HTMLElement {
     this._hass = null;
     this._config = null;
     // ... rest of constructor
-  }
-    
+  
     // Don't generate instance ID here - we need config first
     // Will be set in setConfig() based on stable criteria
     
     // State
-    this._hass = null;
-    this._config = null;
     this._products = {};
     this._activeList = {};
     this._searchQuery = '';
@@ -222,7 +219,10 @@ class ShoppingListManagerCard extends HTMLElement {
   
     // Trigger a re-render if already attached
     if (this.isConnected) {
-      this._render?.();
+      if (typeof this._render === 'function') {
+        this._render();
+      }
+
     }
   }
 
