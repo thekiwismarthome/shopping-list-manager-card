@@ -26,10 +26,26 @@ const CATEGORY_MAP = CATEGORIES.reduce((map, cat) => {
   return map;
 }, {});
 
+// Global registry to track card instances
+if (!window.shoppingListCards) {
+  window.shoppingListCards = [];
+}
+
 class ShoppingListManagerCard extends HTMLElement {
   constructor() {
     super();
     this.attachShadow({ mode: 'open' });
+    
+    // Register this card in global array
+    this._cardIndex = window.shoppingListCards.length;
+    window.shoppingListCards.push(this);
+    console.log('Card registered with index:', this._cardIndex);
+    
+    // State
+    this._hass = null;
+    this._config = null;
+    // ... rest of constructor
+  }
     
     // Don't generate instance ID here - we need config first
     // Will be set in setConfig() based on stable criteria
@@ -146,36 +162,16 @@ class ShoppingListManagerCard extends HTMLElement {
 
     // Note: this._listId is already set above, no need to set it again
 
-    // Generate a stable, unique ID for this card instance
-    // This ID must be the same across page refreshes
+    // Generate stable ID
     let stableId;
 
     if (config.card_id) {
-      // Use provided card_id (best option)
       stableId = config.card_id;
     } else if (config.title) {
-      // Use title as stable ID
       stableId = config.title;
     } else {
-      // Generate stable ID based on card position in DOM
-      // Count how many shopping-list-manager-card elements come before this one
-      let position = 0;
-      let current = this;
-      
-      // Walk up to find parent containing all cards
-      while (current.parentElement) {
-        current = current.parentElement;
-        if (current.tagName === 'HUI-VIEW' || current.tagName === 'HUI-PANEL-VIEW') {
-          break;
-        }
-      }
-      
-      // Count cards in this view
-      const allCards = Array.from(current.querySelectorAll('shopping-list-manager-card'));
-      position = allCards.indexOf(this);
-      
-      // Create stable ID: "card_0", "card_1", "card_2"
-      stableId = `card_${position >= 0 ? position : 0}`;
+      // Use card index from global registry
+      stableId = `card_${this._cardIndex}`;
     }
 
     const id = stableId
@@ -185,6 +181,7 @@ class ShoppingListManagerCard extends HTMLElement {
       .replace(/[^a-z0-9_]/g, '_');
 
     console.log('=== Card Setup ===');
+    console.log('Card index:', this._cardIndex);
     console.log('Stable ID:', id);
 
     const newSettingsKey = `shopping_list_settings_${id}`;
