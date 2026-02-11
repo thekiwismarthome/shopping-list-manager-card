@@ -2373,9 +2373,9 @@ class ShoppingListManagerCard extends HTMLElement {
     scrollContainer.addEventListener('scroll', () => {
       const scrollTop = scrollContainer.scrollTop;
 
-      if (scrollTop > 60) {
+      if (scrollTop > 80) {
         headerWrapper.classList.add('collapsed');
-      } else {
+      } else if (scrollTop < 40) {
         headerWrapper.classList.remove('collapsed');
       }
     });
