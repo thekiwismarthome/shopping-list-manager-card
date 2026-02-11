@@ -1465,15 +1465,13 @@ class ShoppingListManagerCard extends HTMLElement {
 
         .header-wrapper.collapsed .search-container,
         .header-wrapper.collapsed .controls {
+          max-height: 0;
           opacity: 0;
-          transform: translateY(-10px);
-          pointer-events: none;
-          height: 0;
+          transform: translateY(-8px);
           margin: 0;
-        }
-
-        .header-wrapper.collapsed .card-header {
-          margin-bottom: 4px;
+          padding-top: 0;
+          padding-bottom: 0;
+          pointer-events: none;
         }
 
         .header-wrapper.collapsed {
@@ -1481,6 +1479,14 @@ class ShoppingListManagerCard extends HTMLElement {
           box-shadow: 0 2px 6px rgba(0,0,0,0.15)
         }
 
+        .header-wrapper.collapsed .card-header {
+          margin-bottom: 4px;
+        }
+
+        .header-wrapper.collapsed .card-title {
+          font-size: 1em;
+          transform: translateY(-2px);
+        }
         .card-content.full-height {
           display: flex;
           flex-direction: column;
@@ -1518,6 +1524,7 @@ class ShoppingListManagerCard extends HTMLElement {
         }
 
         .card-title {
+          transition: font-size 0.25s ease, transform 0.25s ease;
           font-size: 1.2em;
           font-weight: 500;
           color: var(--primary-text-color);
@@ -1541,9 +1548,20 @@ class ShoppingListManagerCard extends HTMLElement {
         
         .search-container,
         .controls {
-          transition: all 0.25s ease;
+          transition:
+            max-height 0.35s cubic-bezier(.4,0,.2,1),
+            opacity 0.25s ease,
+            transform 0.25s ease,
+            padding 0.25s ease,
+            margin 0.25s ease;
         }
-
+        /* Expanded state */
+        .search-container,
+        .controls {
+          max-height: 200px; /* large enough to fit content */
+          opacity: 1;
+          transform: translateY(0);
+        }
         .search-wrapper {
           position: relative;
           flex: 1;
@@ -2353,20 +2371,15 @@ class ShoppingListManagerCard extends HTMLElement {
     let lastScrollTop = 0;
 
     scrollContainer.addEventListener('scroll', () => {
-      const currentScroll = scrollContainer.scrollTop;
+      const scrollTop = scrollContainer.scrollTop;
 
-      // Only collapse after small threshold
-      if (currentScroll > 30 && currentScroll > lastScrollTop) {
+      if (scrollTop > 60) {
         headerWrapper.classList.add('collapsed');
-      }
-
-      // Expand when near top or scrolling up
-      if (currentScroll < 10 || currentScroll < lastScrollTop) {
+      } else {
         headerWrapper.classList.remove('collapsed');
       }
-
-      lastScrollTop = currentScroll;
     });
+
   }
 
   _attachSettingsTabListeners() {
