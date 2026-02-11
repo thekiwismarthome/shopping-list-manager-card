@@ -31,6 +31,11 @@ class ShoppingListManagerCard extends HTMLElement {
     super();
     this.attachShadow({ mode: 'open' });
     
+    // Generate a unique ID for this card instance
+    // This ensures each card has its own localStorage keys
+    this._instanceId = `card_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    console.log('Card instance created:', this._instanceId);
+  
     // State
     this._hass = null;
     this._config = null;
@@ -144,17 +149,20 @@ class ShoppingListManagerCard extends HTMLElement {
 
     // Note: this._listId is already set above, no need to set it again
 
-    // Derive a stable per-card storage key
+    // Derive a stable per-card storage key FIRST
+    // Priority: config.card_id > config.title > unique instance ID
     const idSource =
-      this._config.card_id ||
-      this._config.title ||
-      'shopping_list';
-  
+      config.card_id ||
+      config.title ||
+      this._instanceId;  // Use unique instance ID
+
     const id = idSource
       .toString()
       .trim()
       .toLowerCase()
       .replace(/[^a-z0-9_]/g, '_');
+
+    console.log('Card ID for storage:', id);
   
     const newSettingsKey = `shopping_list_settings_${id}`;
     // Load last viewed list for THIS specific card
