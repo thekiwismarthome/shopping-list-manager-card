@@ -31,11 +31,9 @@ class ShoppingListManagerCard extends HTMLElement {
     super();
     this.attachShadow({ mode: 'open' });
     
-    // Generate a unique ID for this card instance
-    // This ensures each card has its own localStorage keys
-    this._instanceId = `card_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-    console.log('Card instance created:', this._instanceId);
-  
+    // Don't generate instance ID here - we need config first
+    // Will be set in setConfig() based on stable criteria
+    
     // State
     this._hass = null;
     this._config = null;
@@ -51,10 +49,9 @@ class ShoppingListManagerCard extends HTMLElement {
     this._imageListCache = null;  // Cached directory listing from /local/images/shopping_list_manager/
     this._cardSize = 'small'; // 'small' or 'large' - detected from card width
     
-    // Load last viewed list from localStorage (defaults to 'groceries')
-    // Note: We can't use card_id here yet because setConfig() hasn't run
-    // So we'll use a temporary default key, then update in setConfig()
-    this._listId = 'groceries'; // Default, will be overridden by setConfig()
+    // Default list ID - will be overridden by setConfig()
+    this._listId = 'groceries';
+    
     // Settings (load from localStorage or defaults)
     this._settings = this._loadSettings();
   }
@@ -149,43 +146,70 @@ class ShoppingListManagerCard extends HTMLElement {
 
     // Note: this._listId is already set above, no need to set it again
 
-    // Derive a stable per-card storage key FIRST
-    // Priority: config.card_id > config.title > unique instance ID
-    const idSource =
-      config.card_id ||
-      config.title ||
-      this._instanceId;  // Use unique instance ID
+    // Generate a stable, unique ID for this card instance
+    // This ID must be the same across page refreshes
+    let stableId;
 
-    const id = idSource
+    if (config.card_id) {
+      // Use provided card_id (best option)
+      stableId = config.card_id;
+    } else if (config.title) {
+      // Use title as stable ID
+      stableId = config.title;
+    } else {
+      // Generate stable ID based on card position in DOM
+      // Count how many shopping-list-manager-card elements come before this one
+      let position = 0;
+      let current = this;
+      
+      // Walk up to find parent containing all cards
+      while (current.parentElement) {
+        current = current.parentElement;
+        if (current.tagName === 'HUI-VIEW' || current.tagName === 'HUI-PANEL-VIEW') {
+          break;
+        }
+      }
+      
+      // Count cards in this view
+      const allCards = Array.from(current.querySelectorAll('shopping-list-manager-card'));
+      position = allCards.indexOf(this);
+      
+      // Create stable ID: "card_0", "card_1", "card_2"
+      stableId = `card_${position >= 0 ? position : 0}`;
+    }
+
+    const id = stableId
       .toString()
       .trim()
       .toLowerCase()
       .replace(/[^a-z0-9_]/g, '_');
 
-    console.log('Card ID for storage:', id);
-  
-    const newSettingsKey = `shopping_list_settings_${id}`;
-    // Load last viewed list for THIS specific card
-    const listStorageKey = `shopping_list_current_${id}`;  // Use 'id' not 'this._settingsKey'!
-    const savedList = localStorage.getItem(listStorageKey);
-    
-    console.log('=== setConfig ===');
-    console.log('listStorageKey:', listStorageKey);
-    console.log('savedList:', savedList);
+    console.log('=== Card Setup ===');
+    console.log('Stable ID:', id);
 
-    // If list_id is provided in YAML, use it
+    const newSettingsKey = `shopping_list_settings_${id}`;
+    const listStorageKey = `shopping_list_current_${id}`;
+
+    console.log('listStorageKey:', listStorageKey);
+
+    // Load saved list for this card
+    const savedListId = localStorage.getItem(listStorageKey);
+    console.log('savedListId:', savedListId);
+
+    // Determine which list to use (priority: config > saved > default)
     if (config.list_id) {
       this._listId = config.list_id;
       localStorage.setItem(listStorageKey, this._listId);
-    } else if (savedList) {
-      // Use saved list if no config.list_id
-      this._listId = savedList;
+      console.log('✅ Using list_id from config:', this._listId);
+    } else if (savedListId) {
+      this._listId = savedListId;
+      console.log('✅ Using saved list:', this._listId);
     } else {
-      // Default to groceries
       this._listId = 'groceries';
+      console.log('✅ Using default list: groceries');
     }
 
-    // Store the key for later use
+    // Store the key for later use in dropdown
     this._listStorageKey = listStorageKey;
 
     // If the card_id / title changed, reload settings
