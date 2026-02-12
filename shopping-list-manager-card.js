@@ -35,6 +35,8 @@ class ShoppingListManagerCard extends HTMLElement {
   constructor() {
     super();
     this.attachShadow({ mode: 'open' });
+
+    this._dataLoaded = false;
     
     // Register this card in global array
     this._cardIndex = window.shoppingListCards.length;
@@ -121,17 +123,20 @@ class ShoppingListManagerCard extends HTMLElement {
   set hass(hass) {
     const oldHass = this._hass;
     this._hass = hass;
-    
-    // Load data when hass is first set
+
     if (!oldHass && hass) {
-      this._loadData();
-      this._startPolling();
-    
+      if (!this._dataLoaded) {
+        this._dataLoaded = true;
+        this._loadData();
+        this._startPolling();
+      }
+
       if (!this._lists) {
         this._fetchLists();
       }
     }
   }
+
 
   setConfig(config) {
     if (!config || typeof config !== 'object') {
@@ -279,7 +284,7 @@ class ShoppingListManagerCard extends HTMLElement {
     }
 
     console.log("Loading list ID:", this._listId);
-    
+
     try {
       const [products, activeList] = await Promise.all([
         this._hass.connection.sendMessagePromise({
@@ -2020,6 +2025,10 @@ class ShoppingListManagerCard extends HTMLElement {
    * Update only the content area (not search bar)
    */
   _updateContent() {
+
+    const contentArea = this.shadowRoot.querySelector('.content-area');
+    if (!contentArea) return;
+    
     if (this._activeTab === 'cards') {
       contentArea.innerHTML = `
         <div style="padding: 24px; text-align:center;">
@@ -2035,9 +2044,6 @@ class ShoppingListManagerCard extends HTMLElement {
       this._attachSettingsTabListeners();
       return;
     }
-
-    const contentArea = this.shadowRoot.querySelector('.content-area');
-    if (!contentArea) return;
     
     if (this._isLoading) {
       contentArea.innerHTML = '<div style="padding: 16px; text-align: center;">Loading...</div>';
