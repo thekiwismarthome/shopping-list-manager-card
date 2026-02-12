@@ -1986,7 +1986,7 @@ class ShoppingListManagerCard extends HTMLElement {
               <button class="settings-btn" title="Settings" style="width: 44px !important; min-width: 44px !important; height: 44px !important; border: 1px solid var(--divider-color) !important; background: var(--card-background-color) !important; color: var(--primary-text-color) !important; cursor: pointer !important; font-size: 20px !important; display: flex !important; align-items: center !important; justify-content: center !important; flex-shrink: 0 !important; border-radius: 8px !important;">⚙️</button>
             </div>
             
-            <div class="controls">
+            <div class="controls sort-controls">
               <button class="control-btn ${this._sortBy === 'category' ? 'active' : ''}" data-sort="category">
                 By Category
               </button>
@@ -2028,7 +2028,24 @@ class ShoppingListManagerCard extends HTMLElement {
 
     const contentArea = this.shadowRoot.querySelector('.content-area');
     if (!contentArea) return;
-    
+    const searchContainer = this.shadowRoot.querySelector('.search-container');
+    const sortControls = this.shadowRoot.querySelector('.sort-controls');
+
+    if (this._activeTab === 'lists') {
+      if (searchContainer) searchContainer.style.display = 'flex';
+      if (sortControls) sortControls.style.display = 'flex';
+    }
+
+    if (this._activeTab === 'cards') {
+      if (searchContainer) searchContainer.style.display = 'flex';
+      if (sortControls) sortControls.style.display = 'none';
+    }
+
+    if (this._activeTab === 'settings') {
+      if (searchContainer) searchContainer.style.display = 'none';
+      if (sortControls) sortControls.style.display = 'none';
+    }
+
     if (this._activeTab === 'cards') {
       contentArea.innerHTML = `
         <div style="padding: 24px; text-align:center;">
