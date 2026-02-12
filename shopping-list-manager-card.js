@@ -2025,27 +2025,28 @@ class ShoppingListManagerCard extends HTMLElement {
    * Update only the content area (not search bar)
    */
   _updateContent() {
-
-    const contentArea = this.shadowRoot.querySelector('.content-area');
-    if (!contentArea) return;
+    const headerWrapper = this.shadowRoot.querySelector('.header-wrapper');
     const searchContainer = this.shadowRoot.querySelector('.search-container');
-    const sortControls = this.shadowRoot.querySelector('.sort-controls');
+    const controls = this.shadowRoot.querySelector('.controls');
+    const contentArea = this.shadowRoot.querySelector('.content-area');
 
+    if (!contentArea) return;
+
+    // ----- Tab-based header visibility -----
     if (this._activeTab === 'lists') {
-      if (searchContainer) searchContainer.style.display = 'flex';
-      if (sortControls) sortControls.style.display = 'flex';
+      searchContainer.style.display = '';
+      controls.style.display = '';
+    } 
+    else if (this._activeTab === 'cards') {
+      searchContainer.style.display = '';
+      controls.style.display = 'none';
+    } 
+    else if (this._activeTab === 'settings') {
+      searchContainer.style.display = 'none';
+      controls.style.display = 'none';
     }
 
-    if (this._activeTab === 'cards') {
-      if (searchContainer) searchContainer.style.display = 'flex';
-      if (sortControls) sortControls.style.display = 'none';
-    }
-
-    if (this._activeTab === 'settings') {
-      if (searchContainer) searchContainer.style.display = 'none';
-      if (sortControls) sortControls.style.display = 'none';
-    }
-
+    // ----- Tab routing -----
     if (this._activeTab === 'cards') {
       contentArea.innerHTML = `
         <div style="padding: 24px; text-align:center;">
