@@ -277,6 +277,8 @@ class ShoppingListManagerCard extends HTMLElement {
     if (!this._hass || !this._hass.connection) {
       return;
     }
+
+    console.log("Loading list ID:", this._listId);
     
     try {
       const [products, activeList] = await Promise.all([
