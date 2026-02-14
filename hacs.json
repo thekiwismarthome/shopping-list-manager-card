@@ -2,5 +2,6 @@
   "name": "Shopping List Manager Card",
   "content_in_root": false,
   "render_readme": true,
-  "domains": ["plugin"]
+  "domains": ["plugin"],
+  "filename": "shopping-list-manager-card.js"
 }
