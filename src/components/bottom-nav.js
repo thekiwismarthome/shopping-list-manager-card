@@ -20,7 +20,7 @@ class BottomNav extends LitElement {
           class="nav-item ${this.currentView === 'shopping' ? 'active' : ''}"
           @click=${() => this.handleNavClick('shopping')}
         >
-          <ha-icon icon="mdi:cart"></ha-icon>
+          <span class="emoji">🛒</span>
           <span>Shopping</span>
         </button>
 
@@ -28,7 +28,7 @@ class BottomNav extends LitElement {
           class="nav-item ${this.currentView === 'lists' ? 'active' : ''}"
           @click=${() => this.handleNavClick('lists')}
         >
-          <ha-icon icon="mdi:format-list-bulleted"></ha-icon>
+          <span class="emoji">📋</span>
           <span>Lists</span>
         </button>
 
@@ -36,7 +36,7 @@ class BottomNav extends LitElement {
           class="nav-item ${this.currentView === 'loyalty' ? 'active' : ''}"
           @click=${() => this.handleNavClick('loyalty')}
         >
-          <ha-icon icon="mdi:card-account-details"></ha-icon>
+          <span class="emoji">💳</span>
           <span>Loyalty</span>
         </button>
 
@@ -44,7 +44,7 @@ class BottomNav extends LitElement {
           class="nav-item ${this.currentView === 'settings' ? 'active' : ''}"
           @click=${() => this.handleNavClick('settings')}
         >
-          <ha-icon icon="mdi:cog"></ha-icon>
+          <span class="emoji">⚙️</span>
           <span>Settings</span>
         </button>
       </nav>
@@ -53,16 +53,16 @@ class BottomNav extends LitElement {
 
   static styles = css`
     .bottom-nav {
-      position: fixed;
+      position: sticky;
       bottom: 0;
       left: 0;
       right: 0;
       display: flex;
       justify-content: space-around;
       background: var(--card-background-color);
-      border-top: 1px solid var(--divider-color);
+      border-top: 1px solid #e8eaf6;
       padding: 8px 0;
-      box-shadow: 0 -2px 8px rgba(0,0,0,0.1);
+      box-shadow: 0 -2px 8px rgba(0,0,0,0.08);
       z-index: 100;
     }
     .nav-item {
@@ -74,21 +74,21 @@ class BottomNav extends LitElement {
       padding: 8px;
       border: none;
       background: transparent;
-      color: var(--secondary-text-color);
+      color: #9e9e9e;
       cursor: pointer;
       transition: all 0.2s;
+      border-radius: 12px;
     }
     .nav-item:hover {
-      background: var(--primary-color);
-      color: white;
+      background: #f5f7fa;
     }
     .nav-item.active {
-      color: var(--primary-color);
+      color: #667eea;
     }
-    .nav-item ha-icon {
-      --mdc-icon-size: 24px;
+    .emoji {
+      font-size: 24px;
     }
-    .nav-item span {
+    .nav-item span:last-child {
       font-size: 12px;
       font-weight: 500;
     }

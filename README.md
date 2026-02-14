@@ -44,7 +44,7 @@ list_id: groceries
 ```
 and to add HA Card Grids
 ```yaml
-type: custom:shopping-slm-list-card
+type: custom:shopping-list-manager-card
 title: Shopping List
 list_id: groceries
 grid_options:

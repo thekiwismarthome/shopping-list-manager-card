@@ -6,16 +6,24 @@ class ListHeader extends LitElement {
     itemCount: { type: Number }
   };
 
+  getListEmoji(icon) {
+    const emojiMap = {
+      'mdi:cart': '🛒',
+      'mdi:home': '🏠',
+      'mdi:food': '🍽️',
+      'mdi:shopping': '🛍️',
+      'mdi:store': '🏪'
+    };
+    return emojiMap[icon] || '🛒';
+  }
+
   render() {
     return html`
       <div class="header">
         <div class="list-info">
-          <ha-icon icon="${this.activeList?.icon || 'mdi:cart'}"></ha-icon>
+          <span class="emoji">${this.getListEmoji(this.activeList?.icon)}</span>
           <h2>${this.activeList?.name || 'Shopping List'}</h2>
         </div>
-        ${this.itemCount > 0 ? html`
-          <div class="item-badge">${this.itemCount}</div>
-        ` : ''}
       </div>
     `;
   }
@@ -26,30 +34,22 @@ class ListHeader extends LitElement {
       align-items: center;
       justify-content: space-between;
       padding: 16px 20px;
-      background: var(--card-background-color);
-      border-bottom: 1px solid var(--divider-color);
+      background: linear-gradient(135deg, #f5f7fa 0%, #e8eaf6 100%);
+      border-bottom: 1px solid #e8eaf6;
     }
     .list-info {
       display: flex;
       align-items: center;
       gap: 12px;
     }
-    .list-info ha-icon {
-      --mdc-icon-size: 28px;
-      color: var(--primary-color);
+    .emoji {
+      font-size: 28px;
     }
     .list-info h2 {
       margin: 0;
       font-size: 20px;
       font-weight: 600;
-    }
-    .item-badge {
-      background: var(--primary-color);
-      color: white;
-      padding: 4px 12px;
-      border-radius: 16px;
-      font-size: 14px;
-      font-weight: 600;
+      color: #5f6368;
     }
   `;
 }

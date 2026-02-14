@@ -4,12 +4,19 @@ class SLMListCard extends LitElement {
   static properties = {
     list: { type: Object },
     isActive: { type: Boolean },
+    itemCount: { type: Number },
+    totalCost: { type: Number },
+    currency: { type: String },
+    emoji: { type: String },
     showMenu: { type: Boolean }
   };
 
   constructor() {
     super();
     this.showMenu = false;
+    this.itemCount = 0;
+    this.totalCost = 0;
+    this.currency = 'NZD';
   }
 
   handleCardClick() {
@@ -39,37 +46,45 @@ class SLMListCard extends LitElement {
     return html`
       <div class="slm-list-card ${this.isActive ? 'active' : ''}" @click=${this.handleCardClick}>
         <div class="card-header">
-          <ha-icon icon="${this.list.icon}"></ha-icon>
+          <span class="emoji">${this.emoji}</span>
           <button class="menu-btn" @click=${this.handleMenuClick}>
-            <ha-icon icon="mdi:dots-vertical"></ha-icon>
+            <span class="dots">⋮</span>
           </button>
         </div>
 
         <h3>${this.list.name}</h3>
-        <div class="card-meta">
-          <span>${this.list.item_count || 0} items</span>
-          ${this.isActive ? html`
-            <span class="active-badge">Active</span>
-          ` : ''}
-        </div>
+        
+        ${this.isActive ? html`
+          <div class="card-stats">
+            <div class="stat">
+              <span class="stat-value">${this.itemCount}</span>
+              <span class="stat-label">items</span>
+            </div>
+            <div class="stat">
+              <span class="stat-value">${this.currency} $${this.totalCost.toFixed(2)}</span>
+              <span class="stat-label">total</span>
+            </div>
+          </div>
+          <div class="active-badge">Active</div>
+        ` : ''}
 
         ${this.showMenu ? html`
           <div class="menu-overlay" @click=${(e) => { e.stopPropagation(); this.showMenu = false; }}>
             <div class="menu-popup">
               <button @click=${(e) => this.handleAction('rename', e)}>
-                <ha-icon icon="mdi:pencil"></ha-icon>
+                <span class="emoji">✏️</span>
                 Rename
               </button>
               <button @click=${(e) => this.handleAction('share', e)}>
-                <ha-icon icon="mdi:share-variant"></ha-icon>
+                <span class="emoji">📤</span>
                 Share
               </button>
               <button @click=${(e) => this.handleAction('copy', e)}>
-                <ha-icon icon="mdi:content-copy"></ha-icon>
+                <span class="emoji">📋</span>
                 Copy
               </button>
               <button class="danger" @click=${(e) => this.handleAction('delete', e)}>
-                <ha-icon icon="mdi:delete"></ha-icon>
+                <span class="emoji">🗑️</span>
                 Delete
               </button>
             </div>
@@ -82,22 +97,22 @@ class SLMListCard extends LitElement {
   static styles = css`
     .slm-list-card {
       position: relative;
-      background: var(--card-background-color);
-      border: 2px solid var(--divider-color);
+      background: linear-gradient(135deg, #f5f7fa 0%, #e8eaf6 100%);
+      border: 2px solid #e8eaf6;
       border-radius: 16px;
       padding: 20px;
       cursor: pointer;
       transition: all 0.2s;
     }
     .slm-list-card:hover {
-      border-color: var(--primary-color);
+      border-color: #a8b5ff;
       transform: translateY(-2px);
-      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+      box-shadow: 0 4px 12px rgba(168, 181, 255, 0.2);
     }
     .slm-list-card.active {
-      border-color: var(--primary-color);
-      background: var(--primary-color);
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
       color: white;
+      border-color: #667eea;
     }
     .card-header {
       display: flex;
@@ -105,8 +120,8 @@ class SLMListCard extends LitElement {
       align-items: center;
       margin-bottom: 16px;
     }
-    .card-header ha-icon {
-      --mdc-icon-size: 32px;
+    .emoji {
+      font-size: 32px;
     }
     .menu-btn {
       background: none;
@@ -114,6 +129,8 @@ class SLMListCard extends LitElement {
       padding: 4px;
       cursor: pointer;
       opacity: 0.6;
+      font-size: 24px;
+      color: inherit;
     }
     .menu-btn:hover {
       opacity: 1;
@@ -123,24 +140,33 @@ class SLMListCard extends LitElement {
       font-size: 18px;
       font-weight: 600;
     }
-    .card-meta {
+    .card-stats {
       display: flex;
-      align-items: center;
-      gap: 12px;
-      font-size: 14px;
+      gap: 16px;
+      margin-top: 12px;
+    }
+    .stat {
+      display: flex;
+      flex-direction: column;
+    }
+    .stat-value {
+      font-size: 16px;
+      font-weight: 700;
+    }
+    .stat-label {
+      font-size: 12px;
       opacity: 0.8;
     }
     .active-badge {
-      background: white;
-      color: var(--primary-color);
-      padding: 2px 8px;
-      border-radius: 8px;
-      font-size: 12px;
-      font-weight: 600;
-    }
-    .slm-list-card.active .active-badge {
+      position: absolute;
+      top: 16px;
+      right: 16px;
       background: rgba(255,255,255,0.3);
       color: white;
+      padding: 4px 10px;
+      border-radius: 8px;
+      font-size: 11px;
+      font-weight: 700;
     }
     .menu-overlay {
       position: fixed;
@@ -175,14 +201,13 @@ class SLMListCard extends LitElement {
       text-align: left;
     }
     .menu-popup button:hover {
-      background: var(--primary-color);
-      color: white;
+      background: #f5f7fa;
     }
     .menu-popup button.danger {
-      color: var(--error-color);
+      color: #ff7675;
     }
     .menu-popup button.danger:hover {
-      background: var(--error-color);
+      background: #ff7675;
       color: white;
     }
   `;

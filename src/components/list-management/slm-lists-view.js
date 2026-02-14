@@ -1,11 +1,13 @@
 import { LitElement, html, css } from 'lit';
 import './slm-list-card.js';
 
-class ListsView extends LitElement {
+class SLMListsView extends LitElement {
   static properties = {
     api: { type: Object },
     lists: { type: Array },
     activeList: { type: Object },
+    items: { type: Array },
+    total: { type: Object },
     showCreateDialog: { type: Boolean },
     newListName: { type: String },
     newListIcon: { type: String }
@@ -29,7 +31,6 @@ class ListsView extends LitElement {
       this.newListName = '';
       this.newListIcon = 'mdi:cart';
       
-      // Reload lists
       const result = await this.api.getLists();
       this.lists = result.lists;
       this.requestUpdate();
@@ -68,7 +69,6 @@ class ListsView extends LitElement {
         break;
 
       case 'share':
-        // Share functionality
         alert('Share feature coming soon!');
         break;
 
@@ -78,13 +78,24 @@ class ListsView extends LitElement {
     }
   }
 
+  getListEmoji(icon) {
+    const emojiMap = {
+      'mdi:cart': '🛒',
+      'mdi:home': '🏠',
+      'mdi:food': '🍽️',
+      'mdi:shopping': '🛍️',
+      'mdi:store': '🏪'
+    };
+    return emojiMap[icon] || '🛒';
+  }
+
   render() {
     return html`
-      <div class="lists-view">
+      <div class="slm-lists-view">
         <div class="header">
           <h2>My Lists</h2>
           <button class="create-btn" @click=${this.handleCreateList}>
-            <ha-icon icon="mdi:plus"></ha-icon>
+            <span class="emoji">➕</span>
             New List
           </button>
         </div>
@@ -94,6 +105,10 @@ class ListsView extends LitElement {
             <slm-list-card
               .list=${list}
               .isActive=${list.id === this.activeList?.id}
+              .itemCount=${list.id === this.activeList?.id ? this.items.filter(i => !i.checked).length : 0}
+              .totalCost=${list.id === this.activeList?.id ? this.total.total : 0}
+              .currency=${this.total.currency}
+              .emoji=${this.getListEmoji(list.icon)}
               @list-select=${this.handleListSelect}
               @list-action=${this.handleListAction}
             ></slm-list-card>
@@ -106,7 +121,7 @@ class ListsView extends LitElement {
               <div class="dialog-header">
                 <h3>Create New List</h3>
                 <button @click=${() => this.showCreateDialog = false}>
-                  <ha-icon icon="mdi:close"></ha-icon>
+                  <span class="emoji">✖️</span>
                 </button>
               </div>
               <div class="dialog-content">
@@ -126,7 +141,7 @@ class ListsView extends LitElement {
                       class="icon-option ${this.newListIcon === icon ? 'selected' : ''}"
                       @click=${() => this.newListIcon = icon}
                     >
-                      <ha-icon icon="${icon}"></ha-icon>
+                      <span class="emoji">${this.getListEmoji(icon)}</span>
                     </button>
                   `)}
                 </div>
@@ -143,7 +158,7 @@ class ListsView extends LitElement {
   }
 
   static styles = css`
-    .lists-view {
+    .slm-lists-view {
       padding: 20px;
     }
     .header {
@@ -156,18 +171,23 @@ class ListsView extends LitElement {
       margin: 0;
       font-size: 24px;
       font-weight: 700;
+      color: #5f6368;
     }
     .create-btn {
       display: flex;
       align-items: center;
       gap: 8px;
       padding: 10px 16px;
-      background: var(--primary-color);
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
       color: white;
       border: none;
       border-radius: 12px;
       font-weight: 600;
       cursor: pointer;
+      box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
+    }
+    .emoji {
+      font-size: 18px;
     }
     .lists-grid {
       display: grid;
@@ -198,17 +218,19 @@ class ListsView extends LitElement {
       justify-content: space-between;
       align-items: center;
       padding: 20px;
-      border-bottom: 1px solid var(--divider-color);
+      border-bottom: 1px solid #e8eaf6;
     }
     .dialog-header h3 {
       margin: 0;
       font-size: 20px;
+      color: #5f6368;
     }
     .dialog-header button {
       background: none;
       border: none;
       padding: 4px;
       cursor: pointer;
+      font-size: 20px;
     }
     .dialog-content {
       padding: 20px;
@@ -217,12 +239,12 @@ class ListsView extends LitElement {
       display: block;
       margin-bottom: 8px;
       font-weight: 600;
-      color: var(--secondary-text-color);
+      color: #5f6368;
     }
     .dialog-content input {
       width: 100%;
       padding: 12px;
-      border: 2px solid var(--divider-color);
+      border: 2px solid #e8eaf6;
       border-radius: 8px;
       font-size: 16px;
       margin-bottom: 20px;
@@ -238,26 +260,28 @@ class ListsView extends LitElement {
       width: 48px;
       height: 48px;
       border-radius: 12px;
-      border: 2px solid var(--divider-color);
+      border: 2px solid #e8eaf6;
       background: transparent;
       cursor: pointer;
       display: flex;
       align-items: center;
       justify-content: center;
+      font-size: 24px;
+      transition: all 0.2s;
+    }
+    .icon-option:hover {
+      border-color: #667eea;
+      transform: scale(1.05);
     }
     .icon-option.selected {
-      border-color: var(--primary-color);
-      background: var(--primary-color);
-      color: white;
-    }
-    .icon-option ha-icon {
-      --mdc-icon-size: 28px;
+      border-color: #667eea;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     }
     .dialog-footer {
       display: flex;
       gap: 12px;
       padding: 20px;
-      border-top: 1px solid var(--divider-color);
+      border-top: 1px solid #e8eaf6;
     }
     .cancel-btn,
     .save-btn {
@@ -269,13 +293,14 @@ class ListsView extends LitElement {
       border: none;
     }
     .cancel-btn {
-      background: var(--secondary-background-color);
+      background: #f5f7fa;
+      color: #5f6368;
     }
     .save-btn {
-      background: var(--primary-color);
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
       color: white;
     }
   `;
 }
 
-customElements.define('lists-view', ListsView);
+customElements.define('slm-lists-view', SLMListsView);

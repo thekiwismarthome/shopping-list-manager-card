@@ -4,6 +4,7 @@ class ItemTile extends LitElement {
   static properties = {
     item: { type: Object },
     categoryColor: { type: String },
+    isRecentlyUsed: { type: Boolean },
     touchStartX: { type: Number },
     touchStartY: { type: Number },
     touchStartTime: { type: Number },
@@ -12,6 +13,7 @@ class ItemTile extends LitElement {
 
   constructor() {
     super();
+    this.isRecentlyUsed = false;
     this.touchStartX = 0;
     this.touchStartY = 0;
     this.touchStartTime = 0;
@@ -19,14 +21,14 @@ class ItemTile extends LitElement {
   }
 
   handleTileClick(e) {
-    if (e.target.closest('.decrease-btn') || e.target.closest('.checkbox')) {
-      return;
+    // If clicked on tile body (not buttons), toggle check status
+    if (!e.target.closest('.decrease-btn') && !e.target.closest('.checkbox')) {
+      this.dispatchEvent(new CustomEvent('item-check', {
+        detail: { itemId: this.item.id, checked: !this.item.checked },
+        bubbles: true,
+        composed: true
+      }));
     }
-    this.dispatchEvent(new CustomEvent('item-click', {
-      detail: { itemId: this.item.id },
-      bubbles: true,
-      composed: true
-    }));
   }
 
   handleDecrease(e) {
@@ -38,10 +40,10 @@ class ItemTile extends LitElement {
     }));
   }
 
-  handleCheck(e) {
+  handleQuantityClick(e) {
     e.stopPropagation();
-    this.dispatchEvent(new CustomEvent('item-check', {
-      detail: { itemId: this.item.id, checked: !this.item.checked },
+    this.dispatchEvent(new CustomEvent('item-click', {
+      detail: { itemId: this.item.id },
       bubbles: true,
       composed: true
     }));
@@ -68,14 +70,10 @@ class ItemTile extends LitElement {
     }
 
     const touchX = e.touches[0].clientX;
-    const touchY = e.touches[0].clientY;
     const deltaX = touchX - this.touchStartX;
-    const deltaY = touchY - this.touchStartY;
 
-    if (Math.abs(deltaX) > Math.abs(deltaY) && Math.abs(deltaX) > 100) {
-      if (deltaX < 0) {
-        this.style.transform = `translateX(${deltaX}px)`;
-      }
+    if (Math.abs(deltaX) > 100 && deltaX < 0) {
+      this.style.transform = `translateX(${deltaX}px)`;
     }
   }
 
@@ -99,28 +97,66 @@ class ItemTile extends LitElement {
     this.style.transform = '';
   }
 
+  firstUpdated() {
+    // Add passive event listeners
+    const tile = this.shadowRoot.querySelector('.tile');
+    if (tile) {
+      tile.addEventListener('touchstart', this.handleTouchStart.bind(this), { passive: true });
+      tile.addEventListener('touchmove', this.handleTouchMove.bind(this), { passive: true });
+      tile.addEventListener('touchend', this.handleTouchEnd.bind(this), { passive: true });
+    }
+  }
+
+  getCategoryEmoji(categoryId) {
+    const emojiMap = {
+      'produce': '🥬',
+      'dairy': '🥛',
+      'meat': '🥩',
+      'bakery': '🍞',
+      'pantry': '🥫',
+      'frozen': '🧊',
+      'beverages': '🥤',
+      'snacks': '🍿',
+      'household': '🧹',
+      'health': '💊',
+      'pet': '🐾',
+      'baby': '👶',
+      'other': '📦'
+    };
+    return emojiMap[categoryId] || '📦';
+  }
+
   render() {
+    const pastelColor = this.isRecentlyUsed 
+      ? `${this.categoryColor}30` 
+      : this.categoryColor;
+
     return html`
       <div 
-        class="tile ${this.item.checked ? 'checked' : ''}"
+        class="tile ${this.item.checked ? 'checked' : ''} ${this.isRecentlyUsed ? 'recently-used' : ''}"
         @click=${this.handleTileClick}
-        @touchstart=${this.handleTouchStart}
-        @touchmove=${this.handleTouchMove}
-        @touchend=${this.handleTouchEnd}
       >
-        <button class="decrease-btn" @click=${this.handleDecrease}>
-          <ha-icon icon="mdi:minus"></ha-icon>
-        </button>
+        ${!this.item.checked ? html`
+          <button class="decrease-btn" @click=${this.handleDecrease}>
+            <span>−</span>
+          </button>
+        ` : ''}
 
-        ${this.item.quantity > 1 ? html`
-          <div class="quantity-badge" style="background: ${this.categoryColor}">${this.item.quantity}</div>
+        ${this.item.quantity > 1 && !this.item.checked ? html`
+          <div 
+            class="quantity-badge" 
+            style="background: ${this.categoryColor}"
+            @click=${this.handleQuantityClick}
+          >
+            ${this.item.quantity}
+          </div>
         ` : ''}
 
         ${this.item.image_url ? html`
           <img src="${this.item.image_url}" alt="${this.item.name}">
         ` : html`
-          <div class="no-image" style="background: ${this.categoryColor}20">
-            <ha-icon icon="mdi:food-variant" style="color: ${this.categoryColor}"></ha-icon>
+          <div class="no-image" style="background: ${pastelColor}">
+            <div class="emoji">${this.getCategoryEmoji(this.item.category_id)}</div>
           </div>
         `}
 
@@ -134,9 +170,11 @@ class ItemTile extends LitElement {
           </div>
         </div>
 
-        <button class="checkbox" @click=${this.handleCheck}>
-          <ha-icon icon="${this.item.checked ? 'mdi:checkbox-marked-circle' : 'mdi:checkbox-blank-circle-outline'}"></ha-icon>
-        </button>
+        ${this.item.checked ? html`
+          <div class="checked-overlay">
+            <span class="check-icon">✓</span>
+          </div>
+        ` : ''}
       </div>
     `;
   }
@@ -146,7 +184,7 @@ class ItemTile extends LitElement {
       position: relative;
       background: var(--card-background-color);
       border-radius: 16px;
-      border: 2px solid var(--divider-color);
+      border: 2px solid #e8eaf6;
       padding: 12px;
       display: flex;
       flex-direction: column;
@@ -156,10 +194,14 @@ class ItemTile extends LitElement {
       user-select: none;
     }
     .tile:active {
-      transform: scale(0.98);
+      transform: scale(0.97);
+    }
+    .tile.recently-used {
+      opacity: 0.7;
+      border-style: dashed;
     }
     .tile.checked {
-      opacity: 0.5;
+      opacity: 0.4;
     }
     .tile.checked .name {
       text-decoration: line-through;
@@ -168,7 +210,7 @@ class ItemTile extends LitElement {
       position: absolute;
       top: 8px;
       left: 8px;
-      background: var(--error-color);
+      background: #ff7675;
       color: white;
       border: none;
       border-radius: 50%;
@@ -178,45 +220,27 @@ class ItemTile extends LitElement {
       align-items: center;
       justify-content: center;
       cursor: pointer;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+      box-shadow: 0 2px 6px rgba(0,0,0,0.15);
       z-index: 2;
       padding: 0;
-    }
-    .decrease-btn ha-icon {
-      --mdc-icon-size: 18px;
+      font-size: 20px;
+      font-weight: 300;
     }
     .quantity-badge {
       position: absolute;
       top: 8px;
       right: 8px;
       color: white;
-      padding: 4px 8px;
+      padding: 4px 10px;
       border-radius: 12px;
       font-size: 13px;
       font-weight: 700;
       z-index: 2;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.2);
-    }
-    .checkbox {
-      position: absolute;
-      bottom: 8px;
-      right: 8px;
-      background: white;
-      border: none;
-      border-radius: 50%;
-      width: 32px;
-      height: 32px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.15);
       cursor: pointer;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.2);
-      z-index: 2;
-      padding: 0;
     }
-    .checkbox ha-icon {
-      --mdc-icon-size: 24px;
-      color: var(--primary-color);
+    .quantity-badge:hover {
+      transform: scale(1.1);
     }
     img, .no-image {
       width: 100%;
@@ -229,9 +253,8 @@ class ItemTile extends LitElement {
       align-items: center;
       justify-content: center;
     }
-    .no-image ha-icon {
-      --mdc-icon-size: 56px;
-      opacity: 0.5;
+    .emoji {
+      font-size: 56px;
     }
     .info {
       flex: 1;
@@ -252,8 +275,24 @@ class ItemTile extends LitElement {
       color: var(--secondary-text-color);
     }
     .price {
-      color: var(--primary-color);
+      color: #667eea;
       font-weight: 700;
+    }
+    .checked-overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(102, 126, 234, 0.9);
+      border-radius: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .check-icon {
+      font-size: 48px;
+      color: white;
     }
   `;
 }

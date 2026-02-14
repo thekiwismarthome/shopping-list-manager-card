@@ -1,6 +1,6 @@
 import { LitElement, html, css } from 'lit';
 
-class LoyaltyCardsView extends LitElement {
+class SLMLoyaltyCardsView extends LitElement {
   static properties = {
     api: { type: Object },
     cards: { type: Array },
@@ -53,7 +53,7 @@ class LoyaltyCardsView extends LitElement {
 
   render() {
     return html`
-      <div class="loyalty-view">
+      <div class="slm-loyalty-view">
         <div class="header">
           <h2>Loyalty Cards</h2>
           <button class="add-btn" @click=${this.handleAddCard}>
@@ -127,7 +127,7 @@ class LoyaltyCardsView extends LitElement {
   }
 
   static styles = css`
-    .loyalty-view {
+    .slm-loyalty-view {
       padding: 20px;
     }
     .header {
