@@ -29,23 +29,19 @@ class ShoppingListManagerCard extends LitElement {
   async firstUpdated() {
     this.api = new ShoppingListAPI(this.hass);
     await this.loadData();
-    this.subscribeToUpdates();
   }
 
   async loadData() {
     try {
       this.loading = true;
 
-      // Load lists and find active
       const listsResult = await this.api.getLists();
       this.lists = listsResult.lists;
       this.activeList = this.lists.find(l => l.active) || this.lists[0];
 
-      // Load categories
       const categoriesResult = await this.api.getCategories();
       this.categories = categoriesResult.categories;
 
-      // Load items for active list
       if (this.activeList) {
         await this.loadActiveListData();
       }
@@ -75,34 +71,19 @@ class ShoppingListManagerCard extends LitElement {
   async handleItemCheck(e) {
     const { itemId, checked } = e.detail;
     await this.api.checkItem(itemId, checked);
-    
-    // Optimistic update
-    const item = this.items.find(i => i.id === itemId);
-    if (item) item.checked = checked;
-    this.requestUpdate();
+    await this.loadActiveListData();
   }
 
   async handleItemDelete(e) {
     const { itemId } = e.detail;
     await this.api.deleteItem(itemId);
-    this.items = this.items.filter(i => i.id !== itemId);
+    await this.loadActiveListData();
   }
 
   async handleAddItem(e) {
     const itemData = e.detail;
     await this.api.addItem(this.activeList.id, itemData);
     await this.loadActiveListData();
-  }
-
-  subscribeToUpdates() {
-    // Listen for real-time events
-    this.hass.connection.subscribeEvents((event) => {
-      this.loadActiveListData();
-    }, 'shopping_list_manager_item_added');
-
-    this.hass.connection.subscribeEvents((event) => {
-      this.loadActiveListData();
-    }, 'shopping_list_manager_item_updated');
   }
 
   render() {
@@ -121,7 +102,6 @@ class ShoppingListManagerCard extends LitElement {
         <search-bar
           .api=${this.api}
           .activeListId=${this.activeList?.id}
-          .categories=${this.categories}
           @add-item=${this.handleAddItem}
         ></search-bar>
 
@@ -134,8 +114,8 @@ class ShoppingListManagerCard extends LitElement {
 
         <div class="footer">
           <div class="total">
-            Total: ${this.total.currency} $${this.total.total.toFixed(2)}
-            <span class="count">(${this.total.item_count} items)</span>
+            ${this.total.currency} $${this.total.total.toFixed(2)}
+            <span>(${this.total.item_count} items)</span>
           </div>
         </div>
       </ha-card>
@@ -143,9 +123,6 @@ class ShoppingListManagerCard extends LitElement {
   }
 
   static styles = css`
-    :host {
-      display: block;
-    }
     ha-card {
       padding: 0;
     }
@@ -156,16 +133,10 @@ class ShoppingListManagerCard extends LitElement {
     .footer {
       padding: 16px;
       border-top: 1px solid var(--divider-color);
-      background: var(--card-background-color);
     }
     .total {
       font-size: 18px;
       font-weight: 500;
-    }
-    .count {
-      font-size: 14px;
-      color: var(--secondary-text-color);
-      margin-left: 8px;
     }
   `;
 
