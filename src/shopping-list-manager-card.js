@@ -292,9 +292,9 @@ class ShoppingListManagerCard extends LitElement {
 
       case 'loyalty':
         return html`
-          <loyalty-cards-view
+          <slm-loyalty-cards-view
             .api=${this.api}
-          ></loyalty-cards-view>
+          ></slm-loyalty-cards-view>
         `;
 
       case 'settings':

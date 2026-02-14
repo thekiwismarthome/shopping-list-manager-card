@@ -3219,9 +3219,9 @@ const w=globalThis,k=t=>t,_=w.trustedTypes,S=_?_.createPolicy("lit-html",{create
             @list-selected=${this.handleListChange}
           ></lists-view>
         `;case"loyalty":return F`
-          <loyalty-cards-view
+          <slm-loyalty-cards-view
             .api=${this.api}
-          ></loyalty-cards-view>
+          ></slm-loyalty-cards-view>
         `;case"settings":return F`
           <settings-view
             .hass=${this.hass}
