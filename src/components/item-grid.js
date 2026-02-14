@@ -20,6 +20,46 @@ class ItemGrid extends LitElement {
     return Object.values(grouped).filter(g => g.items.length > 0);
   }
 
+  handleItemClick(e) {
+    this.dispatchEvent(new CustomEvent('item-click', {
+      detail: e.detail,
+      bubbles: true,
+      composed: true
+    }));
+  }
+
+  handleItemDecrease(e) {
+    this.dispatchEvent(new CustomEvent('item-decrease', {
+      detail: e.detail,
+      bubbles: true,
+      composed: true
+    }));
+  }
+
+  handleItemCheck(e) {
+    this.dispatchEvent(new CustomEvent('item-check', {
+      detail: e.detail,
+      bubbles: true,
+      composed: true
+    }));
+  }
+
+  handleItemLongPress(e) {
+    this.dispatchEvent(new CustomEvent('item-long-press', {
+      detail: e.detail,
+      bubbles: true,
+      composed: true
+    }));
+  }
+
+  handleItemSwipeDelete(e) {
+    this.dispatchEvent(new CustomEvent('item-swipe-delete', {
+      detail: e.detail,
+      bubbles: true,
+      composed: true
+    }));
+  }
+
   render() {
     const groupedItems = this.groupItemsByCategory();
 
@@ -28,6 +68,7 @@ class ItemGrid extends LitElement {
         <div class="empty">
           <ha-icon icon="mdi:cart-outline"></ha-icon>
           <p>Your shopping list is empty</p>
+          <p class="hint">Tap the + button to add items</p>
         </div>
       `;
     }
@@ -36,16 +77,21 @@ class ItemGrid extends LitElement {
       <div class="grid-container">
         ${groupedItems.map(group => html`
           <div class="category-section">
-            <div class="category-header">
-              <ha-icon icon="${group.category.icon}"></ha-icon>
+            <div class="category-header" style="border-color: ${group.category.color}">
+              <ha-icon icon="${group.category.icon}" style="color: ${group.category.color}"></ha-icon>
               <span>${group.category.name}</span>
+              <span class="count">${group.items.length}</span>
             </div>
             <div class="items-grid">
               ${group.items.map(item => html`
                 <item-tile
                   .item=${item}
-                  @item-check=${this.handleCheck}
-                  @item-delete=${this.handleDelete}
+                  .categoryColor=${group.category.color}
+                  @item-click=${this.handleItemClick}
+                  @item-decrease=${this.handleItemDecrease}
+                  @item-check=${this.handleItemCheck}
+                  @item-long-press=${this.handleItemLongPress}
+                  @item-swipe-delete=${this.handleItemSwipeDelete}
                 ></item-tile>
               `)}
             </div>
@@ -53,22 +99,6 @@ class ItemGrid extends LitElement {
         `)}
       </div>
     `;
-  }
-
-  handleCheck(e) {
-    this.dispatchEvent(new CustomEvent('item-check', {
-      detail: e.detail,
-      bubbles: true,
-      composed: true
-    }));
-  }
-
-  handleDelete(e) {
-    this.dispatchEvent(new CustomEvent('item-delete', {
-      detail: e.detail,
-      bubbles: true,
-      composed: true
-    }));
   }
 
   static styles = css`
@@ -84,22 +114,42 @@ class ItemGrid extends LitElement {
       gap: 8px;
       padding: 12px 0;
       font-weight: 600;
-      border-bottom: 2px solid var(--divider-color);
+      font-size: 16px;
+      border-bottom: 3px solid;
       margin-bottom: 12px;
+    }
+    .category-header ha-icon {
+      --mdc-icon-size: 24px;
+    }
+    .count {
+      margin-left: auto;
+      background: var(--primary-color);
+      color: white;
+      padding: 4px 10px;
+      border-radius: 12px;
+      font-size: 13px;
     }
     .items-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+      grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
       gap: 12px;
     }
     .empty {
       text-align: center;
-      padding: 64px 32px;
+      padding: 80px 32px;
       color: var(--secondary-text-color);
     }
     .empty ha-icon {
-      font-size: 64px;
-      opacity: 0.3;
+      font-size: 80px;
+      opacity: 0.2;
+      margin-bottom: 16px;
+    }
+    .empty p {
+      margin: 8px 0;
+    }
+    .hint {
+      font-size: 14px;
+      opacity: 0.7;
     }
   `;
 }

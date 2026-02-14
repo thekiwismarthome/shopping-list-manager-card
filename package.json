@@ -1,7 +1,7 @@
 {
   "name": "shopping-list-manager-card",
-  "version": "2.0.0",
-  "description": "Multi-list shopping list card for Home Assistant",
+  "version": "3.0.0",
+  "description": "Advanced multi-list shopping manager for Home Assistant",
   "main": "shopping-list-manager-card.js",
   "scripts": {
     "build": "rollup -c",
@@ -11,9 +11,8 @@
     "lit": "^3.0.0"
   },
   "devDependencies": {
-    "@rollup/plugin-commonjs": "^29.0.0",
-    "@rollup/plugin-node-resolve": "^15.3.1",
-    "@rollup/plugin-terser": "^0.4.4",
-    "rollup": "^4.57.1"
+    "@rollup/plugin-node-resolve": "^15.0.0",
+    "rollup": "^4.0.0",
+    "rollup-plugin-terser": "^7.0.0"
   }
 }
