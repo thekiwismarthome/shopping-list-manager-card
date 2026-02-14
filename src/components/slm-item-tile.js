@@ -1,6 +1,6 @@
 import { LitElement, html, css } from 'lit';
 
-class ItemTile extends LitElement {
+class SLMItemTile extends LitElement {
   static properties = {
     item: { type: Object },
     categoryColor: { type: String },
@@ -8,7 +8,8 @@ class ItemTile extends LitElement {
     touchStartX: { type: Number },
     touchStartY: { type: Number },
     touchStartTime: { type: Number },
-    longPressTimer: { type: Number }
+    longPressTimer: { type: Number },
+    longPressTriggered: { type: Boolean }
   };
 
   constructor() {
@@ -18,11 +19,18 @@ class ItemTile extends LitElement {
     this.touchStartY = 0;
     this.touchStartTime = 0;
     this.longPressTimer = null;
+    this.longPressTriggered = false;
   }
 
   handleTileClick(e) {
-    // If clicked on tile body (not buttons), toggle check status
-    if (!e.target.closest('.decrease-btn') && !e.target.closest('.checkbox')) {
+    // Prevent if long press was just triggered
+    if (this.longPressTriggered) {
+      this.longPressTriggered = false;
+      return;
+    }
+
+    // If clicked on tile body (not buttons), toggle check
+    if (!e.target.closest('.decrease-btn') && !e.target.closest('.quantity-badge')) {
       this.dispatchEvent(new CustomEvent('item-check', {
         detail: { itemId: this.item.id, checked: !this.item.checked },
         bubbles: true,
@@ -49,12 +57,21 @@ class ItemTile extends LitElement {
     }));
   }
 
+  handleContextMenu(e) {
+    // Prevent browser context menu
+    e.preventDefault();
+    e.stopPropagation();
+    return false;
+  }
+
   handleTouchStart(e) {
     this.touchStartX = e.touches[0].clientX;
     this.touchStartY = e.touches[0].clientY;
     this.touchStartTime = Date.now();
+    this.longPressTriggered = false;
 
     this.longPressTimer = setTimeout(() => {
+      this.longPressTriggered = true;
       this.dispatchEvent(new CustomEvent('item-long-press', {
         detail: { item: this.item },
         bubbles: true,
@@ -65,15 +82,16 @@ class ItemTile extends LitElement {
 
   handleTouchMove(e) {
     if (this.longPressTimer) {
-      clearTimeout(this.longPressTimer);
-      this.longPressTimer = null;
-    }
+      const touchX = e.touches[0].clientX;
+      const touchY = e.touches[0].clientY;
+      const deltaX = Math.abs(touchX - this.touchStartX);
+      const deltaY = Math.abs(touchY - this.touchStartY);
 
-    const touchX = e.touches[0].clientX;
-    const deltaX = touchX - this.touchStartX;
-
-    if (Math.abs(deltaX) > 100 && deltaX < 0) {
-      this.style.transform = `translateX(${deltaX}px)`;
+      // Cancel long press if moved more than 10px
+      if (deltaX > 10 || deltaY > 10) {
+        clearTimeout(this.longPressTimer);
+        this.longPressTimer = null;
+      }
     }
   }
 
@@ -82,28 +100,48 @@ class ItemTile extends LitElement {
       clearTimeout(this.longPressTimer);
       this.longPressTimer = null;
     }
+  }
 
-    const touchX = e.changedTouches[0].clientX;
-    const deltaX = touchX - this.touchStartX;
+  handleMouseDown(e) {
+    // Prevent context menu on Windows
+    if (e.button === 2) {
+      e.preventDefault();
+      return false;
+    }
 
-    if (deltaX < -150) {
-      this.dispatchEvent(new CustomEvent('item-swipe-delete', {
-        detail: { itemId: this.item.id },
+    // Long press for desktop
+    this.longPressTriggered = false;
+    this.longPressTimer = setTimeout(() => {
+      this.longPressTriggered = true;
+      this.dispatchEvent(new CustomEvent('item-long-press', {
+        detail: { item: this.item },
         bubbles: true,
         composed: true
       }));
-    }
+    }, 500);
+  }
 
-    this.style.transform = '';
+  handleMouseUp(e) {
+    if (this.longPressTimer) {
+      clearTimeout(this.longPressTimer);
+      this.longPressTimer = null;
+    }
+  }
+
+  handleMouseLeave(e) {
+    if (this.longPressTimer) {
+      clearTimeout(this.longPressTimer);
+      this.longPressTimer = null;
+    }
   }
 
   firstUpdated() {
-    // Add passive event listeners
     const tile = this.shadowRoot.querySelector('.tile');
     if (tile) {
       tile.addEventListener('touchstart', this.handleTouchStart.bind(this), { passive: true });
       tile.addEventListener('touchmove', this.handleTouchMove.bind(this), { passive: true });
       tile.addEventListener('touchend', this.handleTouchEnd.bind(this), { passive: true });
+      tile.addEventListener('contextmenu', this.handleContextMenu.bind(this));
     }
   }
 
@@ -127,14 +165,13 @@ class ItemTile extends LitElement {
   }
 
   render() {
-    const pastelColor = this.isRecentlyUsed 
-      ? `${this.categoryColor}30` 
-      : this.categoryColor;
-
     return html`
       <div 
         class="tile ${this.item.checked ? 'checked' : ''} ${this.isRecentlyUsed ? 'recently-used' : ''}"
         @click=${this.handleTileClick}
+        @mousedown=${this.handleMouseDown}
+        @mouseup=${this.handleMouseUp}
+        @mouseleave=${this.handleMouseLeave}
       >
         ${!this.item.checked ? html`
           <button class="decrease-btn" @click=${this.handleDecrease}>
@@ -155,19 +192,16 @@ class ItemTile extends LitElement {
         ${this.item.image_url ? html`
           <img src="${this.item.image_url}" alt="${this.item.name}">
         ` : html`
-          <div class="no-image" style="background: ${pastelColor}">
+          <div class="no-image" style="background: ${this.categoryColor}15">
             <div class="emoji">${this.getCategoryEmoji(this.item.category_id)}</div>
           </div>
         `}
 
         <div class="info">
           <div class="name">${this.item.name}</div>
-          <div class="meta">
-            <span class="unit">${this.item.quantity} ${this.item.unit}</span>
-            ${this.item.price ? html`
-              <span class="price">$${(this.item.price * this.item.quantity).toFixed(2)}</span>
-            ` : ''}
-          </div>
+          ${this.item.price ? html`
+            <div class="price">$${(this.item.price * this.item.quantity).toFixed(2)}</div>
+          ` : ''}
         </div>
 
         ${this.item.checked ? html`
@@ -182,70 +216,68 @@ class ItemTile extends LitElement {
   static styles = css`
     .tile {
       position: relative;
-      background: var(--card-background-color);
-      border-radius: 16px;
-      border: 2px solid #e8eaf6;
-      padding: 12px;
+      background: white;
+      border-radius: 8px;
+      padding: 8px;
       display: flex;
       flex-direction: column;
-      gap: 8px;
+      gap: 6px;
       cursor: pointer;
-      transition: all 0.2s;
+      transition: all 0.15s;
       user-select: none;
+      aspect-ratio: 1;
+      overflow: hidden;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.08);
     }
     .tile:active {
       transform: scale(0.97);
     }
     .tile.recently-used {
-      opacity: 0.7;
-      border-style: dashed;
+      opacity: 0.6;
     }
     .tile.checked {
       opacity: 0.4;
     }
-    .tile.checked .name {
-      text-decoration: line-through;
-    }
     .decrease-btn {
       position: absolute;
-      top: 8px;
-      left: 8px;
-      background: #ff7675;
+      top: 6px;
+      left: 6px;
+      background: #ef9a9a;
       color: white;
       border: none;
       border-radius: 50%;
-      width: 28px;
-      height: 28px;
+      width: 24px;
+      height: 24px;
       display: flex;
       align-items: center;
       justify-content: center;
       cursor: pointer;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+      box-shadow: 0 2px 4px rgba(0,0,0,0.15);
       z-index: 2;
       padding: 0;
-      font-size: 20px;
+      font-size: 18px;
       font-weight: 300;
     }
     .quantity-badge {
       position: absolute;
-      top: 8px;
-      right: 8px;
+      top: 6px;
+      right: 6px;
       color: white;
-      padding: 4px 10px;
-      border-radius: 12px;
-      font-size: 13px;
+      padding: 3px 8px;
+      border-radius: 10px;
+      font-size: 12px;
       font-weight: 700;
       z-index: 2;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+      box-shadow: 0 2px 4px rgba(0,0,0,0.15);
       cursor: pointer;
     }
     .quantity-badge:hover {
-      transform: scale(1.1);
+      transform: scale(1.05);
     }
     img, .no-image {
       width: 100%;
-      aspect-ratio: 1;
-      border-radius: 12px;
+      flex: 1;
+      border-radius: 6px;
       object-fit: cover;
     }
     .no-image {
@@ -254,28 +286,26 @@ class ItemTile extends LitElement {
       justify-content: center;
     }
     .emoji {
-      font-size: 56px;
+      font-size: 40px;
     }
     .info {
-      flex: 1;
+      flex-shrink: 0;
     }
     .name {
       font-weight: 600;
-      font-size: 14px;
-      line-height: 1.3;
-      margin-bottom: 6px;
-    }
-    .meta {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
       font-size: 12px;
-    }
-    .unit {
-      color: var(--secondary-text-color);
+      line-height: 1.2;
+      margin-bottom: 2px;
+      color: var(--text-primary, #424242);
+      overflow: hidden;
+      text-overflow: ellipsis;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
     }
     .price {
-      color: #667eea;
+      font-size: 11px;
+      color: var(--primary-pastel, #9fa8da);
       font-weight: 700;
     }
     .checked-overlay {
@@ -284,17 +314,17 @@ class ItemTile extends LitElement {
       left: 0;
       right: 0;
       bottom: 0;
-      background: rgba(102, 126, 234, 0.9);
-      border-radius: 14px;
+      background: rgba(159, 168, 218, 0.9);
+      border-radius: 6px;
       display: flex;
       align-items: center;
       justify-content: center;
     }
     .check-icon {
-      font-size: 48px;
+      font-size: 40px;
       color: white;
     }
   `;
 }
 
-customElements.define('item-tile', ItemTile);
+customElements.define('slm-item-tile', SLMItemTile);

@@ -4,217 +4,393 @@ class SLMLoyaltyCardsView extends LitElement {
   static properties = {
     api: { type: Object },
     cards: { type: Array },
-    showAddDialog: { type: Boolean }
+    showAddDialog: { type: Boolean },
+    showEditDialog: { type: Boolean },
+    showFullscreenCard: { type: Boolean },
+    editingCard: { type: Object },
+    fullscreenCard: { type: Object },
+    newCard: { type: Object }
   };
 
   constructor() {
     super();
     this.cards = [];
     this.showAddDialog = false;
+    this.showEditDialog = false;
+    this.showFullscreenCard = false;
+    this.editingCard = null;
+    this.fullscreenCard = null;
+    this.newCard = {
+      name: '',
+      number: '',
+      barcode: '',
+      logo: '',
+      notes: '',
+      color: '#9fa8da'
+    };
     this.loadCards();
   }
 
   loadCards() {
-    // Load from localStorage for now
-    const saved = localStorage.getItem('loyalty_cards');
+    const saved = localStorage.getItem('slm_loyalty_cards');
     this.cards = saved ? JSON.parse(saved) : [];
   }
 
   saveCards() {
-    localStorage.setItem('loyalty_cards', JSON.stringify(this.cards));
+    localStorage.setItem('slm_loyalty_cards', JSON.stringify(this.cards));
   }
 
   handleAddCard() {
+    this.newCard = {
+      name: '',
+      number: '',
+      barcode: '',
+      logo: '',
+      notes: '',
+      color: '#9fa8da'
+    };
     this.showAddDialog = true;
   }
 
-  handleSaveCard(e) {
+  handleSaveNewCard(e) {
     e.preventDefault();
     const formData = new FormData(e.target);
-    const newCard = {
+    const card = {
       id: Date.now().toString(),
       name: formData.get('name'),
       number: formData.get('number'),
-      barcode: formData.get('barcode'),
-      color: formData.get('color') || '#4CAF50'
+      barcode: formData.get('barcode') || this.generateBarcode(formData.get('number')),
+      logo: formData.get('logo') || '',
+      notes: formData.get('notes') || '',
+      color: formData.get('color') || '#9fa8da'
     };
 
-    this.cards = [...this.cards, newCard];
+    this.cards = [...this.cards, card];
     this.saveCards();
     this.showAddDialog = false;
+  }
+
+  handleEditCard(card) {
+    this.editingCard = { ...card };
+    this.showEditDialog = true;
+  }
+
+  handleSaveEditCard(e) {
+    e.preventDefault();
+    const formData = new FormData(e.target);
+    const updated = {
+      ...this.editingCard,
+      name: formData.get('name'),
+      number: formData.get('number'),
+      barcode: formData.get('barcode') || this.generateBarcode(formData.get('number')),
+      logo: formData.get('logo') || '',
+      notes: formData.get('notes') || '',
+      color: formData.get('color')
+    };
+
+    this.cards = this.cards.map(c => c.id === updated.id ? updated : c);
+    this.saveCards();
+    this.showEditDialog = false;
+    this.editingCard = null;
   }
 
   handleDeleteCard(cardId) {
     if (confirm('Delete this loyalty card?')) {
       this.cards = this.cards.filter(c => c.id !== cardId);
       this.saveCards();
+      this.showEditDialog = false;
+      this.editingCard = null;
     }
+  }
+
+  handleDuplicateCard(card) {
+    const duplicate = {
+      ...card,
+      id: Date.now().toString(),
+      name: `${card.name} (Copy)`
+    };
+    this.cards = [...this.cards, duplicate];
+    this.saveCards();
+  }
+
+  handleCardClick(card) {
+    this.fullscreenCard = card;
+    this.showFullscreenCard = true;
+  }
+
+  generateBarcode(number) {
+    // Auto-generate barcode from number
+    return number.replace(/\D/g, '');
   }
 
   render() {
     return html`
-      <div class="slm-loyalty-view">
+      <div class="loyalty-view">
         <div class="header">
           <h2>Loyalty Cards</h2>
           <button class="add-btn" @click=${this.handleAddCard}>
-            <ha-icon icon="mdi:plus"></ha-icon>
+            <span class="emoji">➕</span>
             Add Card
           </button>
         </div>
 
         ${this.cards.length === 0 ? html`
           <div class="empty">
-            <ha-icon icon="mdi:card-account-details-outline"></ha-icon>
+            <div class="empty-emoji">💳</div>
             <p>No loyalty cards yet</p>
             <p class="hint">Add your store loyalty cards for quick access</p>
+            <button class="primary-btn" @click=${this.handleAddCard}>
+              <span class="emoji">➕</span>
+              Add Card
+            </button>
           </div>
         ` : html`
           <div class="cards-grid">
             ${this.cards.map(card => html`
               <div class="loyalty-card" style="background: ${card.color}">
-                <button class="delete-btn" @click=${() => this.handleDeleteCard(card.id)}>
-                  <ha-icon icon="mdi:close"></ha-icon>
+                <button class="menu-btn" @click=${(e) => { e.stopPropagation(); this.handleEditCard(card); }}>
+                  <span class="dots">⋮</span>
                 </button>
-                <h3>${card.name}</h3>
-                <div class="card-number">${card.number}</div>
-                ${card.barcode ? html`
-                  <div class="barcode">
-                    <ha-icon icon="mdi:barcode"></ha-icon>
-                    <span>${card.barcode}</span>
-                  </div>
-                ` : ''}
+                
+                <div class="card-body" @click=${() => this.handleCardClick(card)}>
+                  ${card.logo ? html`
+                    <img src="${card.logo}" alt="${card.name}" class="card-logo">
+                  ` : ''}
+                  <h3>${card.name}</h3>
+                  <div class="card-number">${card.number}</div>
+                  ${card.barcode ? html`
+                    <div class="barcode-preview">
+                      <span class="emoji">📊</span>
+                      <span>${card.barcode}</span>
+                    </div>
+                  ` : ''}
+                </div>
               </div>
             `)}
           </div>
         `}
 
-        ${this.showAddDialog ? html`
-          <div class="overlay" @click=${() => this.showAddDialog = false}>
-            <form class="dialog" @click=${(e) => e.stopPropagation()} @submit=${this.handleSaveCard}>
-              <div class="dialog-header">
-                <h3>Add Loyalty Card</h3>
-                <button type="button" @click=${() => this.showAddDialog = false}>
-                  <ha-icon icon="mdi:close"></ha-icon>
-                </button>
-              </div>
-              <div class="dialog-content">
-                <label>
-                  Store Name
-                  <input type="text" name="name" placeholder="e.g., Countdown" required />
-                </label>
-                <label>
-                  Card Number
-                  <input type="text" name="number" placeholder="Card/Member number" required />
-                </label>
-                <label>
-                  Barcode (optional)
-                  <input type="text" name="barcode" placeholder="Barcode number" />
-                </label>
-                <label>
-                  Card Color
-                  <input type="color" name="color" value="#4CAF50" />
-                </label>
-              </div>
-              <div class="dialog-footer">
-                <button type="button" class="cancel-btn" @click=${() => this.showAddDialog = false}>Cancel</button>
-                <button type="submit" class="save-btn">Add Card</button>
-              </div>
-            </form>
-          </div>
-        ` : ''}
+        ${this.showAddDialog ? this.renderDialog(false) : ''}
+        ${this.showEditDialog ? this.renderDialog(true) : ''}
+        ${this.showFullscreenCard ? this.renderFullscreen() : ''}
       </div>
     `;
   }
 
+  renderDialog(isEdit) {
+    const card = isEdit ? this.editingCard : this.newCard;
+    
+    return html`
+      <div class="overlay" @click=${() => isEdit ? (this.showEditDialog = false) : (this.showAddDialog = false)}>
+        <form class="dialog" @click=${(e) => e.stopPropagation()} @submit=${isEdit ? this.handleSaveEditCard : this.handleSaveNewCard}>
+          <div class="dialog-header">
+            <h3>${isEdit ? 'Edit Card' : 'Add Loyalty Card'}</h3>
+            <button type="button" @click=${() => isEdit ? (this.showEditDialog = false) : (this.showAddDialog = false)}>
+              <span class="emoji">✖️</span>
+            </button>
+          </div>
+          <div class="dialog-content">
+            <label>
+              Store Name
+              <input type="text" name="name" placeholder="e.g., Countdown" .value=${card.name} required />
+            </label>
+            <label>
+              Card Number
+              <input type="text" name="number" placeholder="Card/Member number" .value=${card.number} required />
+            </label>
+            <label>
+              Barcode
+              <input type="text" name="barcode" placeholder="Auto-generated from number" .value=${card.barcode} />
+            </label>
+            <label>
+              Shop Logo URL (optional)
+              <input type="url" name="logo" placeholder="https://..." .value=${card.logo || ''} />
+            </label>
+            <label>
+              Notes
+              <textarea name="notes" placeholder="Additional notes..." rows="3" .value=${card.notes || ''}></textarea>
+            </label>
+            <label>
+              Card Color
+              <input type="color" name="color" .value=${card.color} />
+            </label>
+          </div>
+          <div class="dialog-footer">
+            ${isEdit ? html`
+              <button type="button" class="action-btn secondary" @click=${() => this.handleDuplicateCard(card)}>
+                Duplicate
+              </button>
+              <button type="button" class="action-btn danger" @click=${() => this.handleDeleteCard(card.id)}>
+                Delete
+              </button>
+            ` : ''}
+            <button type="submit" class="action-btn primary">
+              ${isEdit ? 'Save' : 'Add'}
+            </button>
+          </div>
+        </form>
+      </div>
+    `;
+  }
+
+  renderFullscreen() {
+    const card = this.fullscreenCard;
+    
+    return html`
+      <div class="fullscreen-overlay" @click=${() => this.showFullscreenCard = false}>
+        <div class="fullscreen-card">
+          <h2>${card.name}</h2>
+          <div class="fullscreen-number">${card.number}</div>
+          ${card.barcode ? html`
+            <div class="fullscreen-barcode">
+              <div class="barcode-display">
+                ${this.renderBarcodeImage(card.barcode)}
+              </div>
+              <div class="barcode-number">${card.barcode}</div>
+            </div>
+          ` : ''}
+          <p class="tap-hint">Tap anywhere to close</p>
+        </div>
+      </div>
+    `;
+  }
+
+  renderBarcodeImage(barcode) {
+    // Simple barcode representation using bars
+    return html`
+      <svg class="barcode-svg" viewBox="0 0 200 80">
+        ${barcode.split('').map((digit, i) => html`
+          <rect x="${i * 15}" y="0" width="${parseInt(digit) + 3}" height="80" fill="black"></rect>
+        `)}
+      </svg>
+    `;
+  }
+
   static styles = css`
-    .slm-loyalty-view {
-      padding: 20px;
+    .loyalty-view {
+      padding: 16px 8px;
     }
     .header {
       display: flex;
       justify-content: space-between;
       align-items: center;
       margin-bottom: 20px;
+      padding: 0 8px;
     }
     .header h2 {
       margin: 0;
-      font-size: 24px;
+      font-size: 22px;
       font-weight: 700;
+      color: var(--text-primary, #424242);
     }
     .add-btn {
       display: flex;
       align-items: center;
-      gap: 8px;
-      padding: 10px 16px;
-      background: var(--primary-color);
+      gap: 6px;
+      padding: 8px 14px;
+      background: linear-gradient(135deg, #9fa8da 0%, #c5cae9 100%);
       color: white;
       border: none;
-      border-radius: 12px;
+      border-radius: 10px;
       font-weight: 600;
+      font-size: 14px;
       cursor: pointer;
+      box-shadow: 0 2px 6px rgba(159, 168, 218, 0.3);
     }
     .empty {
       text-align: center;
       padding: 80px 32px;
-      color: var(--secondary-text-color);
+      color: var(--text-secondary, #757575);
     }
-    .empty ha-icon {
+    .empty-emoji {
       font-size: 80px;
-      opacity: 0.2;
+      margin-bottom: 16px;
+      opacity: 0.3;
     }
     .hint {
       font-size: 14px;
       opacity: 0.7;
+      margin-bottom: 24px;
+    }
+    .primary-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 12px 24px;
+      background: linear-gradient(135deg, #9fa8da 0%, #c5cae9 100%);
+      color: white;
+      border: none;
+      border-radius: 12px;
+      font-weight: 600;
+      font-size: 16px;
+      cursor: pointer;
+      box-shadow: 0 3px 8px rgba(159, 168, 218, 0.3);
     }
     .cards-grid {
       display: grid;
       grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-      gap: 16px;
+      gap: 12px;
     }
     .loyalty-card {
       position: relative;
-      padding: 24px;
-      border-radius: 16px;
+      padding: 20px;
+      border-radius: 12px;
       color: white;
       min-height: 180px;
       display: flex;
       flex-direction: column;
-      justify-content: space-between;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
     }
-    .delete-btn {
+    .menu-btn {
       position: absolute;
-      top: 12px;
-      right: 12px;
-      background: rgba(255,255,255,0.3);
+      top: 10px;
+      right: 10px;
+      background: rgba(255,255,255,0.2);
       color: white;
       border: none;
       border-radius: 50%;
       width: 32px;
       height: 32px;
       cursor: pointer;
-      opacity: 0;
-      transition: opacity 0.2s;
+      font-size: 18px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 2;
     }
-    .loyalty-card:hover .delete-btn {
-      opacity: 1;
+    .card-body {
+      flex: 1;
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+    .card-logo {
+      width: 60px;
+      height: 60px;
+      object-fit: contain;
+      margin-bottom: 10px;
+      background: rgba(255,255,255,0.9);
+      padding: 8px;
+      border-radius: 8px;
     }
     .loyalty-card h3 {
-      margin: 0 0 16px 0;
-      font-size: 20px;
+      margin: 0 0 12px 0;
+      font-size: 18px;
       font-weight: 700;
     }
     .card-number {
-      font-size: 18px;
+      font-size: 16px;
       font-weight: 600;
-      letter-spacing: 2px;
-      margin-bottom: 12px;
+      letter-spacing: 1px;
+      margin-bottom: 10px;
     }
-    .barcode {
+    .barcode-preview {
       display: flex;
       align-items: center;
-      gap: 8px;
+      gap: 6px;
       opacity: 0.9;
+      font-size: 13px;
     }
     .overlay {
       position: fixed;
@@ -231,65 +407,129 @@ class SLMLoyaltyCardsView extends LitElement {
     .dialog {
       width: 90%;
       max-width: 400px;
-      background: var(--card-background-color);
+      background: white;
       border-radius: 16px;
     }
     .dialog-header {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      padding: 20px;
-      border-bottom: 1px solid var(--divider-color);
+      padding: 16px;
+      border-bottom: 1px solid var(--border-color, #e8eaf6);
     }
     .dialog-header h3 {
       margin: 0;
+      font-size: 18px;
     }
     .dialog-header button {
       background: none;
       border: none;
       cursor: pointer;
+      font-size: 18px;
     }
     .dialog-content {
       padding: 20px;
+      max-height: 60vh;
+      overflow-y: auto;
     }
     .dialog-content label {
       display: block;
-      margin-bottom: 16px;
+      margin-bottom: 14px;
       font-weight: 600;
-      color: var(--secondary-text-color);
+      font-size: 13px;
+      color: var(--text-secondary, #757575);
     }
-    .dialog-content input {
+    .dialog-content input,
+    .dialog-content textarea {
       display: block;
       width: 100%;
-      padding: 12px;
-      margin-top: 8px;
-      border: 2px solid var(--divider-color);
+      padding: 10px;
+      margin-top: 6px;
+      border: 2px solid var(--border-color, #e8eaf6);
       border-radius: 8px;
-      font-size: 16px;
-      background: var(--primary-background-color);
-      color: var(--primary-text-color);
+      font-size: 15px;
+      font-family: inherit;
+      color: var(--text-primary, #424242);
     }
     .dialog-footer {
       display: flex;
-      gap: 12px;
-      padding: 20px;
-      border-top: 1px solid var(--divider-color);
+      gap: 8px;
+      padding: 16px;
+      border-top: 1px solid var(--border-color, #e8eaf6);
     }
-    .cancel-btn,
-    .save-btn {
+    .action-btn {
       flex: 1;
-      padding: 12px;
-      border-radius: 12px;
+      padding: 10px;
+      border-radius: 10px;
       font-weight: 600;
       cursor: pointer;
       border: none;
     }
-    .cancel-btn {
-      background: var(--secondary-background-color);
-    }
-    .save-btn {
-      background: var(--primary-color);
+    .action-btn.primary {
+      background: linear-gradient(135deg, #9fa8da 0%, #c5cae9 100%);
       color: white;
+    }
+    .action-btn.secondary {
+      background: var(--surface-pastel, #fafbfc);
+      color: var(--text-primary, #424242);
+    }
+    .action-btn.danger {
+      background: #ef9a9a;
+      color: white;
+    }
+    .fullscreen-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0,0,0,0.95);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 2000;
+      cursor: pointer;
+    }
+    .fullscreen-card {
+      text-align: center;
+      color: white;
+      padding: 40px;
+      max-width: 90%;
+    }
+    .fullscreen-card h2 {
+      margin: 0 0 20px 0;
+      font-size: 28px;
+    }
+    .fullscreen-number {
+      font-size: 32px;
+      font-weight: 700;
+      letter-spacing: 3px;
+      margin-bottom: 40px;
+    }
+    .fullscreen-barcode {
+      margin: 40px auto;
+      background: white;
+      padding: 30px;
+      border-radius: 12px;
+      max-width: 400px;
+    }
+    .barcode-display {
+      margin-bottom: 20px;
+    }
+    .barcode-svg {
+      width: 100%;
+      height: 120px;
+    }
+    .barcode-number {
+      font-size: 24px;
+      font-weight: 700;
+      color: black;
+      letter-spacing: 2px;
+    }
+    .tap-hint {
+      margin-top: 40px;
+      opacity: 0.7;
+      font-size: 14px;
     }
   `;
 }

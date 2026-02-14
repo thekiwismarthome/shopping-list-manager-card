@@ -1,11 +1,11 @@
 import { LitElement, html, css } from 'lit';
-import './profile-settings.js';
-import './appearance-settings.js';
-import './notification-settings.js';
-import './category-settings.js';
-import './support-settings.js';
+import './slm-profile-settings.js';
+import './slm-appearance-settings.js';
+import './slm-notification-settings.js';
+import './slm-category-settings.js';
+import './slm-support-settings.js';
 
-class SettingsView extends LitElement {
+class SLMSettingsView extends LitElement {
   static properties = {
     hass: { type: Object },
     api: { type: Object },
@@ -39,55 +39,39 @@ class SettingsView extends LitElement {
         </div>
 
         <div class="settings-list">
-          <!-- Profile Section -->
           <button class="settings-item" @click=${() => this.handleNavigation('profile')}>
             <div class="item-icon">
-              <ha-icon icon="mdi:account"></ha-icon>
+              <span class="emoji">👤</span>
             </div>
             <div class="item-content">
               <div class="item-title">Profile</div>
               <div class="item-subtitle">${this.hass.user?.name || 'User'}</div>
             </div>
-            <ha-icon icon="mdi:chevron-right"></ha-icon>
+            <span class="chevron">▶️</span>
           </button>
 
-          <!-- Appearance Section -->
           <button class="settings-item" @click=${() => this.handleNavigation('appearance')}>
             <div class="item-icon">
-              <ha-icon icon="mdi:palette"></ha-icon>
+              <span class="emoji">🎨</span>
             </div>
             <div class="item-content">
               <div class="item-title">Appearance</div>
-              <div class="item-subtitle">Theme, dark mode, fonts</div>
+              <div class="item-subtitle">Theme, tiles, fonts</div>
             </div>
-            <ha-icon icon="mdi:chevron-right"></ha-icon>
+            <span class="chevron">▶️</span>
           </button>
 
-          <!-- Language -->
-          <button class="settings-item">
-            <div class="item-icon">
-              <ha-icon icon="mdi:translate"></ha-icon>
-            </div>
-            <div class="item-content">
-              <div class="item-title">Language</div>
-              <div class="item-subtitle">English (EN)</div>
-            </div>
-            <ha-icon icon="mdi:chevron-right"></ha-icon>
-          </button>
-
-          <!-- Notifications -->
           <button class="settings-item" @click=${() => this.handleNavigation('notifications')}>
             <div class="item-icon">
-              <ha-icon icon="mdi:bell"></ha-icon>
+              <span class="emoji">🔔</span>
             </div>
             <div class="item-content">
               <div class="item-title">Notifications</div>
               <div class="item-subtitle">List sharing, emails</div>
             </div>
-            <ha-icon icon="mdi:chevron-right"></ha-icon>
+            <span class="chevron">▶️</span>
           </button>
 
-          <!-- Toggles -->
           <div class="section-header">Preferences</div>
 
           <div class="settings-item">
@@ -118,43 +102,40 @@ class SettingsView extends LitElement {
             </label>
           </div>
 
-          <!-- Lists Section -->
           <div class="section-header">Lists</div>
 
           <button class="settings-item" @click=${() => this.handleNavigation('categories')}>
             <div class="item-icon">
-              <ha-icon icon="mdi:shape"></ha-icon>
+              <span class="emoji">📦</span>
             </div>
             <div class="item-content">
               <div class="item-title">Manage Categories</div>
               <div class="item-subtitle">${this.categories.length} categories</div>
             </div>
-            <ha-icon icon="mdi:chevron-right"></ha-icon>
+            <span class="chevron">▶️</span>
           </button>
 
-          <!-- Support Section -->
           <div class="section-header">Support</div>
 
           <button class="settings-item" @click=${() => this.handleNavigation('support')}>
             <div class="item-icon">
-              <ha-icon icon="mdi:help-circle"></ha-icon>
+              <span class="emoji">❓</span>
             </div>
             <div class="item-content">
               <div class="item-title">FAQ & Support</div>
             </div>
-            <ha-icon icon="mdi:chevron-right"></ha-icon>
+            <span class="chevron">▶️</span>
           </button>
 
           <button class="settings-item" @click=${() => window.location.reload()}>
             <div class="item-icon">
-              <ha-icon icon="mdi:refresh"></ha-icon>
+              <span class="emoji">🔄</span>
             </div>
             <div class="item-content">
               <div class="item-title">Refresh</div>
             </div>
           </button>
 
-          <!-- App Info -->
           <div class="section-header">App</div>
 
           <div class="settings-item">
@@ -172,44 +153,44 @@ class SettingsView extends LitElement {
     switch (this.currentSection) {
       case 'profile':
         return html`
-          <profile-settings
+          <slm-profile-settings
             .hass=${this.hass}
             @back=${() => this.currentSection = 'main'}
-          ></profile-settings>
+          ></slm-profile-settings>
         `;
 
       case 'appearance':
         return html`
-          <appearance-settings
+          <slm-appearance-settings
             .settings=${this.settings}
             @settings-changed=${(e) => this.dispatchEvent(e)}
             @back=${() => this.currentSection = 'main'}
-          ></appearance-settings>
+          ></slm-appearance-settings>
         `;
 
       case 'notifications':
         return html`
-          <notification-settings
+          <slm-notification-settings
             .settings=${this.settings}
             @settings-changed=${(e) => this.dispatchEvent(e)}
             @back=${() => this.currentSection = 'main'}
-          ></notification-settings>
+          ></slm-notification-settings>
         `;
 
       case 'categories':
         return html`
-          <category-settings
+          <slm-category-settings
             .api=${this.api}
             .categories=${this.categories}
             @back=${() => this.currentSection = 'main'}
-          ></category-settings>
+          ></slm-category-settings>
         `;
 
       case 'support':
         return html`
-          <support-settings
+          <slm-support-settings
             @back=${() => this.currentSection = 'main'}
-          ></support-settings>
+          ></slm-support-settings>
         `;
 
       default:
@@ -222,64 +203,66 @@ class SettingsView extends LitElement {
       padding-bottom: 80px;
     }
     .settings-header {
-      padding: 20px;
-      border-bottom: 1px solid var(--divider-color);
+      padding: 16px;
+      border-bottom: 1px solid var(--border-color, #e8eaf6);
     }
     .settings-header h2 {
       margin: 0;
-      font-size: 28px;
+      font-size: 24px;
       font-weight: 700;
-    }
-    .settings-list {
-      padding: 0;
+      color: var(--text-primary, #424242);
     }
     .section-header {
-      padding: 16px 20px 8px;
-      font-size: 13px;
+      padding: 14px 16px 6px;
+      font-size: 12px;
       font-weight: 700;
-      color: var(--secondary-text-color);
+      color: var(--text-secondary, #757575);
       text-transform: uppercase;
       letter-spacing: 0.5px;
     }
     .settings-item {
       display: flex;
       align-items: center;
-      gap: 16px;
-      padding: 16px 20px;
+      gap: 12px;
+      padding: 14px 16px;
       border: none;
       background: transparent;
       width: 100%;
       text-align: left;
       cursor: pointer;
-      border-bottom: 1px solid var(--divider-color);
+      border-bottom: 1px solid var(--border-color, #e8eaf6);
       transition: background 0.2s;
+      -webkit-tap-highlight-color: transparent;
     }
-    .settings-item:hover {
-      background: var(--primary-background-color);
+    .settings-item:active {
+      background: var(--surface-pastel, #fafbfc);
     }
     .item-icon {
-      width: 40px;
-      height: 40px;
+      width: 36px;
+      height: 36px;
       border-radius: 50%;
-      background: var(--primary-color);
-      color: white;
+      background: linear-gradient(135deg, #c5cae9 0%, #e1e8f0 100%);
       display: flex;
       align-items: center;
       justify-content: center;
-    }
-    .item-icon ha-icon {
-      --mdc-icon-size: 24px;
+      font-size: 20px;
     }
     .item-content {
       flex: 1;
     }
     .item-title {
       font-weight: 600;
-      margin-bottom: 4px;
+      font-size: 14px;
+      margin-bottom: 2px;
+      color: var(--text-primary, #424242);
     }
     .item-subtitle {
+      font-size: 12px;
+      color: var(--text-secondary, #757575);
+    }
+    .chevron {
       font-size: 14px;
-      color: var(--secondary-text-color);
+      opacity: 0.4;
     }
     .toggle {
       position: relative;
@@ -299,7 +282,7 @@ class SettingsView extends LitElement {
       left: 0;
       right: 0;
       bottom: 0;
-      background-color: var(--disabled-color);
+      background-color: #e0e0e0;
       transition: 0.3s;
       border-radius: 28px;
     }
@@ -315,7 +298,7 @@ class SettingsView extends LitElement {
       border-radius: 50%;
     }
     input:checked + .slider {
-      background-color: var(--primary-color);
+      background: linear-gradient(135deg, #9fa8da 0%, #c5cae9 100%);
     }
     input:checked + .slider:before {
       transform: translateX(22px);
@@ -323,4 +306,4 @@ class SettingsView extends LitElement {
   `;
 }
 
-customElements.define('settings-view', SettingsView);
+customElements.define('slm-settings-view', SLMSettingsView);

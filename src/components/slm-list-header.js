@@ -54,4 +54,4 @@ class ListHeader extends LitElement {
   `;
 }
 
-customElements.define('list-header', ListHeader);
+customElements.define('slm-list-header', ListHeader);

@@ -7,7 +7,7 @@ class ProfileSettings extends LitElement {
 
   render() {
     return html`
-      <div class="profile-settings">
+      <div class="slm-profile-settings">
         <div class="header">
           <button class="back-btn" @click=${() => this.dispatchEvent(new Event('back'))}>
             <ha-icon icon="mdi:arrow-left"></ha-icon>
@@ -43,7 +43,7 @@ class ProfileSettings extends LitElement {
   }
 
   static styles = css`
-    .profile-settings {
+    .slm-profile-settings {
       padding-bottom: 80px;
     }
     .header {
@@ -120,4 +120,4 @@ class ProfileSettings extends LitElement {
   `;
 }
 
-customElements.define('profile-settings', ProfileSettings);
+customElements.define('slm-profile-settings', ProfileSettings);

@@ -44,7 +44,7 @@ class SLMListCard extends LitElement {
 
   render() {
     return html`
-      <div class="slm-list-card ${this.isActive ? 'active' : ''}" @click=${this.handleCardClick}>
+      <div class="list-card ${this.isActive ? 'active' : ''}" @click=${this.handleCardClick}>
         <div class="card-header">
           <span class="emoji">${this.emoji}</span>
           <button class="menu-btn" @click=${this.handleMenuClick}>
@@ -95,30 +95,30 @@ class SLMListCard extends LitElement {
   }
 
   static styles = css`
-    .slm-list-card {
+    .list-card {
       position: relative;
-      background: linear-gradient(135deg, #f5f7fa 0%, #e8eaf6 100%);
-      border: 2px solid #e8eaf6;
-      border-radius: 16px;
-      padding: 20px;
+      background: linear-gradient(135deg, #fafbfc 0%, #f5f7fa 100%);
+      border: 2px solid var(--border-color, #e8eaf6);
+      border-radius: 12px;
+      padding: 16px;
       cursor: pointer;
       transition: all 0.2s;
     }
-    .slm-list-card:hover {
-      border-color: #a8b5ff;
+    .list-card:hover {
+      border-color: #c5cae9;
       transform: translateY(-2px);
-      box-shadow: 0 4px 12px rgba(168, 181, 255, 0.2);
+      box-shadow: 0 4px 12px rgba(197, 202, 233, 0.2);
     }
-    .slm-list-card.active {
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    .list-card.active {
+      background: linear-gradient(135deg, #9fa8da 0%, #c5cae9 100%);
       color: white;
-      border-color: #667eea;
+      border-color: #9fa8da;
     }
     .card-header {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      margin-bottom: 16px;
+      margin-bottom: 12px;
     }
     .emoji {
       font-size: 32px;
@@ -129,43 +129,43 @@ class SLMListCard extends LitElement {
       padding: 4px;
       cursor: pointer;
       opacity: 0.6;
-      font-size: 24px;
+      font-size: 20px;
       color: inherit;
     }
     .menu-btn:hover {
       opacity: 1;
     }
-    .slm-list-card h3 {
-      margin: 0 0 12px 0;
-      font-size: 18px;
+    h3 {
+      margin: 0 0 10px 0;
+      font-size: 16px;
       font-weight: 600;
     }
     .card-stats {
       display: flex;
       gap: 16px;
-      margin-top: 12px;
+      margin-top: 10px;
     }
     .stat {
       display: flex;
       flex-direction: column;
     }
     .stat-value {
-      font-size: 16px;
+      font-size: 15px;
       font-weight: 700;
     }
     .stat-label {
-      font-size: 12px;
-      opacity: 0.8;
+      font-size: 11px;
+      opacity: 0.85;
     }
     .active-badge {
       position: absolute;
-      top: 16px;
-      right: 16px;
+      top: 12px;
+      right: 12px;
       background: rgba(255,255,255,0.3);
       color: white;
-      padding: 4px 10px;
-      border-radius: 8px;
-      font-size: 11px;
+      padding: 3px 8px;
+      border-radius: 6px;
+      font-size: 10px;
       font-weight: 700;
     }
     .menu-overlay {
@@ -180,34 +180,34 @@ class SLMListCard extends LitElement {
       position: absolute;
       top: 40px;
       right: 0;
-      background: var(--card-background-color);
-      border-radius: 12px;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+      background: white;
+      border-radius: 10px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
       overflow: hidden;
-      min-width: 160px;
+      min-width: 150px;
       z-index: 101;
     }
     .menu-popup button {
       width: 100%;
       display: flex;
       align-items: center;
-      gap: 12px;
-      padding: 12px 16px;
+      gap: 10px;
+      padding: 10px 14px;
       border: none;
       background: transparent;
-      color: var(--primary-text-color);
+      color: var(--text-primary, #424242);
       cursor: pointer;
       font-size: 14px;
       text-align: left;
     }
     .menu-popup button:hover {
-      background: #f5f7fa;
+      background: var(--surface-pastel, #fafbfc);
     }
     .menu-popup button.danger {
-      color: #ff7675;
+      color: #ef9a9a;
     }
     .menu-popup button.danger:hover {
-      background: #ff7675;
+      background: #ef9a9a;
       color: white;
     }
   `;

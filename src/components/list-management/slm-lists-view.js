@@ -15,6 +15,7 @@ class SLMListsView extends LitElement {
 
   constructor() {
     super();
+    this.lists = [];
     this.showCreateDialog = false;
     this.newListName = '';
     this.newListIcon = 'mdi:cart';
@@ -31,9 +32,10 @@ class SLMListsView extends LitElement {
       this.newListName = '';
       this.newListIcon = 'mdi:cart';
       
-      const result = await this.api.getLists();
-      this.lists = result.lists;
-      this.requestUpdate();
+      this.dispatchEvent(new CustomEvent('lists-updated', {
+        bubbles: true,
+        composed: true
+      }));
     }
   }
 
@@ -53,18 +55,20 @@ class SLMListsView extends LitElement {
         const newName = prompt('Enter new list name:');
         if (newName) {
           await this.api.updateList(listId, { name: newName });
-          const result = await this.api.getLists();
-          this.lists = result.lists;
-          this.requestUpdate();
+          this.dispatchEvent(new CustomEvent('lists-updated', {
+            bubbles: true,
+            composed: true
+          }));
         }
         break;
 
       case 'delete':
         if (confirm('Delete this list?')) {
           await this.api.deleteList(listId);
-          const result = await this.api.getLists();
-          this.lists = result.lists;
-          this.requestUpdate();
+          this.dispatchEvent(new CustomEvent('lists-updated', {
+            bubbles: true,
+            composed: true
+          }));
         }
         break;
 
@@ -91,7 +95,7 @@ class SLMListsView extends LitElement {
 
   render() {
     return html`
-      <div class="slm-lists-view">
+      <div class="lists-view">
         <div class="header">
           <h2>My Lists</h2>
           <button class="create-btn" @click=${this.handleCreateList}>
@@ -100,20 +104,32 @@ class SLMListsView extends LitElement {
           </button>
         </div>
 
-        <div class="lists-grid">
-          ${this.lists.map(list => html`
-            <slm-list-card
-              .list=${list}
-              .isActive=${list.id === this.activeList?.id}
-              .itemCount=${list.id === this.activeList?.id ? this.items.filter(i => !i.checked).length : 0}
-              .totalCost=${list.id === this.activeList?.id ? this.total.total : 0}
-              .currency=${this.total.currency}
-              .emoji=${this.getListEmoji(list.icon)}
-              @list-select=${this.handleListSelect}
-              @list-action=${this.handleListAction}
-            ></slm-list-card>
-          `)}
-        </div>
+        ${this.lists.length === 0 ? html`
+          <div class="empty">
+            <div class="empty-emoji">📋</div>
+            <p>No lists yet</p>
+            <p class="hint">Create your first shopping list</p>
+            <button class="primary-btn" @click=${this.handleCreateList}>
+              <span class="emoji">➕</span>
+              Create List
+            </button>
+          </div>
+        ` : html`
+          <div class="lists-grid">
+            ${this.lists.map(list => html`
+              <slm-list-card
+                .list=${list}
+                .isActive=${list.id === this.activeList?.id}
+                .itemCount=${list.id === this.activeList?.id ? this.items.filter(i => !i.checked).length : 0}
+                .totalCost=${list.id === this.activeList?.id ? this.total.total : 0}
+                .currency=${this.total.currency}
+                .emoji=${this.getListEmoji(list.icon)}
+                @list-select=${this.handleListSelect}
+                @list-action=${this.handleListAction}
+              ></slm-list-card>
+            `)}
+          </div>
+        `}
 
         ${this.showCreateDialog ? html`
           <div class="overlay" @click=${() => this.showCreateDialog = false}>
@@ -158,41 +174,76 @@ class SLMListsView extends LitElement {
   }
 
   static styles = css`
-    .slm-lists-view {
-      padding: 20px;
+    .lists-view {
+      padding: 16px 8px;
+      min-height: 100%;
     }
     .header {
       display: flex;
       justify-content: space-between;
       align-items: center;
       margin-bottom: 20px;
+      padding: 0 8px;
     }
     .header h2 {
       margin: 0;
-      font-size: 24px;
+      font-size: 22px;
       font-weight: 700;
-      color: #5f6368;
+      color: var(--text-primary, #424242);
     }
     .create-btn {
       display: flex;
       align-items: center;
+      gap: 6px;
+      padding: 8px 14px;
+      background: linear-gradient(135deg, #9fa8da 0%, #c5cae9 100%);
+      color: white;
+      border: none;
+      border-radius: 10px;
+      font-weight: 600;
+      font-size: 14px;
+      cursor: pointer;
+      box-shadow: 0 2px 6px rgba(159, 168, 218, 0.3);
+    }
+    .emoji {
+      font-size: 16px;
+    }
+    .empty {
+      text-align: center;
+      padding: 80px 32px;
+      color: var(--text-secondary, #757575);
+    }
+    .empty-emoji {
+      font-size: 80px;
+      margin-bottom: 16px;
+      opacity: 0.3;
+    }
+    .empty p {
+      margin: 8px 0;
+    }
+    .hint {
+      font-size: 14px;
+      opacity: 0.7;
+      margin-bottom: 24px;
+    }
+    .primary-btn {
+      display: inline-flex;
+      align-items: center;
       gap: 8px;
-      padding: 10px 16px;
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      padding: 12px 24px;
+      background: linear-gradient(135deg, #9fa8da 0%, #c5cae9 100%);
       color: white;
       border: none;
       border-radius: 12px;
       font-weight: 600;
+      font-size: 16px;
       cursor: pointer;
-      box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
-    }
-    .emoji {
-      font-size: 18px;
+      box-shadow: 0 3px 8px rgba(159, 168, 218, 0.3);
     }
     .lists-grid {
       display: grid;
       grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-      gap: 16px;
+      gap: 12px;
     }
     .overlay {
       position: fixed;
@@ -209,28 +260,27 @@ class SLMListsView extends LitElement {
     .dialog {
       width: 90%;
       max-width: 400px;
-      background: var(--card-background-color);
+      background: white;
       border-radius: 16px;
-      padding: 0;
     }
     .dialog-header {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      padding: 20px;
-      border-bottom: 1px solid #e8eaf6;
+      padding: 16px;
+      border-bottom: 1px solid var(--border-color, #e8eaf6);
     }
     .dialog-header h3 {
       margin: 0;
-      font-size: 20px;
-      color: #5f6368;
+      font-size: 18px;
+      color: var(--text-primary, #424242);
     }
     .dialog-header button {
       background: none;
       border: none;
       padding: 4px;
       cursor: pointer;
-      font-size: 20px;
+      font-size: 18px;
     }
     .dialog-content {
       padding: 20px;
@@ -239,28 +289,28 @@ class SLMListsView extends LitElement {
       display: block;
       margin-bottom: 8px;
       font-weight: 600;
-      color: #5f6368;
+      font-size: 13px;
+      color: var(--text-secondary, #757575);
     }
     .dialog-content input {
       width: 100%;
-      padding: 12px;
-      border: 2px solid #e8eaf6;
+      padding: 10px;
+      border: 2px solid var(--border-color, #e8eaf6);
       border-radius: 8px;
-      font-size: 16px;
+      font-size: 15px;
       margin-bottom: 20px;
-      background: var(--primary-background-color);
-      color: var(--primary-text-color);
+      color: var(--text-primary, #424242);
     }
     .icon-picker {
       display: flex;
-      gap: 12px;
+      gap: 10px;
       margin-bottom: 20px;
     }
     .icon-option {
       width: 48px;
       height: 48px;
-      border-radius: 12px;
-      border: 2px solid #e8eaf6;
+      border-radius: 10px;
+      border: 2px solid var(--border-color, #e8eaf6);
       background: transparent;
       cursor: pointer;
       display: flex;
@@ -270,34 +320,33 @@ class SLMListsView extends LitElement {
       transition: all 0.2s;
     }
     .icon-option:hover {
-      border-color: #667eea;
-      transform: scale(1.05);
+      border-color: #9fa8da;
     }
     .icon-option.selected {
-      border-color: #667eea;
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      border-color: #9fa8da;
+      background: linear-gradient(135deg, #9fa8da 0%, #c5cae9 100%);
     }
     .dialog-footer {
       display: flex;
-      gap: 12px;
-      padding: 20px;
-      border-top: 1px solid #e8eaf6;
+      gap: 10px;
+      padding: 16px;
+      border-top: 1px solid var(--border-color, #e8eaf6);
     }
     .cancel-btn,
     .save-btn {
       flex: 1;
-      padding: 12px;
-      border-radius: 12px;
+      padding: 10px;
+      border-radius: 10px;
       font-weight: 600;
       cursor: pointer;
       border: none;
     }
     .cancel-btn {
-      background: #f5f7fa;
-      color: #5f6368;
+      background: var(--surface-pastel, #fafbfc);
+      color: var(--text-primary, #424242);
     }
     .save-btn {
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      background: linear-gradient(135deg, #9fa8da 0%, #c5cae9 100%);
       color: white;
     }
   `;

@@ -3,7 +3,7 @@ import { LitElement, html, css } from 'lit';
 class SupportSettings extends LitElement {
   render() {
     return html`
-      <div class="support-settings">
+      <div class="slm-support-settings">
         <div class="header">
           <button class="back-btn" @click=${() => this.dispatchEvent(new Event('back'))}>
             <ha-icon icon="mdi:arrow-left"></ha-icon>
@@ -72,7 +72,7 @@ class SupportSettings extends LitElement {
   }
 
   static styles = css`
-    .support-settings {
+    .slm-support-settings {
       padding-bottom: 80px;
     }
     .header {
@@ -141,4 +141,4 @@ class SupportSettings extends LitElement {
   `;
 }
 
-customElements.define('support-settings', SupportSettings);
+customElements.define('slm-support-settings', SupportSettings);

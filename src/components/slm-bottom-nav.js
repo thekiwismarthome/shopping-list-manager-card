@@ -1,6 +1,6 @@
 import { LitElement, html, css } from 'lit';
 
-class BottomNav extends LitElement {
+class SLMBottomNav extends LitElement {
   static properties = {
     currentView: { type: String }
   };
@@ -21,7 +21,7 @@ class BottomNav extends LitElement {
           @click=${() => this.handleNavClick('shopping')}
         >
           <span class="emoji">🛒</span>
-          <span>Shopping</span>
+          <span class="label">Shopping</span>
         </button>
 
         <button
@@ -29,7 +29,7 @@ class BottomNav extends LitElement {
           @click=${() => this.handleNavClick('lists')}
         >
           <span class="emoji">📋</span>
-          <span>Lists</span>
+          <span class="label">Lists</span>
         </button>
 
         <button
@@ -37,7 +37,7 @@ class BottomNav extends LitElement {
           @click=${() => this.handleNavClick('loyalty')}
         >
           <span class="emoji">💳</span>
-          <span>Loyalty</span>
+          <span class="label">Loyalty</span>
         </button>
 
         <button
@@ -45,7 +45,7 @@ class BottomNav extends LitElement {
           @click=${() => this.handleNavClick('settings')}
         >
           <span class="emoji">⚙️</span>
-          <span>Settings</span>
+          <span class="label">Settings</span>
         </button>
       </nav>
     `;
@@ -59,10 +59,10 @@ class BottomNav extends LitElement {
       right: 0;
       display: flex;
       justify-content: space-around;
-      background: var(--card-background-color);
-      border-top: 1px solid #e8eaf6;
-      padding: 8px 0;
-      box-shadow: 0 -2px 8px rgba(0,0,0,0.08);
+      background: white;
+      border-top: 1px solid var(--border-color, #e8eaf6);
+      padding: 6px 0;
+      box-shadow: 0 -2px 8px rgba(0,0,0,0.06);
       z-index: 100;
     }
     .nav-item {
@@ -70,29 +70,27 @@ class BottomNav extends LitElement {
       display: flex;
       flex-direction: column;
       align-items: center;
-      gap: 4px;
-      padding: 8px;
+      gap: 2px;
+      padding: 6px;
       border: none;
       background: transparent;
-      color: #9e9e9e;
+      color: var(--text-secondary, #757575);
       cursor: pointer;
-      transition: all 0.2s;
-      border-radius: 12px;
-    }
-    .nav-item:hover {
-      background: #f5f7fa;
+      transition: color 0.2s;
+      -webkit-tap-highlight-color: transparent;
+      outline: none;
     }
     .nav-item.active {
-      color: #667eea;
+      color: var(--primary-pastel, #9fa8da);
     }
     .emoji {
-      font-size: 24px;
+      font-size: 22px;
     }
-    .nav-item span:last-child {
-      font-size: 12px;
+    .label {
+      font-size: 11px;
       font-weight: 500;
     }
   `;
 }
 
-customElements.define('bottom-nav', BottomNav);
+customElements.define('slm-bottom-nav', SLMBottomNav);

@@ -128,4 +128,4 @@ class DarkModePopup extends LitElement {
   `;
 }
 
-customElements.define('dark-mode-popup', DarkModePopup);
+customElements.define('slm-dark-mode-popup', DarkModePopup);

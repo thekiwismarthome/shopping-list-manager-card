@@ -354,4 +354,4 @@ class AddItemDialog extends LitElement {
   `;
 }
 
-customElements.define('add-item-dialog', AddItemDialog);
+customElements.define('slm-add-item-dialog', AddItemDialog);

@@ -1,6 +1,6 @@
 import { LitElement, html, css } from 'lit';
-import './dark-mode-popup.js';
-import './font-settings.js';
+import './slm-dark-mode-popup.js';
+import './slm-font-settings.js';
 
 class AppearanceSettings extends LitElement {
   static properties = {
@@ -25,7 +25,7 @@ class AppearanceSettings extends LitElement {
 
   render() {
     return html`
-      <div class="appearance-settings">
+      <div class="slm-appearance-settings">
         <div class="header">
           <button class="back-btn" @click=${() => this.dispatchEvent(new Event('back'))}>
             <span class="emoji">◀️</span>
@@ -135,25 +135,25 @@ class AppearanceSettings extends LitElement {
         </div>
 
         ${this.showDarkModePopup ? html`
-          <dark-mode-popup
+          <slm-dark-mode-popup
             .currentMode=${this.settings.darkMode}
             @mode-selected=${(e) => {
               this.handleSettingChange('darkMode', e.detail.mode);
               this.showDarkModePopup = false;
             }}
             @close=${() => this.showDarkModePopup = false}
-          ></dark-mode-popup>
+          ></slm-dark-mode-popup>
         ` : ''}
 
         ${this.showFontSettings ? html`
-          <font-settings
+          <slm-font-settings
             .currentFont=${this.settings.fontFamily}
             @font-selected=${(e) => {
               this.handleSettingChange('fontFamily', e.detail.font);
               this.showFontSettings = false;
             }}
             @close=${() => this.showFontSettings = false}
-          ></font-settings>
+          ></slm-font-settings>
         ` : ''}
       </div>
     `;
@@ -169,7 +169,7 @@ class AppearanceSettings extends LitElement {
   }
 
   static styles = css`
-    .appearance-settings {
+    .slm-appearance-settings {
       padding-bottom: 80px;
     }
     .header {
@@ -310,4 +310,4 @@ class AppearanceSettings extends LitElement {
   `;
 }
 
-customElements.define('appearance-settings', AppearanceSettings);
+customElements.define('slm-appearance-settings', AppearanceSettings);

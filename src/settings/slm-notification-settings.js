@@ -16,7 +16,7 @@ class NotificationSettings extends LitElement {
 
   render() {
     return html`
-      <div class="notification-settings">
+      <div class="slm-notification-settings">
         <div class="header">
           <button class="back-btn" @click=${() => this.dispatchEvent(new Event('back'))}>
             <ha-icon icon="mdi:arrow-left"></ha-icon>
@@ -64,7 +64,7 @@ class NotificationSettings extends LitElement {
   }
 
   static styles = css`
-    .notification-settings {
+    .slm-notification-settings {
       padding-bottom: 80px;
     }
     .header {
@@ -151,4 +151,4 @@ class NotificationSettings extends LitElement {
   `;
 }
 
-customElements.define('notification-settings', NotificationSettings);
+customElements.define('slm-notification-settings', NotificationSettings);

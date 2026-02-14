@@ -33,7 +33,7 @@ class CategorySettings extends LitElement {
 
   render() {
     return html`
-      <div class="category-settings">
+      <div class="slm-category-settings">
         <div class="header">
           <button class="back-btn" @click=${() => this.dispatchEvent(new Event('back'))}>
             <ha-icon icon="mdi:arrow-left"></ha-icon>
@@ -117,7 +117,7 @@ class CategorySettings extends LitElement {
   }
 
   static styles = css`
-    .category-settings {
+    .slm-category-settings {
       padding-bottom: 80px;
     }
     .header {
@@ -272,4 +272,4 @@ class CategorySettings extends LitElement {
   `;
 }
 
-customElements.define('category-settings', CategorySettings);
+customElements.define('slm-category-settings', CategorySettings);
