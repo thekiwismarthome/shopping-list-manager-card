@@ -1,6 +1,6 @@
 import { LitElement, html, css } from 'lit';
 
-class ListCard extends LitElement {
+class SLMListCard extends LitElement {
   static properties = {
     list: { type: Object },
     isActive: { type: Boolean },
@@ -188,4 +188,4 @@ class ListCard extends LitElement {
   `;
 }
 
-customElements.define('slm-list-card', ListCard);
+customElements.define('slm-list-card', SLMListCard);
