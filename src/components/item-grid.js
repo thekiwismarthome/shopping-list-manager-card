@@ -28,7 +28,6 @@ class ItemGrid extends LitElement {
         <div class="empty">
           <ha-icon icon="mdi:cart-outline"></ha-icon>
           <p>Your shopping list is empty</p>
-          <p class="hint">Search for products above to add items</p>
         </div>
       `;
     }
@@ -38,9 +37,8 @@ class ItemGrid extends LitElement {
         ${groupedItems.map(group => html`
           <div class="category-section">
             <div class="category-header">
-              <ha-icon icon="${group.category.icon}" style="color: ${group.category.color}"></ha-icon>
+              <ha-icon icon="${group.category.icon}"></ha-icon>
               <span>${group.category.name}</span>
-              <span class="count">${group.items.length}</span>
             </div>
             <div class="items-grid">
               ${group.items.map(item => html`
@@ -86,17 +84,8 @@ class ItemGrid extends LitElement {
       gap: 8px;
       padding: 12px 0;
       font-weight: 600;
-      font-size: 16px;
       border-bottom: 2px solid var(--divider-color);
       margin-bottom: 12px;
-    }
-    .count {
-      margin-left: auto;
-      background: var(--primary-color);
-      color: white;
-      padding: 2px 8px;
-      border-radius: 12px;
-      font-size: 13px;
     }
     .items-grid {
       display: grid;
@@ -111,10 +100,6 @@ class ItemGrid extends LitElement {
     .empty ha-icon {
       font-size: 64px;
       opacity: 0.3;
-    }
-    .hint {
-      font-size: 13px;
-      margin-top: 8px;
     }
   `;
 }
