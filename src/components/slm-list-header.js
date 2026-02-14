@@ -1,28 +1,46 @@
 import { LitElement, html, css } from 'lit';
 
-class ListHeader extends LitElement {
+class SLMListHeader extends LitElement {
   static properties = {
     activeList: { type: Object },
     itemCount: { type: Number }
   };
 
-  getListEmoji(icon) {
-    const emojiMap = {
-      'mdi:cart': '🛒',
-      'mdi:home': '🏠',
-      'mdi:food': '🍽️',
-      'mdi:shopping': '🛍️',
-      'mdi:store': '🏪'
-    };
-    return emojiMap[icon] || '🛒';
+  handleBack() {
+    this.dispatchEvent(new CustomEvent('back', {
+      bubbles: true,
+      composed: true
+    }));
+  }
+
+  handleShare() {
+    this.dispatchEvent(new CustomEvent('share', {
+      bubbles: true,
+      composed: true
+    }));
+  }
+
+  handleMenu() {
+    // TODO: Implement list edit menu
+    alert('List menu coming soon');
   }
 
   render() {
     return html`
       <div class="header">
-        <div class="list-info">
-          <span class="emoji">${this.getListEmoji(this.activeList?.icon)}</span>
-          <h2>${this.activeList?.name || 'Shopping List'}</h2>
+        <button class="back-btn" @click=${this.handleBack}>
+          <span class="emoji">◀</span>
+        </button>
+        
+        <h2>${this.activeList?.name || 'Shopping List'}</h2>
+        
+        <div class="header-actions">
+          <button class="action-btn" @click=${this.handleShare}>
+            <span class="emoji">👤➕</span>
+          </button>
+          <button class="action-btn" @click=${this.handleMenu}>
+            <span class="emoji">⋮</span>
+          </button>
         </div>
       </div>
     `;
@@ -30,28 +48,51 @@ class ListHeader extends LitElement {
 
   static styles = css`
     .header {
+      position: sticky;
+      top: 0;
       display: flex;
       align-items: center;
       justify-content: space-between;
-      padding: 16px 20px;
-      background: linear-gradient(135deg, #f5f7fa 0%, #e8eaf6 100%);
-      border-bottom: 1px solid #e8eaf6;
+      padding: 6px 8px;
+      background: var(--card-background-color);
+      border-bottom: 1px solid var(--divider-color);
+      z-index: 100;
+      min-height: 40px;
+      max-height: 40px;
     }
-    .list-info {
+    .back-btn,
+    .action-btn {
+      background: none;
+      border: none;
+      padding: 4px 8px;
+      cursor: pointer;
+      color: var(--primary-text-color);
+      -webkit-tap-highlight-color: transparent;
+    }
+    .back-btn:active,
+    .action-btn:active {
+      opacity: 0.6;
+    }
+    h2 {
+      margin: 0;
+      font-size: 16px;
+      font-weight: 600;
+      color: var(--primary-text-color);
+      flex: 1;
+      text-align: center;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      padding: 0 8px;
+    }
+    .header-actions {
       display: flex;
-      align-items: center;
-      gap: 12px;
+      gap: 4px;
     }
     .emoji {
-      font-size: 28px;
-    }
-    .list-info h2 {
-      margin: 0;
       font-size: 20px;
-      font-weight: 600;
-      color: #5f6368;
     }
   `;
 }
 
-customElements.define('slm-list-header', ListHeader);
+customElements.define('slm-list-header', SLMListHeader);

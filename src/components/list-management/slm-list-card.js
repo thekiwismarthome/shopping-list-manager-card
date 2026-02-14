@@ -30,6 +30,62 @@ class SLMListCard extends LitElement {
   handleMenuClick(e) {
     e.stopPropagation();
     this.showMenu = !this.showMenu;
+    
+    // Store click position for menu
+    this.menuX = e.clientX;
+    this.menuY = e.clientY;
+  }
+
+  render() {
+    return html`
+      <div class="list-card ${this.isActive ? 'active' : ''}" @click=${this.handleCardClick}>
+        <div class="card-header">
+          <span class="emoji">${this.emoji}</span>
+          <button class="menu-btn" @click=${this.handleMenuClick}>
+            <span class="dots">⋮</span>
+          </button>
+        </div>
+
+        <h3>${this.list.name}</h3>
+        
+        ${this.isActive ? html`
+          <div class="card-stats">
+            <div class="stat">
+              <span class="stat-value">${this.itemCount}</span>
+              <span class="stat-label">items</span>
+            </div>
+            <div class="stat">
+              <span class="stat-value">${this.currency} $${this.totalCost.toFixed(2)}</span>
+              <span class="stat-label">total</span>
+            </div>
+          </div>
+          <div class="active-badge">Active</div>
+        ` : ''}
+
+        ${this.showMenu ? html`
+          <div class="menu-overlay" @click=${(e) => { e.stopPropagation(); this.showMenu = false; }}>
+            <div class="menu-popup" style="left: ${this.menuX - 150}px; top: ${this.menuY}px;">
+              <button @click=${(e) => this.handleAction('rename', e)}>
+                <span class="emoji">✏️</span>
+                Rename
+              </button>
+              <button @click=${(e) => this.handleAction('share', e)}>
+                <span class="emoji">📤</span>
+                Share
+              </button>
+              <button @click=${(e) => this.handleAction('copy', e)}>
+                <span class="emoji">📋</span>
+                Copy
+              </button>
+              <button class="danger" @click=${(e) => this.handleAction('delete', e)}>
+                <span class="emoji">🗑️</span>
+                Delete
+              </button>
+            </div>
+          </div>
+        ` : ''}
+      </div>
+    `;
   }
 
   handleAction(action, e) {
@@ -97,22 +153,21 @@ class SLMListCard extends LitElement {
   static styles = css`
     .list-card {
       position: relative;
-      background: linear-gradient(135deg, #fafbfc 0%, #f5f7fa 100%);
-      border: 2px solid var(--border-color, #e8eaf6);
+      background: var(--card-background-color);
+      border: 2px solid var(--divider-color);
       border-radius: 12px;
       padding: 16px;
       cursor: pointer;
       transition: all 0.2s;
+      -webkit-tap-highlight-color: transparent;
     }
-    .list-card:hover {
-      border-color: #c5cae9;
-      transform: translateY(-2px);
-      box-shadow: 0 4px 12px rgba(197, 202, 233, 0.2);
+    .list-card:active {
+      transform: scale(0.98);
     }
     .list-card.active {
-      background: linear-gradient(135deg, #9fa8da 0%, #c5cae9 100%);
+      background: var(--primary-color);
       color: white;
-      border-color: #9fa8da;
+      border-color: var(--primary-color);
     }
     .card-header {
       display: flex;
@@ -131,9 +186,9 @@ class SLMListCard extends LitElement {
       opacity: 0.6;
       font-size: 20px;
       color: inherit;
-    }
-    .menu-btn:hover {
-      opacity: 1;
+      -webkit-tap-highlight-color: transparent;
+      z-index: 10;
+      position: relative;
     }
     h3 {
       margin: 0 0 10px 0;
@@ -167,6 +222,7 @@ class SLMListCard extends LitElement {
       border-radius: 6px;
       font-size: 10px;
       font-weight: 700;
+      pointer-events: none;
     }
     .menu-overlay {
       position: fixed;
@@ -174,40 +230,39 @@ class SLMListCard extends LitElement {
       left: 0;
       right: 0;
       bottom: 0;
-      z-index: 100;
+      z-index: 9999;
     }
     .menu-popup {
-      position: absolute;
-      top: 40px;
-      right: 0;
-      background: white;
+      position: fixed;
+      background: var(--card-background-color);
       border-radius: 10px;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+      box-shadow: 0 4px 16px rgba(0,0,0,0.2);
       overflow: hidden;
       min-width: 150px;
-      z-index: 101;
+      z-index: 10000;
     }
     .menu-popup button {
       width: 100%;
       display: flex;
       align-items: center;
       gap: 10px;
-      padding: 10px 14px;
+      padding: 12px 14px;
       border: none;
       background: transparent;
-      color: var(--text-primary, #424242);
+      color: var(--primary-text-color);
       cursor: pointer;
       font-size: 14px;
       text-align: left;
+      -webkit-tap-highlight-color: transparent;
     }
-    .menu-popup button:hover {
-      background: var(--surface-pastel, #fafbfc);
+    .menu-popup button:active {
+      background: var(--secondary-background-color);
     }
     .menu-popup button.danger {
-      color: #ef9a9a;
+      color: var(--error-color);
     }
-    .menu-popup button.danger:hover {
-      background: #ef9a9a;
+    .menu-popup button.danger:active {
+      background: var(--error-color);
       color: white;
     }
   `;

@@ -189,21 +189,22 @@ class SLMListsView extends LitElement {
       margin: 0;
       font-size: 22px;
       font-weight: 700;
-      color: var(--text-primary, #424242);
+      color: var(--primary-text-color);
     }
     .create-btn {
       display: flex;
       align-items: center;
       gap: 6px;
       padding: 8px 14px;
-      background: linear-gradient(135deg, #9fa8da 0%, #c5cae9 100%);
+      background: var(--primary-color);
       color: white;
       border: none;
       border-radius: 10px;
       font-weight: 600;
       font-size: 14px;
       cursor: pointer;
-      box-shadow: 0 2px 6px rgba(159, 168, 218, 0.3);
+      box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+      -webkit-tap-highlight-color: transparent;
     }
     .emoji {
       font-size: 16px;
@@ -211,7 +212,7 @@ class SLMListsView extends LitElement {
     .empty {
       text-align: center;
       padding: 80px 32px;
-      color: var(--text-secondary, #757575);
+      color: var(--secondary-text-color);
     }
     .empty-emoji {
       font-size: 80px;
@@ -231,19 +232,21 @@ class SLMListsView extends LitElement {
       align-items: center;
       gap: 8px;
       padding: 12px 24px;
-      background: linear-gradient(135deg, #9fa8da 0%, #c5cae9 100%);
+      background: var(--primary-color);
       color: white;
       border: none;
       border-radius: 12px;
       font-weight: 600;
       font-size: 16px;
       cursor: pointer;
-      box-shadow: 0 3px 8px rgba(159, 168, 218, 0.3);
+      box-shadow: 0 3px 8px rgba(0,0,0,0.2);
+      -webkit-tap-highlight-color: transparent;
     }
     .lists-grid {
       display: grid;
       grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
       gap: 12px;
+      position: relative;
     }
     .overlay {
       position: fixed;
@@ -260,7 +263,7 @@ class SLMListsView extends LitElement {
     .dialog {
       width: 90%;
       max-width: 400px;
-      background: white;
+      background: var(--card-background-color);
       border-radius: 16px;
     }
     .dialog-header {
@@ -268,12 +271,12 @@ class SLMListsView extends LitElement {
       justify-content: space-between;
       align-items: center;
       padding: 16px;
-      border-bottom: 1px solid var(--border-color, #e8eaf6);
+      border-bottom: 1px solid var(--divider-color);
     }
     .dialog-header h3 {
       margin: 0;
       font-size: 18px;
-      color: var(--text-primary, #424242);
+      color: var(--primary-text-color);
     }
     .dialog-header button {
       background: none;
@@ -281,6 +284,7 @@ class SLMListsView extends LitElement {
       padding: 4px;
       cursor: pointer;
       font-size: 18px;
+      -webkit-tap-highlight-color: transparent;
     }
     .dialog-content {
       padding: 20px;
@@ -290,16 +294,17 @@ class SLMListsView extends LitElement {
       margin-bottom: 8px;
       font-weight: 600;
       font-size: 13px;
-      color: var(--text-secondary, #757575);
+      color: var(--secondary-text-color);
     }
     .dialog-content input {
       width: 100%;
       padding: 10px;
-      border: 2px solid var(--border-color, #e8eaf6);
+      border: 2px solid var(--divider-color);
       border-radius: 8px;
       font-size: 15px;
       margin-bottom: 20px;
-      color: var(--text-primary, #424242);
+      color: var(--primary-text-color);
+      background: var(--card-background-color);
     }
     .icon-picker {
       display: flex;
@@ -310,7 +315,7 @@ class SLMListsView extends LitElement {
       width: 48px;
       height: 48px;
       border-radius: 10px;
-      border: 2px solid var(--border-color, #e8eaf6);
+      border: 2px solid var(--divider-color);
       background: transparent;
       cursor: pointer;
       display: flex;
@@ -318,19 +323,17 @@ class SLMListsView extends LitElement {
       justify-content: center;
       font-size: 24px;
       transition: all 0.2s;
-    }
-    .icon-option:hover {
-      border-color: #9fa8da;
+      -webkit-tap-highlight-color: transparent;
     }
     .icon-option.selected {
-      border-color: #9fa8da;
-      background: linear-gradient(135deg, #9fa8da 0%, #c5cae9 100%);
+      border-color: var(--primary-color);
+      background: var(--primary-color);
     }
     .dialog-footer {
       display: flex;
       gap: 10px;
       padding: 16px;
-      border-top: 1px solid var(--border-color, #e8eaf6);
+      border-top: 1px solid var(--divider-color);
     }
     .cancel-btn,
     .save-btn {
@@ -340,13 +343,14 @@ class SLMListsView extends LitElement {
       font-weight: 600;
       cursor: pointer;
       border: none;
+      -webkit-tap-highlight-color: transparent;
     }
     .cancel-btn {
-      background: var(--surface-pastel, #fafbfc);
-      color: var(--text-primary, #424242);
+      background: var(--secondary-background-color);
+      color: var(--primary-text-color);
     }
     .save-btn {
-      background: linear-gradient(135deg, #9fa8da 0%, #c5cae9 100%);
+      background: var(--primary-color);
       color: white;
     }
   `;

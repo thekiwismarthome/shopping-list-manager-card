@@ -1,54 +1,54 @@
 import { LitElement, html, css } from 'lit';
 
-class SearchBar extends LitElement {
+class SLMSearchBar extends LitElement {
   static properties = {
     api: { type: Object },
     settings: { type: Object },
+    categories: { type: Array },
+    activeListId: { type: String },
     searchQuery: { type: String },
     searchResults: { type: Array },
-    suggestions: { type: Array },
-    showResults: { type: Boolean },
-    showSuggestions: { type: Boolean }
+    recentProducts: { type: Array },
+    showResults: { type: Boolean }
   };
 
   constructor() {
     super();
     this.searchQuery = '';
     this.searchResults = [];
-    this.suggestions = [];
+    this.recentProducts = [];
     this.showResults = false;
-    this.showSuggestions = false;
   }
 
   async firstUpdated() {
-    await this.loadSuggestions();
+    await this.loadRecentProducts();
   }
 
-  async loadSuggestions() {
-    const limit = this.settings?.recentProductsCount || 10;
-    const result = await this.api.getProductSuggestions(limit);
-    this.suggestions = result.products;
+  async loadRecentProducts() {
+    const recentKey = 'slm_recent_products';
+    const saved = localStorage.getItem(recentKey);
+    const recentIds = saved ? JSON.parse(saved) : [];
+    
+    const limit = this.settings?.recentProductsCount || 8;
+    this.recentProducts = recentIds.slice(0, limit);
   }
 
   async handleSearch(e) {
     this.searchQuery = e.target.value;
 
-    if (this.searchQuery.length < 2) {
+    if (this.searchQuery.length < 1) {
       this.showResults = false;
-      this.showSuggestions = false;
       return;
     }
 
-    const result = await this.api.searchProducts(this.searchQuery, { limit: 20 });
-    this.searchResults = result.products;
-    this.showResults = true;
-    this.showSuggestions = false;
-  }
-
-  handleFocus() {
-    if (!this.searchQuery) {
-      this.showSuggestions = true;
+    if (this.searchQuery.length >= 2) {
+      const result = await this.api.searchProducts(this.searchQuery, { limit: 20 });
+      this.searchResults = result.products || [];
+    } else {
+      this.searchResults = [];
     }
+    
+    this.showResults = true;
   }
 
   handleProductSelect(product) {
@@ -57,7 +57,7 @@ class SearchBar extends LitElement {
         name: product.name,
         category_id: product.category_id,
         product_id: product.id,
-        quantity: product.default_quantity,
+        quantity: 1,
         unit: product.default_unit,
         price: product.price,
         image_url: product.image_url
@@ -68,64 +68,55 @@ class SearchBar extends LitElement {
 
     this.searchQuery = '';
     this.showResults = false;
-    this.showSuggestions = false;
+    this.shadowRoot.querySelector('input').blur();
+  }
+
+  handleAddCustom() {
+    if (!this.searchQuery.trim()) return;
+    
+    this.dispatchEvent(new CustomEvent('add-item', {
+      detail: {
+        name: this.searchQuery.trim(),
+        category_id: 'other',
+        quantity: 1,
+        unit: 'units'
+      },
+      bubbles: true,
+      composed: true
+    }));
+
+    this.searchQuery = '';
+    this.showResults = false;
   }
 
   render() {
     return html`
       <div class="search-container">
         <div class="search-box">
-          <ha-icon icon="mdi:magnify"></ha-icon>
+          <span class="search-icon">🔍</span>
           <input
             type="text"
-            placeholder="Search products..."
+            placeholder="Search or add products..."
             .value=${this.searchQuery}
             @input=${this.handleSearch}
-            @focus=${this.handleFocus}
-            @blur=${() => setTimeout(() => { this.showSuggestions = false; this.showResults = false; }, 200)}
+            @focus=${() => this.showResults = this.searchQuery.length > 0}
           />
           ${this.searchQuery ? html`
             <button class="clear-btn" @click=${() => { this.searchQuery = ''; this.showResults = false; }}>
-              <ha-icon icon="mdi:close"></ha-icon>
+              ✖
             </button>
           ` : ''}
         </div>
 
-        ${this.showSuggestions && this.suggestions.length > 0 ? html`
-          <div class="suggestions">
-            <div class="suggestions-header">Frequently Used</div>
-            ${this.suggestions.map(product => html`
-              <div class="suggestion-item" @click=${() => this.handleProductSelect(product)}>
-                ${product.image_url ? html`
-                  <img src="${product.image_url}" alt="${product.name}">
-                ` : html`
-                  <div class="no-image">
-                    <ha-icon icon="mdi:food-variant"></ha-icon>
-                  </div>
-                `}
-                <div class="suggestion-info">
-                  <div class="suggestion-name">${product.name}</div>
-                  ${product.price ? html`
-                    <div class="suggestion-price">$${product.price.toFixed(2)}</div>
-                  ` : ''}
-                </div>
-                <ha-icon icon="mdi:plus-circle"></ha-icon>
-              </div>
-            `)}
-          </div>
-        ` : ''}
-
         ${this.showResults ? html`
-          <div class="search-results">
+          <div class="results-dropdown">
             ${this.searchResults.length > 0 ? html`
               ${this.searchResults.map(product => html`
-                <div class="result-item" @click=${() => this.handleProductSelect(product)}>
+                <button class="result-item" @click=${() => this.handleProductSelect(product)}>
                   ${product.image_url ? html`
                     <img src="${product.image_url}" alt="${product.name}">
                   ` : html`
-                    <div class="no-image">
-                      <ha-icon icon="mdi:food-variant"></ha-icon>
-                    </div>
+                    <div class="no-image">📦</div>
                   `}
                   <div class="result-info">
                     <div class="result-name">${product.name}</div>
@@ -133,14 +124,18 @@ class SearchBar extends LitElement {
                       <div class="result-price">$${product.price.toFixed(2)}</div>
                     ` : ''}
                   </div>
-                  <ha-icon icon="mdi:plus-circle"></ha-icon>
-                </div>
+                  <span class="add-icon">➕</span>
+                </button>
               `)}
             ` : html`
-              <div class="no-results">
-                <ha-icon icon="mdi:magnify-close"></ha-icon>
-                <p>No products found</p>
-              </div>
+              <button class="result-item add-custom" @click=${this.handleAddCustom}>
+                <div class="no-image">📝</div>
+                <div class="result-info">
+                  <div class="result-name">Add "${this.searchQuery}"</div>
+                  <div class="result-subtitle">as custom product</div>
+                </div>
+                <span class="add-icon">➕</span>
+              </button>
             `}
           </div>
         ` : ''}
@@ -150,115 +145,115 @@ class SearchBar extends LitElement {
 
   static styles = css`
     .search-container {
-      padding: 16px;
+      padding: 8px;
       position: relative;
+      background: var(--card-background-color);
+      z-index: 50;
     }
     .search-box {
       display: flex;
       align-items: center;
-      gap: 12px;
-      padding: 12px 16px;
+      gap: 8px;
+      padding: 8px 12px;
       background: var(--primary-background-color);
-      border-radius: 24px;
-      border: 2px solid var(--divider-color);
-      transition: border-color 0.2s;
+      border-radius: 12px;
+      border: 1px solid var(--divider-color);
     }
-    .search-box:focus-within {
-      border-color: var(--primary-color);
-    }
-    .search-box ha-icon {
-      color: var(--secondary-text-color);
+    .search-icon {
+      font-size: 16px;
+      opacity: 0.6;
     }
     input {
       flex: 1;
       border: none;
       background: transparent;
       outline: none;
-      font-size: 16px;
+      font-size: 15px;
       color: var(--primary-text-color);
+    }
+    input::placeholder {
+      color: var(--secondary-text-color);
     }
     .clear-btn {
       background: none;
       border: none;
       padding: 4px;
       cursor: pointer;
-      color: var(--secondary-text-color);
+      font-size: 14px;
+      opacity: 0.5;
+      -webkit-tap-highlight-color: transparent;
     }
-    .suggestions,
-    .search-results {
+    .results-dropdown {
       position: absolute;
-      top: 100%;
-      left: 16px;
-      right: 16px;
+      top: calc(100% - 4px);
+      left: 8px;
+      right: 8px;
       background: var(--card-background-color);
-      border-radius: 12px;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+      border-radius: 0 0 12px 12px;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.12);
       max-height: 400px;
       overflow-y: auto;
-      z-index: 10;
-      margin-top: 8px;
+      z-index: 100;
+      border: 1px solid var(--divider-color);
+      border-top: none;
     }
-    .suggestions-header {
-      padding: 12px 16px;
-      font-size: 13px;
-      font-weight: 600;
-      color: var(--secondary-text-color);
-      border-bottom: 1px solid var(--divider-color);
-    }
-    .suggestion-item,
     .result-item {
       display: flex;
       align-items: center;
       gap: 12px;
-      padding: 12px 16px;
+      padding: 12px;
+      width: 100%;
+      border: none;
+      background: transparent;
       cursor: pointer;
       border-bottom: 1px solid var(--divider-color);
-      transition: background 0.2s;
+      text-align: left;
+      -webkit-tap-highlight-color: transparent;
     }
-    .suggestion-item:hover,
-    .result-item:hover {
-      background: var(--primary-color);
-      color: white;
+    .result-item:last-child {
+      border-bottom: none;
     }
-    .suggestion-item img,
+    .result-item:active {
+      background: var(--secondary-background-color);
+    }
     .result-item img,
     .no-image {
-      width: 48px;
-      height: 48px;
+      width: 40px;
+      height: 40px;
       border-radius: 8px;
       object-fit: cover;
+      flex-shrink: 0;
     }
     .no-image {
       display: flex;
       align-items: center;
       justify-content: center;
-      background: var(--disabled-color);
+      background: var(--secondary-background-color);
+      font-size: 20px;
     }
-    .suggestion-info,
     .result-info {
       flex: 1;
     }
-    .suggestion-name,
     .result-name {
-      font-weight: 500;
-      margin-bottom: 4px;
+      font-weight: 600;
+      font-size: 14px;
+      color: var(--primary-text-color);
+      margin-bottom: 2px;
     }
-    .suggestion-price,
     .result-price {
       font-size: 13px;
       color: var(--primary-color);
       font-weight: 600;
     }
-    .no-results {
-      text-align: center;
-      padding: 48px 24px;
+    .result-subtitle {
+      font-size: 12px;
       color: var(--secondary-text-color);
     }
-    .no-results ha-icon {
-      font-size: 48px;
-      opacity: 0.3;
+    .add-icon {
+      font-size: 20px;
+      color: var(--primary-color);
     }
   `;
 }
 
-customElements.define('search-bar', SearchBar);
+customElements.define('slm-search-bar', SLMSearchBar);

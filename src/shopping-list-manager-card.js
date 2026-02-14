@@ -435,7 +435,7 @@ class ShoppingListManagerCard extends LitElement {
       flex: 1;
       overflow-y: auto;
       overflow-x: hidden;
-      padding-bottom: 80px;
+      padding-bottom: 60px;
       -webkit-overflow-scrolling: touch;
     }
     .loading {
@@ -449,8 +449,8 @@ class ShoppingListManagerCard extends LitElement {
     .spinner {
       width: 40px;
       height: 40px;
-      border: 3px solid #e0e0e0;
-      border-top-color: #9fa8da;
+      border: 3px solid var(--divider-color);
+      border-top-color: var(--primary-color);
       border-radius: 50%;
       animation: spin 0.8s linear infinite;
     }
@@ -459,27 +459,27 @@ class ShoppingListManagerCard extends LitElement {
     }
     .total-bar {
       position: sticky;
-      bottom: 60px;
+      bottom: 56px;
       left: 0;
       right: 0;
       display: flex;
       justify-content: space-between;
       align-items: center;
-      padding: 12px 16px;
-      margin: 0 8px 8px 8px;
-      background: linear-gradient(135deg, #9fa8da 0%, #c5cae9 100%);
+      padding: 10px 16px;
+      margin: 0 4px 4px 4px;
+      background: var(--primary-color);
       color: white;
-      border-radius: 12px;
+      border-radius: 8px;
       box-shadow: 0 2px 8px rgba(0,0,0,0.12);
       z-index: 90;
     }
     .total-amount {
-      font-size: 18px;
+      font-size: 16px;
       font-weight: 700;
     }
     .total-count {
-      font-size: 13px;
-      opacity: 0.95;
+      font-size: 12px;
+      opacity: 0.9;
     }
 
     /* Pastel Light Theme */
