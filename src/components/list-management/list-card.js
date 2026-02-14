@@ -37,7 +37,7 @@ class ListCard extends LitElement {
 
   render() {
     return html`
-      <div class="list-card ${this.isActive ? 'active' : ''}" @click=${this.handleCardClick}>
+      <div class="slm-list-card ${this.isActive ? 'active' : ''}" @click=${this.handleCardClick}>
         <div class="card-header">
           <ha-icon icon="${this.list.icon}"></ha-icon>
           <button class="menu-btn" @click=${this.handleMenuClick}>
@@ -80,7 +80,7 @@ class ListCard extends LitElement {
   }
 
   static styles = css`
-    .list-card {
+    .slm-list-card {
       position: relative;
       background: var(--card-background-color);
       border: 2px solid var(--divider-color);
@@ -89,12 +89,12 @@ class ListCard extends LitElement {
       cursor: pointer;
       transition: all 0.2s;
     }
-    .list-card:hover {
+    .slm-list-card:hover {
       border-color: var(--primary-color);
       transform: translateY(-2px);
       box-shadow: 0 4px 12px rgba(0,0,0,0.1);
     }
-    .list-card.active {
+    .slm-list-card.active {
       border-color: var(--primary-color);
       background: var(--primary-color);
       color: white;
@@ -118,7 +118,7 @@ class ListCard extends LitElement {
     .menu-btn:hover {
       opacity: 1;
     }
-    .list-card h3 {
+    .slm-list-card h3 {
       margin: 0 0 12px 0;
       font-size: 18px;
       font-weight: 600;
@@ -138,7 +138,7 @@ class ListCard extends LitElement {
       font-size: 12px;
       font-weight: 600;
     }
-    .list-card.active .active-badge {
+    .slm-list-card.active .active-badge {
       background: rgba(255,255,255,0.3);
       color: white;
     }
@@ -188,4 +188,4 @@ class ListCard extends LitElement {
   `;
 }
 
-customElements.define('list-card', ListCard);
+customElements.define('slm-list-card', ListCard);

@@ -1,5 +1,5 @@
 import { LitElement, html, css } from 'lit';
-import './list-card.js';
+import './slm-list-card.js';
 
 class ListsView extends LitElement {
   static properties = {
@@ -91,12 +91,12 @@ class ListsView extends LitElement {
 
         <div class="lists-grid">
           ${this.lists.map(list => html`
-            <list-card
+            <slm-list-card
               .list=${list}
               .isActive=${list.id === this.activeList?.id}
               @list-select=${this.handleListSelect}
               @list-action=${this.handleListAction}
-            ></list-card>
+            ></slm-list-card>
           `)}
         </div>
 

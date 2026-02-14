@@ -1214,7 +1214,7 @@ const w=globalThis,k=t=>t,_=w.trustedTypes,S=_?_.createPolicy("lit-html",{create
       color: white;
     }
   `}customElements.define("edit-item-dialog",vt);class bt extends nt{static properties={list:{type:Object},isActive:{type:Boolean},showMenu:{type:Boolean}};constructor(){super(),this.showMenu=!1}handleCardClick(){this.dispatchEvent(new CustomEvent("list-select",{detail:{listId:this.list.id},bubbles:!0,composed:!0}))}handleMenuClick(t){t.stopPropagation(),this.showMenu=!this.showMenu}handleAction(t,e){e.stopPropagation(),this.showMenu=!1,this.dispatchEvent(new CustomEvent("list-action",{detail:{action:t,listId:this.list.id},bubbles:!0,composed:!0}))}render(){return F`
-      <div class="list-card ${this.isActive?"active":""}" @click=${this.handleCardClick}>
+      <div class="slm-list-card ${this.isActive?"active":""}" @click=${this.handleCardClick}>
         <div class="card-header">
           <ha-icon icon="${this.list.icon}"></ha-icon>
           <button class="menu-btn" @click=${this.handleMenuClick}>
@@ -1254,7 +1254,7 @@ const w=globalThis,k=t=>t,_=w.trustedTypes,S=_?_.createPolicy("lit-html",{create
         `:""}
       </div>
     `}static styles=a`
-    .list-card {
+    .slm-list-card {
       position: relative;
       background: var(--card-background-color);
       border: 2px solid var(--divider-color);
@@ -1263,12 +1263,12 @@ const w=globalThis,k=t=>t,_=w.trustedTypes,S=_?_.createPolicy("lit-html",{create
       cursor: pointer;
       transition: all 0.2s;
     }
-    .list-card:hover {
+    .slm-list-card:hover {
       border-color: var(--primary-color);
       transform: translateY(-2px);
       box-shadow: 0 4px 12px rgba(0,0,0,0.1);
     }
-    .list-card.active {
+    .slm-list-card.active {
       border-color: var(--primary-color);
       background: var(--primary-color);
       color: white;
@@ -1292,7 +1292,7 @@ const w=globalThis,k=t=>t,_=w.trustedTypes,S=_?_.createPolicy("lit-html",{create
     .menu-btn:hover {
       opacity: 1;
     }
-    .list-card h3 {
+    .slm-list-card h3 {
       margin: 0 0 12px 0;
       font-size: 18px;
       font-weight: 600;
@@ -1312,7 +1312,7 @@ const w=globalThis,k=t=>t,_=w.trustedTypes,S=_?_.createPolicy("lit-html",{create
       font-size: 12px;
       font-weight: 600;
     }
-    .list-card.active .active-badge {
+    .slm-list-card.active .active-badge {
       background: rgba(255,255,255,0.3);
       color: white;
     }
@@ -1359,7 +1359,7 @@ const w=globalThis,k=t=>t,_=w.trustedTypes,S=_?_.createPolicy("lit-html",{create
       background: var(--error-color);
       color: white;
     }
-  `}customElements.define("list-card",bt);class xt extends nt{static properties={api:{type:Object},lists:{type:Array},activeList:{type:Object},showCreateDialog:{type:Boolean},newListName:{type:String},newListIcon:{type:String}};constructor(){super(),this.showCreateDialog=!1,this.newListName="",this.newListIcon="mdi:cart"}handleCreateList(){this.showCreateDialog=!0}async handleSaveNewList(){if(this.newListName.trim()){await this.api.createList(this.newListName,this.newListIcon),this.showCreateDialog=!1,this.newListName="",this.newListIcon="mdi:cart";const t=await this.api.getLists();this.lists=t.lists,this.requestUpdate()}}handleListSelect(t){this.dispatchEvent(new CustomEvent("list-selected",{detail:t.detail,bubbles:!0,composed:!0}))}async handleListAction(t){const{action:e,listId:i}=t.detail;switch(e){case"rename":const t=prompt("Enter new list name:");if(t){await this.api.updateList(i,{name:t});const e=await this.api.getLists();this.lists=e.lists,this.requestUpdate()}break;case"delete":if(confirm("Delete this list?")){await this.api.deleteList(i);const t=await this.api.getLists();this.lists=t.lists,this.requestUpdate()}break;case"share":alert("Share feature coming soon!");break;case"copy":alert("Copy feature coming soon!")}}render(){return F`
+  `}customElements.define("slm-list-card",bt);class xt extends nt{static properties={api:{type:Object},lists:{type:Array},activeList:{type:Object},showCreateDialog:{type:Boolean},newListName:{type:String},newListIcon:{type:String}};constructor(){super(),this.showCreateDialog=!1,this.newListName="",this.newListIcon="mdi:cart"}handleCreateList(){this.showCreateDialog=!0}async handleSaveNewList(){if(this.newListName.trim()){await this.api.createList(this.newListName,this.newListIcon),this.showCreateDialog=!1,this.newListName="",this.newListIcon="mdi:cart";const t=await this.api.getLists();this.lists=t.lists,this.requestUpdate()}}handleListSelect(t){this.dispatchEvent(new CustomEvent("list-selected",{detail:t.detail,bubbles:!0,composed:!0}))}async handleListAction(t){const{action:e,listId:i}=t.detail;switch(e){case"rename":const t=prompt("Enter new list name:");if(t){await this.api.updateList(i,{name:t});const e=await this.api.getLists();this.lists=e.lists,this.requestUpdate()}break;case"delete":if(confirm("Delete this list?")){await this.api.deleteList(i);const t=await this.api.getLists();this.lists=t.lists,this.requestUpdate()}break;case"share":alert("Share feature coming soon!");break;case"copy":alert("Copy feature coming soon!")}}render(){return F`
       <div class="lists-view">
         <div class="header">
           <h2>My Lists</h2>
@@ -1371,12 +1371,12 @@ const w=globalThis,k=t=>t,_=w.trustedTypes,S=_?_.createPolicy("lit-html",{create
 
         <div class="lists-grid">
           ${this.lists.map(t=>F`
-            <list-card
+            <slm-list-card
               .list=${t}
               .isActive=${t.id===this.activeList?.id}
               @list-select=${this.handleListSelect}
               @list-action=${this.handleListAction}
-            ></list-card>
+            ></slm-list-card>
           `)}
         </div>
 
