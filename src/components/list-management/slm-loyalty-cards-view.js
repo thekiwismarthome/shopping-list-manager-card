@@ -294,4 +294,4 @@ class SLMLoyaltyCardsView extends LitElement {
   `;
 }
 
-customElements.define('loyalty-cards-view', LoyaltyCardsView);
+customElements.define('slm-loyalty-cards-view', SLMLoyaltyCardsView);
