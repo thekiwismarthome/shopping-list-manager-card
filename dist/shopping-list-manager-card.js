@@ -3303,7 +3303,7 @@ const $=globalThis,k=t=>t,_=$.trustedTypes,C=_?_.createPolicy("lit-html",{create
     }
     .total-bar {
       position: sticky;
-      bottom: 60px;
+      bottom: 10px;
       left: 0;
       right: 0;
       display: flex;
