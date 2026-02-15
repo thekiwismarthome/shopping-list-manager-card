@@ -1056,7 +1056,7 @@ const $=globalThis,k=t=>t,_=$.trustedTypes,C=_?_.createPolicy("lit-html",{create
     .action-btn:active {
       transform: scale(0.97);
     }
-  `}customElements.define("slm-edit-item-dialog",mt);class bt extends nt{static properties={list:{type:Object},isActive:{type:Boolean},itemCount:{type:Number},totalCost:{type:Number},currency:{type:String},emoji:{type:String},showMenu:{type:Boolean},menuX:{type:Number},menuY:{type:Number}};constructor(){super(),this.showMenu=!1,this.itemCount=0,this.totalCost=0,this.currency="NZD",this.menuX=0,this.menuY=0}getCardColor(){const t=["#7986cb","#81c784","#ffb74d","#ba68c8","#4dd0e1","#f06292"],e=t[parseInt(this.list.id.slice(-1),16)%t.length];return this.isActive?e:this.dimColor(e)}dimColor(t){return`rgba(${parseInt(t.slice(1,3),16)}, ${parseInt(t.slice(3,5),16)}, ${parseInt(t.slice(5,7),16)}, 0.4)`}handleCardClick(){this.dispatchEvent(new CustomEvent("list-select",{detail:{listId:this.list.id},bubbles:!0,composed:!0}))}handleMenuClick(t){t.stopPropagation();const e=t.target.getBoundingClientRect();this.menuX=e.right-150,this.menuY=e.bottom+5,this.showMenu=!this.showMenu}handleAction(t,e){e.stopPropagation(),this.showMenu=!1,this.dispatchEvent(new CustomEvent("list-action",{detail:{action:t,listId:this.list.id},bubbles:!0,composed:!0}))}render(){return F`
+  `}customElements.define("slm-edit-item-dialog",mt);class bt extends nt{static properties={list:{type:Object},isActive:{type:Boolean},itemCount:{type:Number},totalCost:{type:Number},currency:{type:String},emoji:{type:String},showMenu:{type:Boolean},menuX:{type:Number},menuY:{type:Number}};constructor(){super(),this.showMenu=!1,this.itemCount=0,this.totalCost=0,this.currency="NZD",this.menuX=0,this.menuY=0}getCardColor(){const t=["#7986cb","#81c784","#ffb74d","#ba68c8","#4dd0e1","#f06292"],e=t[parseInt(this.list.id.slice(-1),16)%t.length];return this.isActive?e:this.dimColor(e)}dimColor(t){return`rgba(${parseInt(t.slice(1,3),16)}, ${parseInt(t.slice(3,5),16)}, ${parseInt(t.slice(5,7),16)}, 0.5)`}handleCardClick(t){t.target.closest(".menu-btn")||this.dispatchEvent(new CustomEvent("list-select",{detail:{listId:this.list.id},bubbles:!0,composed:!0}))}handleMenuClick(t){t.stopPropagation();const e=t.target.closest(".menu-btn").getBoundingClientRect();this.menuX=e.right-160,this.menuY=e.bottom+5,this.showMenu=!this.showMenu}handleAction(t,e){e.stopPropagation(),this.showMenu=!1,this.dispatchEvent(new CustomEvent("list-action",{detail:{action:t,listId:this.list.id},bubbles:!0,composed:!0}))}render(){return F`
       <div 
         class="list-card ${this.isActive?"active":""}" 
         style="background: ${this.getCardColor()}"
@@ -1066,20 +1066,18 @@ const $=globalThis,k=t=>t,_=$.trustedTypes,C=_?_.createPolicy("lit-html",{create
           <div class="active-badge">Active</div>
         `:""}
 
-        <div class="card-content">
-          <div class="card-header">
-            <ha-icon icon="${this.list.icon}"></ha-icon>
-            <h3>${this.list.name}</h3>
-          </div>
-
-          ${this.isActive?F`
-            <div class="card-stats">
-              <span class="stat-value">${this.itemCount}</span>
-              <span class="stat-separator">·</span>
-              <span class="stat-value">${this.currency} $${this.totalCost.toFixed(2)}</span>
-            </div>
-          `:""}
+        <div class="card-header">
+          <ha-icon icon="${this.list.icon}"></ha-icon>
+          <h3>${this.list.name}</h3>
         </div>
+
+        ${this.isActive?F`
+          <div class="card-stats">
+            <span>${this.itemCount}</span>
+            <span class="separator">·</span>
+            <span>${this.currency} $${this.totalCost.toFixed(2)}</span>
+          </div>
+        `:""}
 
         <button class="menu-btn" @click=${this.handleMenuClick}>
           <ha-icon icon="mdi:dots-vertical"></ha-icon>
@@ -1116,9 +1114,10 @@ const $=globalThis,k=t=>t,_=$.trustedTypes,C=_?_.createPolicy("lit-html",{create
       cursor: pointer;
       transition: all 0.2s;
       -webkit-tap-highlight-color: transparent;
-      min-height: 100px;
+      height: 100px;
       display: flex;
-      align-items: center;
+      flex-direction: column;
+      justify-content: center;
       color: white;
     }
     .list-card:active {
@@ -1128,15 +1127,12 @@ const $=globalThis,k=t=>t,_=$.trustedTypes,C=_?_.createPolicy("lit-html",{create
       position: absolute;
       top: 8px;
       left: 8px;
-      background: rgba(255,255,255,0.3);
-      padding: 3px 8px;
+      background: rgba(255,255,255,0.35);
+      padding: 4px 8px;
       border-radius: 6px;
       font-size: 10px;
       font-weight: 700;
       pointer-events: none;
-    }
-    .card-content {
-      flex: 1;
     }
     .card-header {
       display: flex;
@@ -1146,26 +1142,29 @@ const $=globalThis,k=t=>t,_=$.trustedTypes,C=_?_.createPolicy("lit-html",{create
     }
     .card-header ha-icon {
       --mdc-icon-size: 28px;
+      flex-shrink: 0;
     }
     h3 {
       margin: 0;
       font-size: 16px;
       font-weight: 600;
+      flex: 1;
     }
     .card-stats {
       display: flex;
       align-items: center;
-      gap: 8px;
+      gap: 6px;
       font-size: 14px;
+      font-weight: 600;
       opacity: 0.95;
     }
-    .stat-value {
-      font-weight: 600;
-    }
-    .stat-separator {
+    .separator {
       opacity: 0.6;
     }
     .menu-btn {
+      position: absolute;
+      top: 8px;
+      right: 8px;
       background: rgba(255,255,255,0.2);
       border: none;
       padding: 6px;
@@ -1193,17 +1192,17 @@ const $=globalThis,k=t=>t,_=$.trustedTypes,C=_?_.createPolicy("lit-html",{create
       position: fixed;
       background: var(--card-background-color);
       border-radius: 10px;
-      box-shadow: 0 4px 16px rgba(0,0,0,0.3);
+      box-shadow: 0 4px 20px rgba(0,0,0,0.4);
       overflow: hidden;
-      min-width: 150px;
+      min-width: 160px;
       z-index: 10000;
     }
     .menu-popup button {
       width: 100%;
       display: flex;
       align-items: center;
-      gap: 10px;
-      padding: 12px 14px;
+      gap: 12px;
+      padding: 14px 16px;
       border: none;
       background: transparent;
       color: var(--primary-text-color);
@@ -1216,14 +1215,14 @@ const $=globalThis,k=t=>t,_=$.trustedTypes,C=_?_.createPolicy("lit-html",{create
       background: var(--secondary-background-color);
     }
     .menu-popup button.danger {
-      color: var(--error-color);
+      color: #ef5350;
     }
     .menu-popup button.danger:active {
-      background: var(--error-color);
+      background: #ef5350;
       color: white;
     }
     .menu-popup ha-icon {
-      --mdc-icon-size: 18px;
+      --mdc-icon-size: 20px;
     }
   `}customElements.define("slm-list-card",bt);class vt extends nt{static properties={api:{type:Object},lists:{type:Array},activeList:{type:Object},items:{type:Array},total:{type:Object},showCreateDialog:{type:Boolean},newListName:{type:String},newListIcon:{type:String}};constructor(){super(),this.lists=[],this.showCreateDialog=!1,this.newListName="",this.newListIcon="mdi:cart"}handleCreateList(){this.showCreateDialog=!0}async handleSaveNewList(){this.newListName.trim()&&(await this.api.createList(this.newListName,this.newListIcon),this.showCreateDialog=!1,this.newListName="",this.newListIcon="mdi:cart",this.dispatchEvent(new CustomEvent("lists-updated",{bubbles:!0,composed:!0})))}handleListSelect(t){this.dispatchEvent(new CustomEvent("list-selected",{detail:t.detail,bubbles:!0,composed:!0}))}async handleListAction(t){const{action:e,listId:i}=t.detail;switch(e){case"rename":const t=prompt("Enter new list name:");t&&(await this.api.updateList(i,{name:t}),this.dispatchEvent(new CustomEvent("lists-updated",{bubbles:!0,composed:!0})));break;case"delete":confirm("Delete this list?")&&(await this.api.deleteList(i),this.dispatchEvent(new CustomEvent("lists-updated",{bubbles:!0,composed:!0})));break;case"share":alert("Share feature coming soon!");break;case"copy":alert("Copy feature coming soon!")}}getListEmoji(t){return{"mdi:cart":"🛒","mdi:home":"🏠","mdi:food":"🍽️","mdi:shopping":"🛍️","mdi:store":"🏪"}[t]||"🛒"}render(){return F`
       <div class="lists-view">
