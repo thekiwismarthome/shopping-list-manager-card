@@ -2,7 +2,7 @@ import { LitElement, html, css } from 'lit';
 import './slm-dark-mode-popup.js';
 import './slm-font-settings.js';
 
-class AppearanceSettings extends LitElement {
+class SLMAppearanceSettings extends LitElement {
   static properties = {
     settings: { type: Object },
     showDarkModePopup: { type: Boolean },
@@ -25,10 +25,10 @@ class AppearanceSettings extends LitElement {
 
   render() {
     return html`
-      <div class="slm-appearance-settings">
+      <div class="appearance-settings">
         <div class="header">
           <button class="back-btn" @click=${() => this.dispatchEvent(new Event('back'))}>
-            <span class="emoji">◀️</span>
+            <ha-icon icon="mdi:arrow-left"></ha-icon>
           </button>
           <h2>Appearance</h2>
         </div>
@@ -39,7 +39,7 @@ class AppearanceSettings extends LitElement {
               <div class="item-title">Dark Mode</div>
               <div class="item-subtitle">${this.getDarkModeLabel()}</div>
             </div>
-            <span class="emoji">▶️</span>
+            <ha-icon icon="mdi:chevron-right"></ha-icon>
           </button>
 
           <div class="section-header">Display</div>
@@ -130,7 +130,7 @@ class AppearanceSettings extends LitElement {
               <div class="item-title">Font Family</div>
               <div class="item-subtitle">${this.settings.fontFamily}</div>
             </div>
-            <span class="emoji">▶️</span>
+            <ha-icon icon="mdi:chevron-right"></ha-icon>
           </button>
         </div>
 
@@ -169,54 +169,50 @@ class AppearanceSettings extends LitElement {
   }
 
   static styles = css`
-    .slm-appearance-settings {
+    .appearance-settings {
       padding-bottom: 80px;
     }
     .header {
       display: flex;
       align-items: center;
       gap: 16px;
-      padding: 20px;
-      border-bottom: 1px solid #e8eaf6;
+      padding: 12px;
+      border-bottom: 1px solid var(--divider-color);
     }
     .back-btn {
       background: none;
       border: none;
       padding: 8px;
       cursor: pointer;
-      border-radius: 50%;
-      font-size: 20px;
-    }
-    .back-btn:hover {
-      background: #f5f7fa;
+      display: flex;
+      align-items: center;
+      -webkit-tap-highlight-color: transparent;
     }
     .header h2 {
       margin: 0;
-      font-size: 24px;
+      font-size: 20px;
       font-weight: 700;
-      color: #5f6368;
+      color: var(--primary-text-color);
     }
     .section-header {
-      padding: 16px 20px 8px;
-      font-size: 13px;
+      padding: 14px 16px 6px;
+      font-size: 12px;
       font-weight: 700;
-      color: #9e9e9e;
+      color: var(--secondary-text-color);
       text-transform: uppercase;
     }
     .settings-item {
       display: flex;
       align-items: center;
-      gap: 16px;
-      padding: 16px 20px;
+      gap: 12px;
+      padding: 14px 16px;
       border: none;
       background: transparent;
       width: 100%;
       text-align: left;
       cursor: pointer;
-      border-bottom: 1px solid #e8eaf6;
-    }
-    .settings-item:hover {
-      background: #f5f7fa;
+      border-bottom: 1px solid var(--divider-color);
+      -webkit-tap-highlight-color: transparent;
     }
     .item-content {
       flex: 1;
@@ -226,12 +222,13 @@ class AppearanceSettings extends LitElement {
     }
     .item-title {
       font-weight: 600;
-      margin-bottom: 4px;
-      color: #5f6368;
+      font-size: 14px;
+      margin-bottom: 2px;
+      color: var(--primary-text-color);
     }
     .item-subtitle {
-      font-size: 14px;
-      color: #9e9e9e;
+      font-size: 12px;
+      color: var(--secondary-text-color);
     }
     .tile-options {
       display: flex;
@@ -241,20 +238,18 @@ class AppearanceSettings extends LitElement {
     .tile-option {
       flex: 1;
       padding: 10px;
-      border: 2px solid #e8eaf6;
+      border: 2px solid var(--divider-color);
       border-radius: 8px;
       background: transparent;
       cursor: pointer;
       font-weight: 600;
-      color: #5f6368;
-    }
-    .tile-option:hover {
-      border-color: #a8b5ff;
+      color: var(--primary-text-color);
+      -webkit-tap-highlight-color: transparent;
     }
     .tile-option.selected {
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      background: var(--primary-color);
       color: white;
-      border-color: #667eea;
+      border-color: var(--primary-color);
     }
     .size-slider {
       width: 100%;
@@ -263,10 +258,7 @@ class AppearanceSettings extends LitElement {
     .size-value {
       text-align: center;
       font-weight: 600;
-      color: #667eea;
-    }
-    .emoji {
-      font-size: 18px;
+      color: var(--primary-color);
     }
     .toggle {
       position: relative;
@@ -286,7 +278,7 @@ class AppearanceSettings extends LitElement {
       left: 0;
       right: 0;
       bottom: 0;
-      background-color: #e0e0e0;
+      background-color: var(--disabled-color);
       transition: 0.3s;
       border-radius: 28px;
     }
@@ -302,7 +294,7 @@ class AppearanceSettings extends LitElement {
       border-radius: 50%;
     }
     input:checked + .slider {
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      background: var(--primary-color);
     }
     input:checked + .slider:before {
       transform: translateX(22px);
@@ -310,4 +302,4 @@ class AppearanceSettings extends LitElement {
   `;
 }
 
-customElements.define('slm-appearance-settings', AppearanceSettings);
+customElements.define('slm-appearance-settings', SLMAppearanceSettings);

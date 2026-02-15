@@ -129,8 +129,7 @@ class SLMLoyaltyCardsView extends LitElement {
         <div class="header">
           <h2>Loyalty Cards</h2>
           <button class="add-btn" @click=${this.handleAddCard}>
-            <span class="emoji">➕</span>
-            Add Card
+            <ha-icon icon="mdi:plus"></ha-icon>
           </button>
         </div>
 
@@ -139,17 +138,13 @@ class SLMLoyaltyCardsView extends LitElement {
             <div class="empty-emoji">💳</div>
             <p>No loyalty cards yet</p>
             <p class="hint">Add your store loyalty cards for quick access</p>
-            <button class="primary-btn" @click=${this.handleAddCard}>
-              <span class="emoji">➕</span>
-              Add Card
-            </button>
           </div>
         ` : html`
           <div class="cards-grid">
             ${this.cards.map(card => html`
               <div class="loyalty-card" style="background: ${card.color}">
                 <button class="menu-btn" @click=${(e) => { e.stopPropagation(); this.handleEditCard(card); }}>
-                  <span class="dots">⋮</span>
+                  <ha-icon icon="mdi:dots-vertical"></ha-icon>
                 </button>
                 
                 <div class="card-body" @click=${() => this.handleCardClick(card)}>
@@ -160,7 +155,7 @@ class SLMLoyaltyCardsView extends LitElement {
                   <div class="card-number">${card.number}</div>
                   ${card.barcode ? html`
                     <div class="barcode-preview">
-                      <span class="emoji">📊</span>
+                      <ha-icon icon="mdi:barcode"></ha-icon>
                       <span>${card.barcode}</span>
                     </div>
                   ` : ''}
@@ -286,16 +281,20 @@ class SLMLoyaltyCardsView extends LitElement {
     .add-btn {
       display: flex;
       align-items: center;
-      gap: 6px;
-      padding: 8px 14px;
-      background: linear-gradient(135deg, #9fa8da 0%, #c5cae9 100%);
+      justify-content: center;
+      padding: 8px;
+      background: var(--primary-color);
       color: white;
       border: none;
-      border-radius: 10px;
-      font-weight: 600;
-      font-size: 14px;
+      border-radius: 50%;
+      width: 40px;
+      height: 40px;
       cursor: pointer;
-      box-shadow: 0 2px 6px rgba(159, 168, 218, 0.3);
+      box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+      -webkit-tap-highlight-color: transparent;
+    }
+    .add-btn ha-icon {
+      --mdc-icon-size: 24px;
     }
     .empty {
       text-align: center;

@@ -23,13 +23,11 @@ class SLMItemTile extends LitElement {
   }
 
   handleTileClick(e) {
-    // Prevent if long press was just triggered
     if (this.longPressTriggered) {
       this.longPressTriggered = false;
       return;
     }
 
-    // If clicked on tile body (not buttons), toggle check
     if (!e.target.closest('.decrease-btn') && !e.target.closest('.quantity-badge')) {
       this.dispatchEvent(new CustomEvent('item-check', {
         detail: { itemId: this.item.id, checked: !this.item.checked },
@@ -58,7 +56,6 @@ class SLMItemTile extends LitElement {
   }
 
   handleContextMenu(e) {
-    // Prevent browser context menu
     e.preventDefault();
     e.stopPropagation();
     return false;
@@ -87,7 +84,6 @@ class SLMItemTile extends LitElement {
       const deltaX = Math.abs(touchX - this.touchStartX);
       const deltaY = Math.abs(touchY - this.touchStartY);
 
-      // Cancel long press if moved more than 10px
       if (deltaX > 10 || deltaY > 10) {
         clearTimeout(this.longPressTimer);
         this.longPressTimer = null;
@@ -103,13 +99,11 @@ class SLMItemTile extends LitElement {
   }
 
   handleMouseDown(e) {
-    // Prevent context menu on Windows
     if (e.button === 2) {
       e.preventDefault();
       return false;
     }
 
-    // Long press for desktop
     this.longPressTriggered = false;
     this.longPressTimer = setTimeout(() => {
       this.longPressTriggered = true;
@@ -179,7 +173,7 @@ class SLMItemTile extends LitElement {
           </button>
         ` : ''}
 
-        ${this.item.quantity > 1 && !this.item.checked ? html`
+        ${!this.item.checked ? html`
           <div 
             class="quantity-badge" 
             style="background: ${this.categoryColor}"
@@ -216,7 +210,7 @@ class SLMItemTile extends LitElement {
   static styles = css`
     .tile {
       position: relative;
-      background: white;
+      background: #1a1a1a;
       border-radius: 8px;
       padding: 8px;
       display: flex;
@@ -227,7 +221,7 @@ class SLMItemTile extends LitElement {
       user-select: none;
       aspect-ratio: 1;
       overflow: hidden;
-      box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+      box-shadow: 0 1px 3px rgba(0,0,0,0.3);
     }
     .tile:active {
       transform: scale(0.97);
@@ -242,7 +236,7 @@ class SLMItemTile extends LitElement {
       position: absolute;
       top: 6px;
       left: 6px;
-      background: #ef9a9a;
+      background: #8b4545;
       color: white;
       border: none;
       border-radius: 50%;
@@ -252,7 +246,7 @@ class SLMItemTile extends LitElement {
       align-items: center;
       justify-content: center;
       cursor: pointer;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.15);
+      box-shadow: 0 2px 4px rgba(0,0,0,0.3);
       z-index: 2;
       padding: 0;
       font-size: 18px;
@@ -268,7 +262,7 @@ class SLMItemTile extends LitElement {
       font-size: 12px;
       font-weight: 700;
       z-index: 2;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.15);
+      box-shadow: 0 2px 4px rgba(0,0,0,0.3);
       cursor: pointer;
     }
     .quantity-badge:hover {
@@ -296,7 +290,7 @@ class SLMItemTile extends LitElement {
       font-size: 12px;
       line-height: 1.2;
       margin-bottom: 2px;
-      color: var(--text-primary, #424242);
+      color: #e0e0e0;
       overflow: hidden;
       text-overflow: ellipsis;
       display: -webkit-box;
@@ -305,7 +299,7 @@ class SLMItemTile extends LitElement {
     }
     .price {
       font-size: 11px;
-      color: var(--primary-pastel, #9fa8da);
+      color: #9fa8da;
       font-weight: 700;
     }
     .checked-overlay {

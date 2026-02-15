@@ -3,23 +3,23 @@
  * Copyright 2019 Google LLC
  * SPDX-License-Identifier: BSD-3-Clause
  */
-const t=globalThis,e=t.ShadowRoot&&(void 0===t.ShadyCSS||t.ShadyCSS.nativeShadow)&&"adoptedStyleSheets"in Document.prototype&&"replace"in CSSStyleSheet.prototype,i=Symbol(),s=new WeakMap;let a=class{constructor(t,e,s){if(this._$cssResult$=!0,s!==i)throw Error("CSSResult is not constructable. Use `unsafeCSS` or `css` instead.");this.cssText=t,this.t=e}get styleSheet(){let t=this.o;const i=this.t;if(e&&void 0===t){const e=void 0!==i&&1===i.length;e&&(t=s.get(i)),void 0===t&&((this.o=t=new CSSStyleSheet).replaceSync(this.cssText),e&&s.set(i,t))}return t}toString(){return this.cssText}};const o=(t,...e)=>{const s=1===t.length?t[0]:e.reduce((e,i,s)=>e+(t=>{if(!0===t._$cssResult$)return t.cssText;if("number"==typeof t)return t;throw Error("Value passed to 'css' function must be a 'css' function result: "+t+". Use 'unsafeCSS' to pass non-literal values, but take care to ensure page security.")})(i)+t[s+1],t[0]);return new a(s,t,i)},n=e?t=>t:t=>t instanceof CSSStyleSheet?(t=>{let e="";for(const i of t.cssRules)e+=i.cssText;return(t=>new a("string"==typeof t?t:t+"",void 0,i))(e)})(t):t,{is:r,defineProperty:c,getOwnPropertyDescriptor:l,getOwnPropertyNames:d,getOwnPropertySymbols:p,getPrototypeOf:h}=Object,u=globalThis,g=u.trustedTypes,m=g?g.emptyScript:"",b=u.reactiveElementPolyfillSupport,v=(t,e)=>t,y={toAttribute(t,e){switch(e){case Boolean:t=t?m:null;break;case Object:case Array:t=null==t?t:JSON.stringify(t)}return t},fromAttribute(t,e){let i=t;switch(e){case Boolean:i=null!==t;break;case Number:i=null===t?null:Number(t);break;case Object:case Array:try{i=JSON.parse(t)}catch(t){i=null}}return i}},x=(t,e)=>!r(t,e),f={attribute:!0,type:String,converter:y,reflect:!1,useDefault:!1,hasChanged:x};
+const t=globalThis,e=t.ShadowRoot&&(void 0===t.ShadyCSS||t.ShadyCSS.nativeShadow)&&"adoptedStyleSheets"in Document.prototype&&"replace"in CSSStyleSheet.prototype,i=Symbol(),s=new WeakMap;let a=class{constructor(t,e,s){if(this._$cssResult$=!0,s!==i)throw Error("CSSResult is not constructable. Use `unsafeCSS` or `css` instead.");this.cssText=t,this.t=e}get styleSheet(){let t=this.o;const i=this.t;if(e&&void 0===t){const e=void 0!==i&&1===i.length;e&&(t=s.get(i)),void 0===t&&((this.o=t=new CSSStyleSheet).replaceSync(this.cssText),e&&s.set(i,t))}return t}toString(){return this.cssText}};const o=(t,...e)=>{const s=1===t.length?t[0]:e.reduce((e,i,s)=>e+(t=>{if(!0===t._$cssResult$)return t.cssText;if("number"==typeof t)return t;throw Error("Value passed to 'css' function must be a 'css' function result: "+t+". Use 'unsafeCSS' to pass non-literal values, but take care to ensure page security.")})(i)+t[s+1],t[0]);return new a(s,t,i)},n=e?t=>t:t=>t instanceof CSSStyleSheet?(t=>{let e="";for(const i of t.cssRules)e+=i.cssText;return(t=>new a("string"==typeof t?t:t+"",void 0,i))(e)})(t):t,{is:r,defineProperty:c,getOwnPropertyDescriptor:d,getOwnPropertyNames:l,getOwnPropertySymbols:p,getPrototypeOf:h}=Object,u=globalThis,g=u.trustedTypes,m=g?g.emptyScript:"",b=u.reactiveElementPolyfillSupport,v=(t,e)=>t,y={toAttribute(t,e){switch(e){case Boolean:t=t?m:null;break;case Object:case Array:t=null==t?t:JSON.stringify(t)}return t},fromAttribute(t,e){let i=t;switch(e){case Boolean:i=null!==t;break;case Number:i=null===t?null:Number(t);break;case Object:case Array:try{i=JSON.parse(t)}catch(t){i=null}}return i}},x=(t,e)=>!r(t,e),f={attribute:!0,type:String,converter:y,reflect:!1,useDefault:!1,hasChanged:x};
 /**
  * @license
  * Copyright 2017 Google LLC
  * SPDX-License-Identifier: BSD-3-Clause
- */Symbol.metadata??=Symbol("metadata"),u.litPropertyMetadata??=new WeakMap;let $=class extends HTMLElement{static addInitializer(t){this._$Ei(),(this.l??=[]).push(t)}static get observedAttributes(){return this.finalize(),this._$Eh&&[...this._$Eh.keys()]}static createProperty(t,e=f){if(e.state&&(e.attribute=!1),this._$Ei(),this.prototype.hasOwnProperty(t)&&((e=Object.create(e)).wrapped=!0),this.elementProperties.set(t,e),!e.noAccessor){const i=Symbol(),s=this.getPropertyDescriptor(t,i,e);void 0!==s&&c(this.prototype,t,s)}}static getPropertyDescriptor(t,e,i){const{get:s,set:a}=l(this.prototype,t)??{get(){return this[e]},set(t){this[e]=t}};return{get:s,set(e){const o=s?.call(this);a?.call(this,e),this.requestUpdate(t,o,i)},configurable:!0,enumerable:!0}}static getPropertyOptions(t){return this.elementProperties.get(t)??f}static _$Ei(){if(this.hasOwnProperty(v("elementProperties")))return;const t=h(this);t.finalize(),void 0!==t.l&&(this.l=[...t.l]),this.elementProperties=new Map(t.elementProperties)}static finalize(){if(this.hasOwnProperty(v("finalized")))return;if(this.finalized=!0,this._$Ei(),this.hasOwnProperty(v("properties"))){const t=this.properties,e=[...d(t),...p(t)];for(const i of e)this.createProperty(i,t[i])}const t=this[Symbol.metadata];if(null!==t){const e=litPropertyMetadata.get(t);if(void 0!==e)for(const[t,i]of e)this.elementProperties.set(t,i)}this._$Eh=new Map;for(const[t,e]of this.elementProperties){const i=this._$Eu(t,e);void 0!==i&&this._$Eh.set(i,t)}this.elementStyles=this.finalizeStyles(this.styles)}static finalizeStyles(t){const e=[];if(Array.isArray(t)){const i=new Set(t.flat(1/0).reverse());for(const t of i)e.unshift(n(t))}else void 0!==t&&e.push(n(t));return e}static _$Eu(t,e){const i=e.attribute;return!1===i?void 0:"string"==typeof i?i:"string"==typeof t?t.toLowerCase():void 0}constructor(){super(),this._$Ep=void 0,this.isUpdatePending=!1,this.hasUpdated=!1,this._$Em=null,this._$Ev()}_$Ev(){this._$ES=new Promise(t=>this.enableUpdating=t),this._$AL=new Map,this._$E_(),this.requestUpdate(),this.constructor.l?.forEach(t=>t(this))}addController(t){(this._$EO??=new Set).add(t),void 0!==this.renderRoot&&this.isConnected&&t.hostConnected?.()}removeController(t){this._$EO?.delete(t)}_$E_(){const t=new Map,e=this.constructor.elementProperties;for(const i of e.keys())this.hasOwnProperty(i)&&(t.set(i,this[i]),delete this[i]);t.size>0&&(this._$Ep=t)}createRenderRoot(){const i=this.shadowRoot??this.attachShadow(this.constructor.shadowRootOptions);return((i,s)=>{if(e)i.adoptedStyleSheets=s.map(t=>t instanceof CSSStyleSheet?t:t.styleSheet);else for(const e of s){const s=document.createElement("style"),a=t.litNonce;void 0!==a&&s.setAttribute("nonce",a),s.textContent=e.cssText,i.appendChild(s)}})(i,this.constructor.elementStyles),i}connectedCallback(){this.renderRoot??=this.createRenderRoot(),this.enableUpdating(!0),this._$EO?.forEach(t=>t.hostConnected?.())}enableUpdating(t){}disconnectedCallback(){this._$EO?.forEach(t=>t.hostDisconnected?.())}attributeChangedCallback(t,e,i){this._$AK(t,i)}_$ET(t,e){const i=this.constructor.elementProperties.get(t),s=this.constructor._$Eu(t,i);if(void 0!==s&&!0===i.reflect){const a=(void 0!==i.converter?.toAttribute?i.converter:y).toAttribute(e,i.type);this._$Em=t,null==a?this.removeAttribute(s):this.setAttribute(s,a),this._$Em=null}}_$AK(t,e){const i=this.constructor,s=i._$Eh.get(t);if(void 0!==s&&this._$Em!==s){const t=i.getPropertyOptions(s),a="function"==typeof t.converter?{fromAttribute:t.converter}:void 0!==t.converter?.fromAttribute?t.converter:y;this._$Em=s;const o=a.fromAttribute(e,t.type);this[s]=o??this._$Ej?.get(s)??o,this._$Em=null}}requestUpdate(t,e,i,s=!1,a){if(void 0!==t){const o=this.constructor;if(!1===s&&(a=this[t]),i??=o.getPropertyOptions(t),!((i.hasChanged??x)(a,e)||i.useDefault&&i.reflect&&a===this._$Ej?.get(t)&&!this.hasAttribute(o._$Eu(t,i))))return;this.C(t,e,i)}!1===this.isUpdatePending&&(this._$ES=this._$EP())}C(t,e,{useDefault:i,reflect:s,wrapped:a},o){i&&!(this._$Ej??=new Map).has(t)&&(this._$Ej.set(t,o??e??this[t]),!0!==a||void 0!==o)||(this._$AL.has(t)||(this.hasUpdated||i||(e=void 0),this._$AL.set(t,e)),!0===s&&this._$Em!==t&&(this._$Eq??=new Set).add(t))}async _$EP(){this.isUpdatePending=!0;try{await this._$ES}catch(t){Promise.reject(t)}const t=this.scheduleUpdate();return null!=t&&await t,!this.isUpdatePending}scheduleUpdate(){return this.performUpdate()}performUpdate(){if(!this.isUpdatePending)return;if(!this.hasUpdated){if(this.renderRoot??=this.createRenderRoot(),this._$Ep){for(const[t,e]of this._$Ep)this[t]=e;this._$Ep=void 0}const t=this.constructor.elementProperties;if(t.size>0)for(const[e,i]of t){const{wrapped:t}=i,s=this[e];!0!==t||this._$AL.has(e)||void 0===s||this.C(e,void 0,i,s)}}let t=!1;const e=this._$AL;try{t=this.shouldUpdate(e),t?(this.willUpdate(e),this._$EO?.forEach(t=>t.hostUpdate?.()),this.update(e)):this._$EM()}catch(e){throw t=!1,this._$EM(),e}t&&this._$AE(e)}willUpdate(t){}_$AE(t){this._$EO?.forEach(t=>t.hostUpdated?.()),this.hasUpdated||(this.hasUpdated=!0,this.firstUpdated(t)),this.updated(t)}_$EM(){this._$AL=new Map,this.isUpdatePending=!1}get updateComplete(){return this.getUpdateComplete()}getUpdateComplete(){return this._$ES}shouldUpdate(t){return!0}update(t){this._$Eq&&=this._$Eq.forEach(t=>this._$ET(t,this[t])),this._$EM()}updated(t){}firstUpdated(t){}};$.elementStyles=[],$.shadowRootOptions={mode:"open"},$[v("elementProperties")]=new Map,$[v("finalized")]=new Map,b?.({ReactiveElement:$}),(u.reactiveElementVersions??=[]).push("2.1.2");
+ */Symbol.metadata??=Symbol("metadata"),u.litPropertyMetadata??=new WeakMap;let w=class extends HTMLElement{static addInitializer(t){this._$Ei(),(this.l??=[]).push(t)}static get observedAttributes(){return this.finalize(),this._$Eh&&[...this._$Eh.keys()]}static createProperty(t,e=f){if(e.state&&(e.attribute=!1),this._$Ei(),this.prototype.hasOwnProperty(t)&&((e=Object.create(e)).wrapped=!0),this.elementProperties.set(t,e),!e.noAccessor){const i=Symbol(),s=this.getPropertyDescriptor(t,i,e);void 0!==s&&c(this.prototype,t,s)}}static getPropertyDescriptor(t,e,i){const{get:s,set:a}=d(this.prototype,t)??{get(){return this[e]},set(t){this[e]=t}};return{get:s,set(e){const o=s?.call(this);a?.call(this,e),this.requestUpdate(t,o,i)},configurable:!0,enumerable:!0}}static getPropertyOptions(t){return this.elementProperties.get(t)??f}static _$Ei(){if(this.hasOwnProperty(v("elementProperties")))return;const t=h(this);t.finalize(),void 0!==t.l&&(this.l=[...t.l]),this.elementProperties=new Map(t.elementProperties)}static finalize(){if(this.hasOwnProperty(v("finalized")))return;if(this.finalized=!0,this._$Ei(),this.hasOwnProperty(v("properties"))){const t=this.properties,e=[...l(t),...p(t)];for(const i of e)this.createProperty(i,t[i])}const t=this[Symbol.metadata];if(null!==t){const e=litPropertyMetadata.get(t);if(void 0!==e)for(const[t,i]of e)this.elementProperties.set(t,i)}this._$Eh=new Map;for(const[t,e]of this.elementProperties){const i=this._$Eu(t,e);void 0!==i&&this._$Eh.set(i,t)}this.elementStyles=this.finalizeStyles(this.styles)}static finalizeStyles(t){const e=[];if(Array.isArray(t)){const i=new Set(t.flat(1/0).reverse());for(const t of i)e.unshift(n(t))}else void 0!==t&&e.push(n(t));return e}static _$Eu(t,e){const i=e.attribute;return!1===i?void 0:"string"==typeof i?i:"string"==typeof t?t.toLowerCase():void 0}constructor(){super(),this._$Ep=void 0,this.isUpdatePending=!1,this.hasUpdated=!1,this._$Em=null,this._$Ev()}_$Ev(){this._$ES=new Promise(t=>this.enableUpdating=t),this._$AL=new Map,this._$E_(),this.requestUpdate(),this.constructor.l?.forEach(t=>t(this))}addController(t){(this._$EO??=new Set).add(t),void 0!==this.renderRoot&&this.isConnected&&t.hostConnected?.()}removeController(t){this._$EO?.delete(t)}_$E_(){const t=new Map,e=this.constructor.elementProperties;for(const i of e.keys())this.hasOwnProperty(i)&&(t.set(i,this[i]),delete this[i]);t.size>0&&(this._$Ep=t)}createRenderRoot(){const i=this.shadowRoot??this.attachShadow(this.constructor.shadowRootOptions);return((i,s)=>{if(e)i.adoptedStyleSheets=s.map(t=>t instanceof CSSStyleSheet?t:t.styleSheet);else for(const e of s){const s=document.createElement("style"),a=t.litNonce;void 0!==a&&s.setAttribute("nonce",a),s.textContent=e.cssText,i.appendChild(s)}})(i,this.constructor.elementStyles),i}connectedCallback(){this.renderRoot??=this.createRenderRoot(),this.enableUpdating(!0),this._$EO?.forEach(t=>t.hostConnected?.())}enableUpdating(t){}disconnectedCallback(){this._$EO?.forEach(t=>t.hostDisconnected?.())}attributeChangedCallback(t,e,i){this._$AK(t,i)}_$ET(t,e){const i=this.constructor.elementProperties.get(t),s=this.constructor._$Eu(t,i);if(void 0!==s&&!0===i.reflect){const a=(void 0!==i.converter?.toAttribute?i.converter:y).toAttribute(e,i.type);this._$Em=t,null==a?this.removeAttribute(s):this.setAttribute(s,a),this._$Em=null}}_$AK(t,e){const i=this.constructor,s=i._$Eh.get(t);if(void 0!==s&&this._$Em!==s){const t=i.getPropertyOptions(s),a="function"==typeof t.converter?{fromAttribute:t.converter}:void 0!==t.converter?.fromAttribute?t.converter:y;this._$Em=s;const o=a.fromAttribute(e,t.type);this[s]=o??this._$Ej?.get(s)??o,this._$Em=null}}requestUpdate(t,e,i,s=!1,a){if(void 0!==t){const o=this.constructor;if(!1===s&&(a=this[t]),i??=o.getPropertyOptions(t),!((i.hasChanged??x)(a,e)||i.useDefault&&i.reflect&&a===this._$Ej?.get(t)&&!this.hasAttribute(o._$Eu(t,i))))return;this.C(t,e,i)}!1===this.isUpdatePending&&(this._$ES=this._$EP())}C(t,e,{useDefault:i,reflect:s,wrapped:a},o){i&&!(this._$Ej??=new Map).has(t)&&(this._$Ej.set(t,o??e??this[t]),!0!==a||void 0!==o)||(this._$AL.has(t)||(this.hasUpdated||i||(e=void 0),this._$AL.set(t,e)),!0===s&&this._$Em!==t&&(this._$Eq??=new Set).add(t))}async _$EP(){this.isUpdatePending=!0;try{await this._$ES}catch(t){Promise.reject(t)}const t=this.scheduleUpdate();return null!=t&&await t,!this.isUpdatePending}scheduleUpdate(){return this.performUpdate()}performUpdate(){if(!this.isUpdatePending)return;if(!this.hasUpdated){if(this.renderRoot??=this.createRenderRoot(),this._$Ep){for(const[t,e]of this._$Ep)this[t]=e;this._$Ep=void 0}const t=this.constructor.elementProperties;if(t.size>0)for(const[e,i]of t){const{wrapped:t}=i,s=this[e];!0!==t||this._$AL.has(e)||void 0===s||this.C(e,void 0,i,s)}}let t=!1;const e=this._$AL;try{t=this.shouldUpdate(e),t?(this.willUpdate(e),this._$EO?.forEach(t=>t.hostUpdate?.()),this.update(e)):this._$EM()}catch(e){throw t=!1,this._$EM(),e}t&&this._$AE(e)}willUpdate(t){}_$AE(t){this._$EO?.forEach(t=>t.hostUpdated?.()),this.hasUpdated||(this.hasUpdated=!0,this.firstUpdated(t)),this.updated(t)}_$EM(){this._$AL=new Map,this.isUpdatePending=!1}get updateComplete(){return this.getUpdateComplete()}getUpdateComplete(){return this._$ES}shouldUpdate(t){return!0}update(t){this._$Eq&&=this._$Eq.forEach(t=>this._$ET(t,this[t])),this._$EM()}updated(t){}firstUpdated(t){}};w.elementStyles=[],w.shadowRootOptions={mode:"open"},w[v("elementProperties")]=new Map,w[v("finalized")]=new Map,b?.({ReactiveElement:w}),(u.reactiveElementVersions??=[]).push("2.1.2");
 /**
  * @license
  * Copyright 2017 Google LLC
  * SPDX-License-Identifier: BSD-3-Clause
  */
-const w=globalThis,k=t=>t,_=w.trustedTypes,C=_?_.createPolicy("lit-html",{createHTML:t=>t}):void 0,S="$lit$",A=`lit$${Math.random().toFixed(9).slice(2)}$`,E="?"+A,z=`<${E}>`,P=document,j=()=>P.createComment(""),I=t=>null===t||"object"!=typeof t&&"function"!=typeof t,L=Array.isArray,D="[ \t\n\f\r]",M=/<(?:(!--|\/[^a-zA-Z])|(\/?[a-zA-Z][^>\s]*)|(\/?$))/g,N=/-->/g,T=/>/g,O=RegExp(`>|${D}(?:([^\\s"'>=/]+)(${D}*=${D}*(?:[^ \t\n\f\r"'\`<>=]|("|')|))|$)`,"g"),R=/'/g,U=/"/g,q=/^(?:script|style|textarea|title)$/i,F=(t=>(e,...i)=>({_$litType$:t,strings:e,values:i}))(1),B=Symbol.for("lit-noChange"),H=Symbol.for("lit-nothing"),Q=new WeakMap,W=P.createTreeWalker(P,129);function V(t,e){if(!L(t)||!t.hasOwnProperty("raw"))throw Error("invalid template strings array");return void 0!==C?C.createHTML(e):e}const Y=(t,e)=>{const i=t.length-1,s=[];let a,o=2===e?"<svg>":3===e?"<math>":"",n=M;for(let e=0;e<i;e++){const i=t[e];let r,c,l=-1,d=0;for(;d<i.length&&(n.lastIndex=d,c=n.exec(i),null!==c);)d=n.lastIndex,n===M?"!--"===c[1]?n=N:void 0!==c[1]?n=T:void 0!==c[2]?(q.test(c[2])&&(a=RegExp("</"+c[2],"g")),n=O):void 0!==c[3]&&(n=O):n===O?">"===c[0]?(n=a??M,l=-1):void 0===c[1]?l=-2:(l=n.lastIndex-c[2].length,r=c[1],n=void 0===c[3]?O:'"'===c[3]?U:R):n===U||n===R?n=O:n===N||n===T?n=M:(n=O,a=void 0);const p=n===O&&t[e+1].startsWith("/>")?" ":"";o+=n===M?i+z:l>=0?(s.push(r),i.slice(0,l)+S+i.slice(l)+A+p):i+A+(-2===l?e:p)}return[V(t,o+(t[i]||"<?>")+(2===e?"</svg>":3===e?"</math>":"")),s]};class X{constructor({strings:t,_$litType$:e},i){let s;this.parts=[];let a=0,o=0;const n=t.length-1,r=this.parts,[c,l]=Y(t,e);if(this.el=X.createElement(c,i),W.currentNode=this.el.content,2===e||3===e){const t=this.el.content.firstChild;t.replaceWith(...t.childNodes)}for(;null!==(s=W.nextNode())&&r.length<n;){if(1===s.nodeType){if(s.hasAttributes())for(const t of s.getAttributeNames())if(t.endsWith(S)){const e=l[o++],i=s.getAttribute(t).split(A),n=/([.?@])?(.*)/.exec(e);r.push({type:1,index:a,name:n[2],strings:i,ctor:"."===n[1]?tt:"?"===n[1]?et:"@"===n[1]?it:K}),s.removeAttribute(t)}else t.startsWith(A)&&(r.push({type:6,index:a}),s.removeAttribute(t));if(q.test(s.tagName)){const t=s.textContent.split(A),e=t.length-1;if(e>0){s.textContent=_?_.emptyScript:"";for(let i=0;i<e;i++)s.append(t[i],j()),W.nextNode(),r.push({type:2,index:++a});s.append(t[e],j())}}}else if(8===s.nodeType)if(s.data===E)r.push({type:2,index:a});else{let t=-1;for(;-1!==(t=s.data.indexOf(A,t+1));)r.push({type:7,index:a}),t+=A.length-1}a++}}static createElement(t,e){const i=P.createElement("template");return i.innerHTML=t,i}}function J(t,e,i=t,s){if(e===B)return e;let a=void 0!==s?i._$Co?.[s]:i._$Cl;const o=I(e)?void 0:e._$litDirective$;return a?.constructor!==o&&(a?._$AO?.(!1),void 0===o?a=void 0:(a=new o(t),a._$AT(t,i,s)),void 0!==s?(i._$Co??=[])[s]=a:i._$Cl=a),void 0!==a&&(e=J(t,a._$AS(t,e.values),a,s)),e}class G{constructor(t,e){this._$AV=[],this._$AN=void 0,this._$AD=t,this._$AM=e}get parentNode(){return this._$AM.parentNode}get _$AU(){return this._$AM._$AU}u(t){const{el:{content:e},parts:i}=this._$AD,s=(t?.creationScope??P).importNode(e,!0);W.currentNode=s;let a=W.nextNode(),o=0,n=0,r=i[0];for(;void 0!==r;){if(o===r.index){let e;2===r.type?e=new Z(a,a.nextSibling,this,t):1===r.type?e=new r.ctor(a,r.name,r.strings,this,t):6===r.type&&(e=new st(a,this,t)),this._$AV.push(e),r=i[++n]}o!==r?.index&&(a=W.nextNode(),o++)}return W.currentNode=P,s}p(t){let e=0;for(const i of this._$AV)void 0!==i&&(void 0!==i.strings?(i._$AI(t,i,e),e+=i.strings.length-2):i._$AI(t[e])),e++}}class Z{get _$AU(){return this._$AM?._$AU??this._$Cv}constructor(t,e,i,s){this.type=2,this._$AH=H,this._$AN=void 0,this._$AA=t,this._$AB=e,this._$AM=i,this.options=s,this._$Cv=s?.isConnected??!0}get parentNode(){let t=this._$AA.parentNode;const e=this._$AM;return void 0!==e&&11===t?.nodeType&&(t=e.parentNode),t}get startNode(){return this._$AA}get endNode(){return this._$AB}_$AI(t,e=this){t=J(this,t,e),I(t)?t===H||null==t||""===t?(this._$AH!==H&&this._$AR(),this._$AH=H):t!==this._$AH&&t!==B&&this._(t):void 0!==t._$litType$?this.$(t):void 0!==t.nodeType?this.T(t):(t=>L(t)||"function"==typeof t?.[Symbol.iterator])(t)?this.k(t):this._(t)}O(t){return this._$AA.parentNode.insertBefore(t,this._$AB)}T(t){this._$AH!==t&&(this._$AR(),this._$AH=this.O(t))}_(t){this._$AH!==H&&I(this._$AH)?this._$AA.nextSibling.data=t:this.T(P.createTextNode(t)),this._$AH=t}$(t){const{values:e,_$litType$:i}=t,s="number"==typeof i?this._$AC(t):(void 0===i.el&&(i.el=X.createElement(V(i.h,i.h[0]),this.options)),i);if(this._$AH?._$AD===s)this._$AH.p(e);else{const t=new G(s,this),i=t.u(this.options);t.p(e),this.T(i),this._$AH=t}}_$AC(t){let e=Q.get(t.strings);return void 0===e&&Q.set(t.strings,e=new X(t)),e}k(t){L(this._$AH)||(this._$AH=[],this._$AR());const e=this._$AH;let i,s=0;for(const a of t)s===e.length?e.push(i=new Z(this.O(j()),this.O(j()),this,this.options)):i=e[s],i._$AI(a),s++;s<e.length&&(this._$AR(i&&i._$AB.nextSibling,s),e.length=s)}_$AR(t=this._$AA.nextSibling,e){for(this._$AP?.(!1,!0,e);t!==this._$AB;){const e=k(t).nextSibling;k(t).remove(),t=e}}setConnected(t){void 0===this._$AM&&(this._$Cv=t,this._$AP?.(t))}}class K{get tagName(){return this.element.tagName}get _$AU(){return this._$AM._$AU}constructor(t,e,i,s,a){this.type=1,this._$AH=H,this._$AN=void 0,this.element=t,this.name=e,this._$AM=s,this.options=a,i.length>2||""!==i[0]||""!==i[1]?(this._$AH=Array(i.length-1).fill(new String),this.strings=i):this._$AH=H}_$AI(t,e=this,i,s){const a=this.strings;let o=!1;if(void 0===a)t=J(this,t,e,0),o=!I(t)||t!==this._$AH&&t!==B,o&&(this._$AH=t);else{const s=t;let n,r;for(t=a[0],n=0;n<a.length-1;n++)r=J(this,s[i+n],e,n),r===B&&(r=this._$AH[n]),o||=!I(r)||r!==this._$AH[n],r===H?t=H:t!==H&&(t+=(r??"")+a[n+1]),this._$AH[n]=r}o&&!s&&this.j(t)}j(t){t===H?this.element.removeAttribute(this.name):this.element.setAttribute(this.name,t??"")}}class tt extends K{constructor(){super(...arguments),this.type=3}j(t){this.element[this.name]=t===H?void 0:t}}class et extends K{constructor(){super(...arguments),this.type=4}j(t){this.element.toggleAttribute(this.name,!!t&&t!==H)}}class it extends K{constructor(t,e,i,s,a){super(t,e,i,s,a),this.type=5}_$AI(t,e=this){if((t=J(this,t,e,0)??H)===B)return;const i=this._$AH,s=t===H&&i!==H||t.capture!==i.capture||t.once!==i.once||t.passive!==i.passive,a=t!==H&&(i===H||s);s&&this.element.removeEventListener(this.name,this,i),a&&this.element.addEventListener(this.name,this,t),this._$AH=t}handleEvent(t){"function"==typeof this._$AH?this._$AH.call(this.options?.host??this.element,t):this._$AH.handleEvent(t)}}class st{constructor(t,e,i){this.element=t,this.type=6,this._$AN=void 0,this._$AM=e,this.options=i}get _$AU(){return this._$AM._$AU}_$AI(t){J(this,t)}}const at=w.litHtmlPolyfillSupport;at?.(X,Z),(w.litHtmlVersions??=[]).push("3.3.2");const ot=globalThis;
+const $=globalThis,k=t=>t,_=$.trustedTypes,C=_?_.createPolicy("lit-html",{createHTML:t=>t}):void 0,S="$lit$",A=`lit$${Math.random().toFixed(9).slice(2)}$`,E="?"+A,z=`<${E}>`,P=document,I=()=>P.createComment(""),L=t=>null===t||"object"!=typeof t&&"function"!=typeof t,D=Array.isArray,j="[ \t\n\f\r]",N=/<(?:(!--|\/[^a-zA-Z])|(\/?[a-zA-Z][^>\s]*)|(\/?$))/g,T=/-->/g,M=/>/g,O=RegExp(`>|${j}(?:([^\\s"'>=/]+)(${j}*=${j}*(?:[^ \t\n\f\r"'\`<>=]|("|')|))|$)`,"g"),R=/'/g,U=/"/g,q=/^(?:script|style|textarea|title)$/i,F=(t=>(e,...i)=>({_$litType$:t,strings:e,values:i}))(1),B=Symbol.for("lit-noChange"),H=Symbol.for("lit-nothing"),Q=new WeakMap,W=P.createTreeWalker(P,129);function V(t,e){if(!D(t)||!t.hasOwnProperty("raw"))throw Error("invalid template strings array");return void 0!==C?C.createHTML(e):e}const Y=(t,e)=>{const i=t.length-1,s=[];let a,o=2===e?"<svg>":3===e?"<math>":"",n=N;for(let e=0;e<i;e++){const i=t[e];let r,c,d=-1,l=0;for(;l<i.length&&(n.lastIndex=l,c=n.exec(i),null!==c);)l=n.lastIndex,n===N?"!--"===c[1]?n=T:void 0!==c[1]?n=M:void 0!==c[2]?(q.test(c[2])&&(a=RegExp("</"+c[2],"g")),n=O):void 0!==c[3]&&(n=O):n===O?">"===c[0]?(n=a??N,d=-1):void 0===c[1]?d=-2:(d=n.lastIndex-c[2].length,r=c[1],n=void 0===c[3]?O:'"'===c[3]?U:R):n===U||n===R?n=O:n===T||n===M?n=N:(n=O,a=void 0);const p=n===O&&t[e+1].startsWith("/>")?" ":"";o+=n===N?i+z:d>=0?(s.push(r),i.slice(0,d)+S+i.slice(d)+A+p):i+A+(-2===d?e:p)}return[V(t,o+(t[i]||"<?>")+(2===e?"</svg>":3===e?"</math>":"")),s]};class X{constructor({strings:t,_$litType$:e},i){let s;this.parts=[];let a=0,o=0;const n=t.length-1,r=this.parts,[c,d]=Y(t,e);if(this.el=X.createElement(c,i),W.currentNode=this.el.content,2===e||3===e){const t=this.el.content.firstChild;t.replaceWith(...t.childNodes)}for(;null!==(s=W.nextNode())&&r.length<n;){if(1===s.nodeType){if(s.hasAttributes())for(const t of s.getAttributeNames())if(t.endsWith(S)){const e=d[o++],i=s.getAttribute(t).split(A),n=/([.?@])?(.*)/.exec(e);r.push({type:1,index:a,name:n[2],strings:i,ctor:"."===n[1]?tt:"?"===n[1]?et:"@"===n[1]?it:K}),s.removeAttribute(t)}else t.startsWith(A)&&(r.push({type:6,index:a}),s.removeAttribute(t));if(q.test(s.tagName)){const t=s.textContent.split(A),e=t.length-1;if(e>0){s.textContent=_?_.emptyScript:"";for(let i=0;i<e;i++)s.append(t[i],I()),W.nextNode(),r.push({type:2,index:++a});s.append(t[e],I())}}}else if(8===s.nodeType)if(s.data===E)r.push({type:2,index:a});else{let t=-1;for(;-1!==(t=s.data.indexOf(A,t+1));)r.push({type:7,index:a}),t+=A.length-1}a++}}static createElement(t,e){const i=P.createElement("template");return i.innerHTML=t,i}}function J(t,e,i=t,s){if(e===B)return e;let a=void 0!==s?i._$Co?.[s]:i._$Cl;const o=L(e)?void 0:e._$litDirective$;return a?.constructor!==o&&(a?._$AO?.(!1),void 0===o?a=void 0:(a=new o(t),a._$AT(t,i,s)),void 0!==s?(i._$Co??=[])[s]=a:i._$Cl=a),void 0!==a&&(e=J(t,a._$AS(t,e.values),a,s)),e}class G{constructor(t,e){this._$AV=[],this._$AN=void 0,this._$AD=t,this._$AM=e}get parentNode(){return this._$AM.parentNode}get _$AU(){return this._$AM._$AU}u(t){const{el:{content:e},parts:i}=this._$AD,s=(t?.creationScope??P).importNode(e,!0);W.currentNode=s;let a=W.nextNode(),o=0,n=0,r=i[0];for(;void 0!==r;){if(o===r.index){let e;2===r.type?e=new Z(a,a.nextSibling,this,t):1===r.type?e=new r.ctor(a,r.name,r.strings,this,t):6===r.type&&(e=new st(a,this,t)),this._$AV.push(e),r=i[++n]}o!==r?.index&&(a=W.nextNode(),o++)}return W.currentNode=P,s}p(t){let e=0;for(const i of this._$AV)void 0!==i&&(void 0!==i.strings?(i._$AI(t,i,e),e+=i.strings.length-2):i._$AI(t[e])),e++}}class Z{get _$AU(){return this._$AM?._$AU??this._$Cv}constructor(t,e,i,s){this.type=2,this._$AH=H,this._$AN=void 0,this._$AA=t,this._$AB=e,this._$AM=i,this.options=s,this._$Cv=s?.isConnected??!0}get parentNode(){let t=this._$AA.parentNode;const e=this._$AM;return void 0!==e&&11===t?.nodeType&&(t=e.parentNode),t}get startNode(){return this._$AA}get endNode(){return this._$AB}_$AI(t,e=this){t=J(this,t,e),L(t)?t===H||null==t||""===t?(this._$AH!==H&&this._$AR(),this._$AH=H):t!==this._$AH&&t!==B&&this._(t):void 0!==t._$litType$?this.$(t):void 0!==t.nodeType?this.T(t):(t=>D(t)||"function"==typeof t?.[Symbol.iterator])(t)?this.k(t):this._(t)}O(t){return this._$AA.parentNode.insertBefore(t,this._$AB)}T(t){this._$AH!==t&&(this._$AR(),this._$AH=this.O(t))}_(t){this._$AH!==H&&L(this._$AH)?this._$AA.nextSibling.data=t:this.T(P.createTextNode(t)),this._$AH=t}$(t){const{values:e,_$litType$:i}=t,s="number"==typeof i?this._$AC(t):(void 0===i.el&&(i.el=X.createElement(V(i.h,i.h[0]),this.options)),i);if(this._$AH?._$AD===s)this._$AH.p(e);else{const t=new G(s,this),i=t.u(this.options);t.p(e),this.T(i),this._$AH=t}}_$AC(t){let e=Q.get(t.strings);return void 0===e&&Q.set(t.strings,e=new X(t)),e}k(t){D(this._$AH)||(this._$AH=[],this._$AR());const e=this._$AH;let i,s=0;for(const a of t)s===e.length?e.push(i=new Z(this.O(I()),this.O(I()),this,this.options)):i=e[s],i._$AI(a),s++;s<e.length&&(this._$AR(i&&i._$AB.nextSibling,s),e.length=s)}_$AR(t=this._$AA.nextSibling,e){for(this._$AP?.(!1,!0,e);t!==this._$AB;){const e=k(t).nextSibling;k(t).remove(),t=e}}setConnected(t){void 0===this._$AM&&(this._$Cv=t,this._$AP?.(t))}}class K{get tagName(){return this.element.tagName}get _$AU(){return this._$AM._$AU}constructor(t,e,i,s,a){this.type=1,this._$AH=H,this._$AN=void 0,this.element=t,this.name=e,this._$AM=s,this.options=a,i.length>2||""!==i[0]||""!==i[1]?(this._$AH=Array(i.length-1).fill(new String),this.strings=i):this._$AH=H}_$AI(t,e=this,i,s){const a=this.strings;let o=!1;if(void 0===a)t=J(this,t,e,0),o=!L(t)||t!==this._$AH&&t!==B,o&&(this._$AH=t);else{const s=t;let n,r;for(t=a[0],n=0;n<a.length-1;n++)r=J(this,s[i+n],e,n),r===B&&(r=this._$AH[n]),o||=!L(r)||r!==this._$AH[n],r===H?t=H:t!==H&&(t+=(r??"")+a[n+1]),this._$AH[n]=r}o&&!s&&this.j(t)}j(t){t===H?this.element.removeAttribute(this.name):this.element.setAttribute(this.name,t??"")}}class tt extends K{constructor(){super(...arguments),this.type=3}j(t){this.element[this.name]=t===H?void 0:t}}class et extends K{constructor(){super(...arguments),this.type=4}j(t){this.element.toggleAttribute(this.name,!!t&&t!==H)}}class it extends K{constructor(t,e,i,s,a){super(t,e,i,s,a),this.type=5}_$AI(t,e=this){if((t=J(this,t,e,0)??H)===B)return;const i=this._$AH,s=t===H&&i!==H||t.capture!==i.capture||t.once!==i.once||t.passive!==i.passive,a=t!==H&&(i===H||s);s&&this.element.removeEventListener(this.name,this,i),a&&this.element.addEventListener(this.name,this,t),this._$AH=t}handleEvent(t){"function"==typeof this._$AH?this._$AH.call(this.options?.host??this.element,t):this._$AH.handleEvent(t)}}class st{constructor(t,e,i){this.element=t,this.type=6,this._$AN=void 0,this._$AM=e,this.options=i}get _$AU(){return this._$AM._$AU}_$AI(t){J(this,t)}}const at=$.litHtmlPolyfillSupport;at?.(X,Z),($.litHtmlVersions??=[]).push("3.3.2");const ot=globalThis;
 /**
  * @license
  * Copyright 2017 Google LLC
  * SPDX-License-Identifier: BSD-3-Clause
- */class nt extends ${constructor(){super(...arguments),this.renderOptions={host:this},this._$Do=void 0}createRenderRoot(){const t=super.createRenderRoot();return this.renderOptions.renderBefore??=t.firstChild,t}update(t){const e=this.render();this.hasUpdated||(this.renderOptions.isConnected=this.isConnected),super.update(t),this._$Do=((t,e,i)=>{const s=i?.renderBefore??e;let a=s._$litPart$;if(void 0===a){const t=i?.renderBefore??null;s._$litPart$=a=new Z(e.insertBefore(j(),t),t,void 0,i??{})}return a._$AI(t),a})(e,this.renderRoot,this.renderOptions)}connectedCallback(){super.connectedCallback(),this._$Do?.setConnected(!0)}disconnectedCallback(){super.disconnectedCallback(),this._$Do?.setConnected(!1)}render(){return B}}nt._$litElement$=!0,nt.finalized=!0,ot.litElementHydrateSupport?.({LitElement:nt});const rt=ot.litElementPolyfillSupport;rt?.({LitElement:nt}),(ot.litElementVersions??=[]).push("4.2.2");class ct{constructor(t){this.hass=t}async getLists(){return await this.hass.callWS({type:"shopping_list_manager/lists/get_all"})}async createList(t,e="mdi:cart"){return await this.hass.callWS({type:"shopping_list_manager/lists/create",name:t,icon:e})}async updateList(t,e){return await this.hass.callWS({type:"shopping_list_manager/lists/update",list_id:t,...e})}async deleteList(t){return await this.hass.callWS({type:"shopping_list_manager/lists/delete",list_id:t})}async setActiveList(t){return await this.hass.callWS({type:"shopping_list_manager/lists/set_active",list_id:t})}async getItems(t){return await this.hass.callWS({type:"shopping_list_manager/items/get",list_id:t})}async addItem(t,e){return await this.hass.callWS({type:"shopping_list_manager/items/add",list_id:t,...e})}async updateItem(t,e){return await this.hass.callWS({type:"shopping_list_manager/items/update",item_id:t,...e})}async checkItem(t,e){return await this.hass.callWS({type:"shopping_list_manager/items/check",item_id:t,checked:e})}async deleteItem(t){return await this.hass.callWS({type:"shopping_list_manager/items/delete",item_id:t})}async bulkCheckItems(t,e){return await this.hass.callWS({type:"shopping_list_manager/items/bulk_check",item_ids:t,checked:e})}async clearCheckedItems(t){return await this.hass.callWS({type:"shopping_list_manager/items/clear_checked",list_id:t})}async getListTotal(t){return await this.hass.callWS({type:"shopping_list_manager/items/get_total",list_id:t})}async searchProducts(t,e={}){return await this.hass.callWS({type:"shopping_list_manager/products/search",query:t,limit:e.limit||20,exclude_allergens:e.excludeAllergens,include_tags:e.includeTags,substitution_group:e.substitutionGroup})}async getProductSuggestions(t=20){return await this.hass.callWS({type:"shopping_list_manager/products/suggestions",limit:t})}async getProductSubstitutes(t,e=5){return await this.hass.callWS({type:"shopping_list_manager/products/substitutes",product_id:t,limit:e})}async addProduct(t){return await this.hass.callWS({type:"shopping_list_manager/products/add",...t})}async updateProduct(t,e){return await this.hass.callWS({type:"shopping_list_manager/products/update",product_id:t,...e})}async getCategories(){return await this.hass.callWS({type:"shopping_list_manager/categories/get_all"})}}class lt extends nt{static properties={currentView:{type:String}};handleNavClick(t){this.dispatchEvent(new CustomEvent("nav-changed",{detail:{view:t},bubbles:!0,composed:!0}))}render(){return F`
+ */class nt extends w{constructor(){super(...arguments),this.renderOptions={host:this},this._$Do=void 0}createRenderRoot(){const t=super.createRenderRoot();return this.renderOptions.renderBefore??=t.firstChild,t}update(t){const e=this.render();this.hasUpdated||(this.renderOptions.isConnected=this.isConnected),super.update(t),this._$Do=((t,e,i)=>{const s=i?.renderBefore??e;let a=s._$litPart$;if(void 0===a){const t=i?.renderBefore??null;s._$litPart$=a=new Z(e.insertBefore(I(),t),t,void 0,i??{})}return a._$AI(t),a})(e,this.renderRoot,this.renderOptions)}connectedCallback(){super.connectedCallback(),this._$Do?.setConnected(!0)}disconnectedCallback(){super.disconnectedCallback(),this._$Do?.setConnected(!1)}render(){return B}}nt._$litElement$=!0,nt.finalized=!0,ot.litElementHydrateSupport?.({LitElement:nt});const rt=ot.litElementPolyfillSupport;rt?.({LitElement:nt}),(ot.litElementVersions??=[]).push("4.2.2");class ct{constructor(t){this.hass=t}async getLists(){return await this.hass.callWS({type:"shopping_list_manager/lists/get_all"})}async createList(t,e="mdi:cart"){return await this.hass.callWS({type:"shopping_list_manager/lists/create",name:t,icon:e})}async updateList(t,e){return await this.hass.callWS({type:"shopping_list_manager/lists/update",list_id:t,...e})}async deleteList(t){return await this.hass.callWS({type:"shopping_list_manager/lists/delete",list_id:t})}async setActiveList(t){return await this.hass.callWS({type:"shopping_list_manager/lists/set_active",list_id:t})}async getItems(t){return await this.hass.callWS({type:"shopping_list_manager/items/get",list_id:t})}async addItem(t,e){return await this.hass.callWS({type:"shopping_list_manager/items/add",list_id:t,...e})}async updateItem(t,e){return await this.hass.callWS({type:"shopping_list_manager/items/update",item_id:t,...e})}async checkItem(t,e){return await this.hass.callWS({type:"shopping_list_manager/items/check",item_id:t,checked:e})}async deleteItem(t){return await this.hass.callWS({type:"shopping_list_manager/items/delete",item_id:t})}async bulkCheckItems(t,e){return await this.hass.callWS({type:"shopping_list_manager/items/bulk_check",item_ids:t,checked:e})}async clearCheckedItems(t){return await this.hass.callWS({type:"shopping_list_manager/items/clear_checked",list_id:t})}async getListTotal(t){return await this.hass.callWS({type:"shopping_list_manager/items/get_total",list_id:t})}async searchProducts(t,e={}){return await this.hass.callWS({type:"shopping_list_manager/products/search",query:t,limit:e.limit||20,exclude_allergens:e.excludeAllergens,include_tags:e.includeTags,substitution_group:e.substitutionGroup})}async getProductSuggestions(t=20){return await this.hass.callWS({type:"shopping_list_manager/products/suggestions",limit:t})}async getProductSubstitutes(t,e=5){return await this.hass.callWS({type:"shopping_list_manager/products/substitutes",product_id:t,limit:e})}async addProduct(t){return await this.hass.callWS({type:"shopping_list_manager/products/add",...t})}async updateProduct(t,e){return await this.hass.callWS({type:"shopping_list_manager/products/update",product_id:t,...e})}async getCategories(){return await this.hass.callWS({type:"shopping_list_manager/categories/get_all"})}}class dt extends nt{static properties={currentView:{type:String}};handleNavClick(t){this.dispatchEvent(new CustomEvent("nav-changed",{detail:{view:t},bubbles:!0,composed:!0}))}render(){return F`
       <nav class="bottom-nav">
         <button
           class="nav-item ${"shopping"===this.currentView?"active":""}"
@@ -92,20 +92,20 @@ const w=globalThis,k=t=>t,_=w.trustedTypes,C=_?_.createPolicy("lit-html",{create
       font-size: 11px;
       font-weight: 500;
     }
-  `}customElements.define("slm-bottom-nav",lt);class dt extends nt{static properties={activeList:{type:Object},itemCount:{type:Number}};handleBack(){this.dispatchEvent(new CustomEvent("back",{bubbles:!0,composed:!0}))}handleShare(){this.dispatchEvent(new CustomEvent("share",{bubbles:!0,composed:!0}))}handleMenu(){alert("List menu coming soon")}render(){return F`
+  `}customElements.define("slm-bottom-nav",dt);class lt extends nt{static properties={activeList:{type:Object},itemCount:{type:Number}};handleBack(){this.dispatchEvent(new CustomEvent("back",{bubbles:!0,composed:!0}))}handleShare(){this.dispatchEvent(new CustomEvent("share",{bubbles:!0,composed:!0}))}handleMenu(){alert("List menu coming soon")}render(){return F`
       <div class="header">
         <button class="back-btn" @click=${this.handleBack}>
-          <span class="emoji">◀</span>
+          <ha-icon icon="mdi:arrow-left"></ha-icon>
         </button>
         
         <h2>${this.activeList?.name||"Shopping List"}</h2>
         
         <div class="header-actions">
           <button class="action-btn" @click=${this.handleShare}>
-            <span class="emoji">👤➕</span>
+            <ha-icon icon="mdi:account-plus-outline"></ha-icon>
           </button>
           <button class="action-btn" @click=${this.handleMenu}>
-            <span class="emoji">⋮</span>
+            <ha-icon icon="mdi:dots-vertical"></ha-icon>
           </button>
         </div>
       </div>
@@ -131,10 +131,16 @@ const w=globalThis,k=t=>t,_=w.trustedTypes,C=_?_.createPolicy("lit-html",{create
       cursor: pointer;
       color: var(--primary-text-color);
       -webkit-tap-highlight-color: transparent;
+      display: flex;
+      align-items: center;
+      justify-content: center;
     }
     .back-btn:active,
     .action-btn:active {
       opacity: 0.6;
+    }
+    ha-icon {
+      --mdc-icon-size: 24px;
     }
     h2 {
       margin: 0;
@@ -152,10 +158,7 @@ const w=globalThis,k=t=>t,_=w.trustedTypes,C=_?_.createPolicy("lit-html",{create
       display: flex;
       gap: 4px;
     }
-    .emoji {
-      font-size: 20px;
-    }
-  `}customElements.define("slm-list-header",dt);class pt extends nt{static properties={api:{type:Object},settings:{type:Object},categories:{type:Array},activeListId:{type:String},searchQuery:{type:String},searchResults:{type:Array},recentProducts:{type:Array},showResults:{type:Boolean}};constructor(){super(),this.searchQuery="",this.searchResults=[],this.recentProducts=[],this.showResults=!1}async firstUpdated(){await this.loadRecentProducts()}async loadRecentProducts(){const t=localStorage.getItem("slm_recent_products"),e=t?JSON.parse(t):[],i=this.settings?.recentProductsCount||8;this.recentProducts=e.slice(0,i)}async handleSearch(t){if(this.searchQuery=t.target.value,this.searchQuery.length<1)this.showResults=!1;else{if(this.searchQuery.length>=2){const t=await this.api.searchProducts(this.searchQuery,{limit:20});this.searchResults=t.products||[]}else this.searchResults=[];this.showResults=!0}}handleProductSelect(t){this.dispatchEvent(new CustomEvent("add-item",{detail:{name:t.name,category_id:t.category_id,product_id:t.id,quantity:1,unit:t.default_unit,price:t.price,image_url:t.image_url},bubbles:!0,composed:!0})),this.searchQuery="",this.showResults=!1,this.shadowRoot.querySelector("input").blur()}handleAddCustom(){this.searchQuery.trim()&&(this.dispatchEvent(new CustomEvent("add-item",{detail:{name:this.searchQuery.trim(),category_id:"other",quantity:1,unit:"units"},bubbles:!0,composed:!0})),this.searchQuery="",this.showResults=!1)}render(){return F`
+  `}customElements.define("slm-list-header",lt);class pt extends nt{static properties={api:{type:Object},settings:{type:Object},categories:{type:Array},activeListId:{type:String},searchQuery:{type:String},searchResults:{type:Array},recentProducts:{type:Array},showResults:{type:Boolean}};constructor(){super(),this.searchQuery="",this.searchResults=[],this.recentProducts=[],this.showResults=!1}async firstUpdated(){await this.loadRecentProducts()}async loadRecentProducts(){const t=localStorage.getItem("slm_recent_products"),e=t?JSON.parse(t):[],i=this.settings?.recentProductsCount||8;this.recentProducts=e.slice(0,i)}async handleSearch(t){if(this.searchQuery=t.target.value,this.searchQuery.length<1)this.showResults=!1;else{if(this.searchQuery.length>=2){const t=await this.api.searchProducts(this.searchQuery,{limit:20});this.searchResults=t.products||[]}else this.searchResults=[];this.showResults=!0}}handleProductSelect(t){this.dispatchEvent(new CustomEvent("add-item",{detail:{name:t.name,category_id:t.category_id,product_id:t.id,quantity:1,unit:t.default_unit,price:t.price,image_url:t.image_url},bubbles:!0,composed:!0})),this.searchQuery="",this.showResults=!1,this.shadowRoot.querySelector("input").blur()}handleAddCustom(){this.searchQuery.trim()&&(this.dispatchEvent(new CustomEvent("add-item",{detail:{name:this.searchQuery.trim(),category_id:"other",quantity:1,unit:"units"},bubbles:!0,composed:!0})),this.searchQuery="",this.showResults=!1)}render(){return F`
       <div class="search-container">
         <div class="search-box">
           <span class="search-icon">🔍</span>
@@ -329,7 +332,7 @@ const w=globalThis,k=t=>t,_=w.trustedTypes,C=_?_.createPolicy("lit-html",{create
           </button>
         `}
 
-        ${this.item.quantity>1&&!this.item.checked?F`
+        ${this.item.checked?"":F`
           <div 
             class="quantity-badge" 
             style="background: ${this.categoryColor}"
@@ -337,7 +340,7 @@ const w=globalThis,k=t=>t,_=w.trustedTypes,C=_?_.createPolicy("lit-html",{create
           >
             ${this.item.quantity}
           </div>
-        `:""}
+        `}
 
         ${this.item.image_url?F`
           <img src="${this.item.image_url}" alt="${this.item.name}">
@@ -363,7 +366,7 @@ const w=globalThis,k=t=>t,_=w.trustedTypes,C=_?_.createPolicy("lit-html",{create
     `}static styles=o`
     .tile {
       position: relative;
-      background: white;
+      background: #1a1a1a;
       border-radius: 8px;
       padding: 8px;
       display: flex;
@@ -374,7 +377,7 @@ const w=globalThis,k=t=>t,_=w.trustedTypes,C=_?_.createPolicy("lit-html",{create
       user-select: none;
       aspect-ratio: 1;
       overflow: hidden;
-      box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+      box-shadow: 0 1px 3px rgba(0,0,0,0.3);
     }
     .tile:active {
       transform: scale(0.97);
@@ -389,7 +392,7 @@ const w=globalThis,k=t=>t,_=w.trustedTypes,C=_?_.createPolicy("lit-html",{create
       position: absolute;
       top: 6px;
       left: 6px;
-      background: #ef9a9a;
+      background: #8b4545;
       color: white;
       border: none;
       border-radius: 50%;
@@ -399,7 +402,7 @@ const w=globalThis,k=t=>t,_=w.trustedTypes,C=_?_.createPolicy("lit-html",{create
       align-items: center;
       justify-content: center;
       cursor: pointer;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.15);
+      box-shadow: 0 2px 4px rgba(0,0,0,0.3);
       z-index: 2;
       padding: 0;
       font-size: 18px;
@@ -415,7 +418,7 @@ const w=globalThis,k=t=>t,_=w.trustedTypes,C=_?_.createPolicy("lit-html",{create
       font-size: 12px;
       font-weight: 700;
       z-index: 2;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.15);
+      box-shadow: 0 2px 4px rgba(0,0,0,0.3);
       cursor: pointer;
     }
     .quantity-badge:hover {
@@ -443,7 +446,7 @@ const w=globalThis,k=t=>t,_=w.trustedTypes,C=_?_.createPolicy("lit-html",{create
       font-size: 12px;
       line-height: 1.2;
       margin-bottom: 2px;
-      color: var(--text-primary, #424242);
+      color: #e0e0e0;
       overflow: hidden;
       text-overflow: ellipsis;
       display: -webkit-box;
@@ -452,7 +455,7 @@ const w=globalThis,k=t=>t,_=w.trustedTypes,C=_?_.createPolicy("lit-html",{create
     }
     .price {
       font-size: 11px;
-      color: var(--primary-pastel, #9fa8da);
+      color: #9fa8da;
       font-weight: 700;
     }
     .checked-overlay {
@@ -1053,96 +1056,52 @@ const w=globalThis,k=t=>t,_=w.trustedTypes,C=_?_.createPolicy("lit-html",{create
     .action-btn:active {
       transform: scale(0.97);
     }
-  `}customElements.define("slm-edit-item-dialog",mt);class bt extends nt{static properties={list:{type:Object},isActive:{type:Boolean},itemCount:{type:Number},totalCost:{type:Number},currency:{type:String},emoji:{type:String},showMenu:{type:Boolean}};constructor(){super(),this.showMenu=!1,this.itemCount=0,this.totalCost=0,this.currency="NZD"}handleCardClick(){this.dispatchEvent(new CustomEvent("list-select",{detail:{listId:this.list.id},bubbles:!0,composed:!0}))}handleMenuClick(t){t.stopPropagation(),this.showMenu=!this.showMenu,this.menuX=t.clientX,this.menuY=t.clientY}render(){return F`
-      <div class="list-card ${this.isActive?"active":""}" @click=${this.handleCardClick}>
-        <div class="card-header">
-          <span class="emoji">${this.emoji}</span>
-          <button class="menu-btn" @click=${this.handleMenuClick}>
-            <span class="dots">⋮</span>
-          </button>
-        </div>
-
-        <h3>${this.list.name}</h3>
-        
+  `}customElements.define("slm-edit-item-dialog",mt);class bt extends nt{static properties={list:{type:Object},isActive:{type:Boolean},itemCount:{type:Number},totalCost:{type:Number},currency:{type:String},emoji:{type:String},showMenu:{type:Boolean},menuX:{type:Number},menuY:{type:Number}};constructor(){super(),this.showMenu=!1,this.itemCount=0,this.totalCost=0,this.currency="NZD",this.menuX=0,this.menuY=0}getCardColor(){const t=["#7986cb","#81c784","#ffb74d","#ba68c8","#4dd0e1","#f06292"],e=t[parseInt(this.list.id.slice(-1),16)%t.length];return this.isActive?e:this.dimColor(e)}dimColor(t){return`rgba(${parseInt(t.slice(1,3),16)}, ${parseInt(t.slice(3,5),16)}, ${parseInt(t.slice(5,7),16)}, 0.4)`}handleCardClick(){this.dispatchEvent(new CustomEvent("list-select",{detail:{listId:this.list.id},bubbles:!0,composed:!0}))}handleMenuClick(t){t.stopPropagation();const e=t.target.getBoundingClientRect();this.menuX=e.right-150,this.menuY=e.bottom+5,this.showMenu=!this.showMenu}handleAction(t,e){e.stopPropagation(),this.showMenu=!1,this.dispatchEvent(new CustomEvent("list-action",{detail:{action:t,listId:this.list.id},bubbles:!0,composed:!0}))}render(){return F`
+      <div 
+        class="list-card ${this.isActive?"active":""}" 
+        style="background: ${this.getCardColor()}"
+        @click=${this.handleCardClick}
+      >
         ${this.isActive?F`
-          <div class="card-stats">
-            <div class="stat">
-              <span class="stat-value">${this.itemCount}</span>
-              <span class="stat-label">items</span>
-            </div>
-            <div class="stat">
-              <span class="stat-value">${this.currency} $${this.totalCost.toFixed(2)}</span>
-              <span class="stat-label">total</span>
-            </div>
-          </div>
           <div class="active-badge">Active</div>
         `:""}
 
-        ${this.showMenu?F`
-          <div class="menu-overlay" @click=${t=>{t.stopPropagation(),this.showMenu=!1}}>
-            <div class="menu-popup" style="left: ${this.menuX-150}px; top: ${this.menuY}px;">
-              <button @click=${t=>this.handleAction("rename",t)}>
-                <span class="emoji">✏️</span>
-                Rename
-              </button>
-              <button @click=${t=>this.handleAction("share",t)}>
-                <span class="emoji">📤</span>
-                Share
-              </button>
-              <button @click=${t=>this.handleAction("copy",t)}>
-                <span class="emoji">📋</span>
-                Copy
-              </button>
-              <button class="danger" @click=${t=>this.handleAction("delete",t)}>
-                <span class="emoji">🗑️</span>
-                Delete
-              </button>
-            </div>
+        <div class="card-content">
+          <div class="card-header">
+            <ha-icon icon="${this.list.icon}"></ha-icon>
+            <h3>${this.list.name}</h3>
           </div>
-        `:""}
-      </div>
-    `}handleAction(t,e){e.stopPropagation(),this.showMenu=!1,this.dispatchEvent(new CustomEvent("list-action",{detail:{action:t,listId:this.list.id},bubbles:!0,composed:!0}))}render(){return F`
-      <div class="list-card ${this.isActive?"active":""}" @click=${this.handleCardClick}>
-        <div class="card-header">
-          <span class="emoji">${this.emoji}</span>
-          <button class="menu-btn" @click=${this.handleMenuClick}>
-            <span class="dots">⋮</span>
-          </button>
+
+          ${this.isActive?F`
+            <div class="card-stats">
+              <span class="stat-value">${this.itemCount}</span>
+              <span class="stat-separator">·</span>
+              <span class="stat-value">${this.currency} $${this.totalCost.toFixed(2)}</span>
+            </div>
+          `:""}
         </div>
 
-        <h3>${this.list.name}</h3>
-        
-        ${this.isActive?F`
-          <div class="card-stats">
-            <div class="stat">
-              <span class="stat-value">${this.itemCount}</span>
-              <span class="stat-label">items</span>
-            </div>
-            <div class="stat">
-              <span class="stat-value">${this.currency} $${this.totalCost.toFixed(2)}</span>
-              <span class="stat-label">total</span>
-            </div>
-          </div>
-          <div class="active-badge">Active</div>
-        `:""}
+        <button class="menu-btn" @click=${this.handleMenuClick}>
+          <ha-icon icon="mdi:dots-vertical"></ha-icon>
+        </button>
 
         ${this.showMenu?F`
           <div class="menu-overlay" @click=${t=>{t.stopPropagation(),this.showMenu=!1}}>
-            <div class="menu-popup">
+            <div class="menu-popup" style="left: ${this.menuX}px; top: ${this.menuY}px;">
               <button @click=${t=>this.handleAction("rename",t)}>
-                <span class="emoji">✏️</span>
+                <ha-icon icon="mdi:pencil"></ha-icon>
                 Rename
               </button>
               <button @click=${t=>this.handleAction("share",t)}>
-                <span class="emoji">📤</span>
+                <ha-icon icon="mdi:share-variant"></ha-icon>
                 Share
               </button>
               <button @click=${t=>this.handleAction("copy",t)}>
-                <span class="emoji">📋</span>
+                <ha-icon icon="mdi:content-copy"></ha-icon>
                 Copy
               </button>
               <button class="danger" @click=${t=>this.handleAction("delete",t)}>
-                <span class="emoji">🗑️</span>
+                <ha-icon icon="mdi:delete"></ha-icon>
                 Delete
               </button>
             </div>
@@ -1152,76 +1111,75 @@ const w=globalThis,k=t=>t,_=w.trustedTypes,C=_?_.createPolicy("lit-html",{create
     `}static styles=o`
     .list-card {
       position: relative;
-      background: var(--card-background-color);
-      border: 2px solid var(--divider-color);
       border-radius: 12px;
       padding: 16px;
       cursor: pointer;
       transition: all 0.2s;
       -webkit-tap-highlight-color: transparent;
+      min-height: 100px;
+      display: flex;
+      align-items: center;
+      color: white;
     }
     .list-card:active {
       transform: scale(0.98);
     }
-    .list-card.active {
-      background: var(--primary-color);
-      color: white;
-      border-color: var(--primary-color);
-    }
-    .card-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 12px;
-    }
-    .emoji {
-      font-size: 32px;
-    }
-    .menu-btn {
-      background: none;
-      border: none;
-      padding: 4px;
-      cursor: pointer;
-      opacity: 0.6;
-      font-size: 20px;
-      color: inherit;
-      -webkit-tap-highlight-color: transparent;
-      z-index: 10;
-      position: relative;
-    }
-    h3 {
-      margin: 0 0 10px 0;
-      font-size: 16px;
-      font-weight: 600;
-    }
-    .card-stats {
-      display: flex;
-      gap: 16px;
-      margin-top: 10px;
-    }
-    .stat {
-      display: flex;
-      flex-direction: column;
-    }
-    .stat-value {
-      font-size: 15px;
-      font-weight: 700;
-    }
-    .stat-label {
-      font-size: 11px;
-      opacity: 0.85;
-    }
     .active-badge {
       position: absolute;
-      top: 12px;
-      right: 12px;
+      top: 8px;
+      left: 8px;
       background: rgba(255,255,255,0.3);
-      color: white;
       padding: 3px 8px;
       border-radius: 6px;
       font-size: 10px;
       font-weight: 700;
       pointer-events: none;
+    }
+    .card-content {
+      flex: 1;
+    }
+    .card-header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 8px;
+    }
+    .card-header ha-icon {
+      --mdc-icon-size: 28px;
+    }
+    h3 {
+      margin: 0;
+      font-size: 16px;
+      font-weight: 600;
+    }
+    .card-stats {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 14px;
+      opacity: 0.95;
+    }
+    .stat-value {
+      font-weight: 600;
+    }
+    .stat-separator {
+      opacity: 0.6;
+    }
+    .menu-btn {
+      background: rgba(255,255,255,0.2);
+      border: none;
+      padding: 6px;
+      cursor: pointer;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      -webkit-tap-highlight-color: transparent;
+      z-index: 10;
+    }
+    .menu-btn ha-icon {
+      --mdc-icon-size: 20px;
+      color: white;
     }
     .menu-overlay {
       position: fixed;
@@ -1235,7 +1193,7 @@ const w=globalThis,k=t=>t,_=w.trustedTypes,C=_?_.createPolicy("lit-html",{create
       position: fixed;
       background: var(--card-background-color);
       border-radius: 10px;
-      box-shadow: 0 4px 16px rgba(0,0,0,0.2);
+      box-shadow: 0 4px 16px rgba(0,0,0,0.3);
       overflow: hidden;
       min-width: 150px;
       z-index: 10000;
@@ -1263,6 +1221,9 @@ const w=globalThis,k=t=>t,_=w.trustedTypes,C=_?_.createPolicy("lit-html",{create
     .menu-popup button.danger:active {
       background: var(--error-color);
       color: white;
+    }
+    .menu-popup ha-icon {
+      --mdc-icon-size: 18px;
     }
   `}customElements.define("slm-list-card",bt);class vt extends nt{static properties={api:{type:Object},lists:{type:Array},activeList:{type:Object},items:{type:Array},total:{type:Object},showCreateDialog:{type:Boolean},newListName:{type:String},newListIcon:{type:String}};constructor(){super(),this.lists=[],this.showCreateDialog=!1,this.newListName="",this.newListIcon="mdi:cart"}handleCreateList(){this.showCreateDialog=!0}async handleSaveNewList(){this.newListName.trim()&&(await this.api.createList(this.newListName,this.newListIcon),this.showCreateDialog=!1,this.newListName="",this.newListIcon="mdi:cart",this.dispatchEvent(new CustomEvent("lists-updated",{bubbles:!0,composed:!0})))}handleListSelect(t){this.dispatchEvent(new CustomEvent("list-selected",{detail:t.detail,bubbles:!0,composed:!0}))}async handleListAction(t){const{action:e,listId:i}=t.detail;switch(e){case"rename":const t=prompt("Enter new list name:");t&&(await this.api.updateList(i,{name:t}),this.dispatchEvent(new CustomEvent("lists-updated",{bubbles:!0,composed:!0})));break;case"delete":confirm("Delete this list?")&&(await this.api.deleteList(i),this.dispatchEvent(new CustomEvent("lists-updated",{bubbles:!0,composed:!0})));break;case"share":alert("Share feature coming soon!");break;case"copy":alert("Copy feature coming soon!")}}getListEmoji(t){return{"mdi:cart":"🛒","mdi:home":"🏠","mdi:food":"🍽️","mdi:shopping":"🛍️","mdi:store":"🏪"}[t]||"🛒"}render(){return F`
       <div class="lists-view">
@@ -1525,8 +1486,7 @@ const w=globalThis,k=t=>t,_=w.trustedTypes,C=_?_.createPolicy("lit-html",{create
         <div class="header">
           <h2>Loyalty Cards</h2>
           <button class="add-btn" @click=${this.handleAddCard}>
-            <span class="emoji">➕</span>
-            Add Card
+            <ha-icon icon="mdi:plus"></ha-icon>
           </button>
         </div>
 
@@ -1535,17 +1495,13 @@ const w=globalThis,k=t=>t,_=w.trustedTypes,C=_?_.createPolicy("lit-html",{create
             <div class="empty-emoji">💳</div>
             <p>No loyalty cards yet</p>
             <p class="hint">Add your store loyalty cards for quick access</p>
-            <button class="primary-btn" @click=${this.handleAddCard}>
-              <span class="emoji">➕</span>
-              Add Card
-            </button>
           </div>
         `:F`
           <div class="cards-grid">
             ${this.cards.map(t=>F`
               <div class="loyalty-card" style="background: ${t.color}">
                 <button class="menu-btn" @click=${e=>{e.stopPropagation(),this.handleEditCard(t)}}>
-                  <span class="dots">⋮</span>
+                  <ha-icon icon="mdi:dots-vertical"></ha-icon>
                 </button>
                 
                 <div class="card-body" @click=${()=>this.handleCardClick(t)}>
@@ -1556,7 +1512,7 @@ const w=globalThis,k=t=>t,_=w.trustedTypes,C=_?_.createPolicy("lit-html",{create
                   <div class="card-number">${t.number}</div>
                   ${t.barcode?F`
                     <div class="barcode-preview">
-                      <span class="emoji">📊</span>
+                      <ha-icon icon="mdi:barcode"></ha-icon>
                       <span>${t.barcode}</span>
                     </div>
                   `:""}
@@ -1662,16 +1618,20 @@ const w=globalThis,k=t=>t,_=w.trustedTypes,C=_?_.createPolicy("lit-html",{create
     .add-btn {
       display: flex;
       align-items: center;
-      gap: 6px;
-      padding: 8px 14px;
-      background: linear-gradient(135deg, #9fa8da 0%, #c5cae9 100%);
+      justify-content: center;
+      padding: 8px;
+      background: var(--primary-color);
       color: white;
       border: none;
-      border-radius: 10px;
-      font-weight: 600;
-      font-size: 14px;
+      border-radius: 50%;
+      width: 40px;
+      height: 40px;
       cursor: pointer;
-      box-shadow: 0 2px 6px rgba(159, 168, 218, 0.3);
+      box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+      -webkit-tap-highlight-color: transparent;
+    }
+    .add-btn ha-icon {
+      --mdc-icon-size: 24px;
     }
     .empty {
       text-align: center;
@@ -2123,7 +2083,7 @@ const w=globalThis,k=t=>t,_=w.trustedTypes,C=_?_.createPolicy("lit-html",{create
     .mode-option .check {
       color: white;
     }
-  `}customElements.define("slm-dark-mode-popup",ft);class $t extends nt{static properties={currentFont:{type:String}};fonts=[{name:"System Default",value:"system"},{name:"Roboto",value:"Roboto, sans-serif"},{name:"Open Sans",value:'"Open Sans", sans-serif'},{name:"Lato",value:"Lato, sans-serif"},{name:"Montserrat",value:"Montserrat, sans-serif"},{name:"Inter",value:"Inter, sans-serif"}];handleSelect(t){this.dispatchEvent(new CustomEvent("font-selected",{detail:{font:t},bubbles:!0,composed:!0}))}render(){return F`
+  `}customElements.define("slm-dark-mode-popup",ft);class wt extends nt{static properties={currentFont:{type:String}};fonts=[{name:"System Default",value:"system"},{name:"Roboto",value:"Roboto, sans-serif"},{name:"Open Sans",value:'"Open Sans", sans-serif'},{name:"Lato",value:"Lato, sans-serif"},{name:"Montserrat",value:"Montserrat, sans-serif"},{name:"Inter",value:"Inter, sans-serif"}];handleSelect(t){this.dispatchEvent(new CustomEvent("font-selected",{detail:{font:t},bubbles:!0,composed:!0}))}render(){return F`
       <div class="overlay" @click=${()=>this.dispatchEvent(new Event("close"))}>
         <div class="popup" @click=${t=>t.stopPropagation()}>
           <div class="popup-header">
@@ -2206,11 +2166,11 @@ const w=globalThis,k=t=>t,_=w.trustedTypes,C=_?_.createPolicy("lit-html",{create
     .font-option span {
       font-weight: 600;
     }
-  `}customElements.define("font-settings",$t);class wt extends nt{static properties={settings:{type:Object},showDarkModePopup:{type:Boolean},showFontSettings:{type:Boolean}};constructor(){super(),this.showDarkModePopup=!1,this.showFontSettings=!1}handleSettingChange(t,e){this.dispatchEvent(new CustomEvent("settings-changed",{detail:{[t]:e},bubbles:!0,composed:!0}))}render(){return F`
-      <div class="slm-appearance-settings">
+  `}customElements.define("font-settings",wt);class $t extends nt{static properties={settings:{type:Object},showDarkModePopup:{type:Boolean},showFontSettings:{type:Boolean}};constructor(){super(),this.showDarkModePopup=!1,this.showFontSettings=!1}handleSettingChange(t,e){this.dispatchEvent(new CustomEvent("settings-changed",{detail:{[t]:e},bubbles:!0,composed:!0}))}render(){return F`
+      <div class="appearance-settings">
         <div class="header">
           <button class="back-btn" @click=${()=>this.dispatchEvent(new Event("back"))}>
-            <span class="emoji">◀️</span>
+            <ha-icon icon="mdi:arrow-left"></ha-icon>
           </button>
           <h2>Appearance</h2>
         </div>
@@ -2221,7 +2181,7 @@ const w=globalThis,k=t=>t,_=w.trustedTypes,C=_?_.createPolicy("lit-html",{create
               <div class="item-title">Dark Mode</div>
               <div class="item-subtitle">${this.getDarkModeLabel()}</div>
             </div>
-            <span class="emoji">▶️</span>
+            <ha-icon icon="mdi:chevron-right"></ha-icon>
           </button>
 
           <div class="section-header">Display</div>
@@ -2312,7 +2272,7 @@ const w=globalThis,k=t=>t,_=w.trustedTypes,C=_?_.createPolicy("lit-html",{create
               <div class="item-title">Font Family</div>
               <div class="item-subtitle">${this.settings.fontFamily}</div>
             </div>
-            <span class="emoji">▶️</span>
+            <ha-icon icon="mdi:chevron-right"></ha-icon>
           </button>
         </div>
 
@@ -2333,54 +2293,50 @@ const w=globalThis,k=t=>t,_=w.trustedTypes,C=_?_.createPolicy("lit-html",{create
         `:""}
       </div>
     `}getDarkModeLabel(){switch(this.settings.darkMode){case"on":return"On";case"off":return"Off";default:return"As on Device"}}static styles=o`
-    .slm-appearance-settings {
+    .appearance-settings {
       padding-bottom: 80px;
     }
     .header {
       display: flex;
       align-items: center;
       gap: 16px;
-      padding: 20px;
-      border-bottom: 1px solid #e8eaf6;
+      padding: 12px;
+      border-bottom: 1px solid var(--divider-color);
     }
     .back-btn {
       background: none;
       border: none;
       padding: 8px;
       cursor: pointer;
-      border-radius: 50%;
-      font-size: 20px;
-    }
-    .back-btn:hover {
-      background: #f5f7fa;
+      display: flex;
+      align-items: center;
+      -webkit-tap-highlight-color: transparent;
     }
     .header h2 {
       margin: 0;
-      font-size: 24px;
+      font-size: 20px;
       font-weight: 700;
-      color: #5f6368;
+      color: var(--primary-text-color);
     }
     .section-header {
-      padding: 16px 20px 8px;
-      font-size: 13px;
+      padding: 14px 16px 6px;
+      font-size: 12px;
       font-weight: 700;
-      color: #9e9e9e;
+      color: var(--secondary-text-color);
       text-transform: uppercase;
     }
     .settings-item {
       display: flex;
       align-items: center;
-      gap: 16px;
-      padding: 16px 20px;
+      gap: 12px;
+      padding: 14px 16px;
       border: none;
       background: transparent;
       width: 100%;
       text-align: left;
       cursor: pointer;
-      border-bottom: 1px solid #e8eaf6;
-    }
-    .settings-item:hover {
-      background: #f5f7fa;
+      border-bottom: 1px solid var(--divider-color);
+      -webkit-tap-highlight-color: transparent;
     }
     .item-content {
       flex: 1;
@@ -2390,12 +2346,13 @@ const w=globalThis,k=t=>t,_=w.trustedTypes,C=_?_.createPolicy("lit-html",{create
     }
     .item-title {
       font-weight: 600;
-      margin-bottom: 4px;
-      color: #5f6368;
+      font-size: 14px;
+      margin-bottom: 2px;
+      color: var(--primary-text-color);
     }
     .item-subtitle {
-      font-size: 14px;
-      color: #9e9e9e;
+      font-size: 12px;
+      color: var(--secondary-text-color);
     }
     .tile-options {
       display: flex;
@@ -2405,20 +2362,18 @@ const w=globalThis,k=t=>t,_=w.trustedTypes,C=_?_.createPolicy("lit-html",{create
     .tile-option {
       flex: 1;
       padding: 10px;
-      border: 2px solid #e8eaf6;
+      border: 2px solid var(--divider-color);
       border-radius: 8px;
       background: transparent;
       cursor: pointer;
       font-weight: 600;
-      color: #5f6368;
-    }
-    .tile-option:hover {
-      border-color: #a8b5ff;
+      color: var(--primary-text-color);
+      -webkit-tap-highlight-color: transparent;
     }
     .tile-option.selected {
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      background: var(--primary-color);
       color: white;
-      border-color: #667eea;
+      border-color: var(--primary-color);
     }
     .size-slider {
       width: 100%;
@@ -2427,10 +2382,7 @@ const w=globalThis,k=t=>t,_=w.trustedTypes,C=_?_.createPolicy("lit-html",{create
     .size-value {
       text-align: center;
       font-weight: 600;
-      color: #667eea;
-    }
-    .emoji {
-      font-size: 18px;
+      color: var(--primary-color);
     }
     .toggle {
       position: relative;
@@ -2450,7 +2402,7 @@ const w=globalThis,k=t=>t,_=w.trustedTypes,C=_?_.createPolicy("lit-html",{create
       left: 0;
       right: 0;
       bottom: 0;
-      background-color: #e0e0e0;
+      background-color: var(--disabled-color);
       transition: 0.3s;
       border-radius: 28px;
     }
@@ -2466,12 +2418,12 @@ const w=globalThis,k=t=>t,_=w.trustedTypes,C=_?_.createPolicy("lit-html",{create
       border-radius: 50%;
     }
     input:checked + .slider {
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      background: var(--primary-color);
     }
     input:checked + .slider:before {
       transform: translateX(22px);
     }
-  `}customElements.define("slm-appearance-settings",wt);class kt extends nt{static properties={settings:{type:Object}};handleSettingChange(t,e){const i={...this.settings.notifications,[t]:e};this.dispatchEvent(new CustomEvent("settings-changed",{detail:{notifications:i},bubbles:!0,composed:!0}))}render(){return F`
+  `}customElements.define("slm-appearance-settings",$t);class kt extends nt{static properties={settings:{type:Object}};handleSettingChange(t,e){const i={...this.settings.notifications,[t]:e};this.dispatchEvent(new CustomEvent("settings-changed",{detail:{notifications:i},bubbles:!0,composed:!0}))}render(){return F`
       <div class="slm-notification-settings">
         <div class="header">
           <button class="back-btn" @click=${()=>this.dispatchEvent(new Event("back"))}>
@@ -3352,7 +3304,7 @@ const w=globalThis,k=t=>t,_=w.trustedTypes,C=_?_.createPolicy("lit-html",{create
     }
     .total-bar {
       position: sticky;
-      bottom: 56px;
+      bottom: 60px;
       left: 0;
       right: 0;
       display: flex;
@@ -3360,7 +3312,7 @@ const w=globalThis,k=t=>t,_=w.trustedTypes,C=_?_.createPolicy("lit-html",{create
       align-items: center;
       padding: 10px 16px;
       margin: 0 4px 4px 4px;
-      background: var(--primary-color);
+      background: linear-gradient(90deg, #b0a8da 0%, #d4d0e8 100%);
       color: white;
       border-radius: 8px;
       box-shadow: 0 2px 8px rgba(0,0,0,0.12);

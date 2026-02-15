@@ -21,7 +21,6 @@ class SLMListHeader extends LitElement {
   }
 
   handleMenu() {
-    // TODO: Implement list edit menu
     alert('List menu coming soon');
   }
 
@@ -29,17 +28,17 @@ class SLMListHeader extends LitElement {
     return html`
       <div class="header">
         <button class="back-btn" @click=${this.handleBack}>
-          <span class="emoji">◀</span>
+          <ha-icon icon="mdi:arrow-left"></ha-icon>
         </button>
         
         <h2>${this.activeList?.name || 'Shopping List'}</h2>
         
         <div class="header-actions">
           <button class="action-btn" @click=${this.handleShare}>
-            <span class="emoji">👤➕</span>
+            <ha-icon icon="mdi:account-plus-outline"></ha-icon>
           </button>
           <button class="action-btn" @click=${this.handleMenu}>
-            <span class="emoji">⋮</span>
+            <ha-icon icon="mdi:dots-vertical"></ha-icon>
           </button>
         </div>
       </div>
@@ -68,10 +67,16 @@ class SLMListHeader extends LitElement {
       cursor: pointer;
       color: var(--primary-text-color);
       -webkit-tap-highlight-color: transparent;
+      display: flex;
+      align-items: center;
+      justify-content: center;
     }
     .back-btn:active,
     .action-btn:active {
       opacity: 0.6;
+    }
+    ha-icon {
+      --mdc-icon-size: 24px;
     }
     h2 {
       margin: 0;
@@ -88,9 +93,6 @@ class SLMListHeader extends LitElement {
     .header-actions {
       display: flex;
       gap: 4px;
-    }
-    .emoji {
-      font-size: 20px;
     }
   `;
 }

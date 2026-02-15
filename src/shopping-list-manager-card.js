@@ -459,7 +459,7 @@ class ShoppingListManagerCard extends LitElement {
     }
     .total-bar {
       position: sticky;
-      bottom: 56px;
+      bottom: 60px;
       left: 0;
       right: 0;
       display: flex;
@@ -467,7 +467,7 @@ class ShoppingListManagerCard extends LitElement {
       align-items: center;
       padding: 10px 16px;
       margin: 0 4px 4px 4px;
-      background: var(--primary-color);
+      background: linear-gradient(90deg, #b0a8da 0%, #d4d0e8 100%);
       color: white;
       border-radius: 8px;
       box-shadow: 0 2px 8px rgba(0,0,0,0.12);

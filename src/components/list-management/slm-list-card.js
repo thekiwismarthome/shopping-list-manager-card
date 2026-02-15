@@ -8,7 +8,9 @@ class SLMListCard extends LitElement {
     totalCost: { type: Number },
     currency: { type: String },
     emoji: { type: String },
-    showMenu: { type: Boolean }
+    showMenu: { type: Boolean },
+    menuX: { type: Number },
+    menuY: { type: Number }
   };
 
   constructor() {
@@ -17,6 +19,32 @@ class SLMListCard extends LitElement {
     this.itemCount = 0;
     this.totalCost = 0;
     this.currency = 'NZD';
+    this.menuX = 0;
+    this.menuY = 0;
+  }
+
+  getCardColor() {
+    const colors = [
+      '#7986cb', // Blue
+      '#81c784', // Green
+      '#ffb74d', // Orange
+      '#ba68c8', // Purple
+      '#4dd0e1', // Cyan
+      '#f06292'  // Pink
+    ];
+    
+    const index = parseInt(this.list.id.slice(-1), 16) % colors.length;
+    const baseColor = colors[index];
+    
+    return this.isActive ? baseColor : this.dimColor(baseColor);
+  }
+
+  dimColor(hex) {
+    const r = parseInt(hex.slice(1, 3), 16);
+    const g = parseInt(hex.slice(3, 5), 16);
+    const b = parseInt(hex.slice(5, 7), 16);
+    
+    return `rgba(${r}, ${g}, ${b}, 0.4)`;
   }
 
   handleCardClick() {
@@ -29,63 +57,12 @@ class SLMListCard extends LitElement {
 
   handleMenuClick(e) {
     e.stopPropagation();
-    this.showMenu = !this.showMenu;
     
-    // Store click position for menu
-    this.menuX = e.clientX;
-    this.menuY = e.clientY;
-  }
-
-  render() {
-    return html`
-      <div class="list-card ${this.isActive ? 'active' : ''}" @click=${this.handleCardClick}>
-        <div class="card-header">
-          <span class="emoji">${this.emoji}</span>
-          <button class="menu-btn" @click=${this.handleMenuClick}>
-            <span class="dots">⋮</span>
-          </button>
-        </div>
-
-        <h3>${this.list.name}</h3>
-        
-        ${this.isActive ? html`
-          <div class="card-stats">
-            <div class="stat">
-              <span class="stat-value">${this.itemCount}</span>
-              <span class="stat-label">items</span>
-            </div>
-            <div class="stat">
-              <span class="stat-value">${this.currency} $${this.totalCost.toFixed(2)}</span>
-              <span class="stat-label">total</span>
-            </div>
-          </div>
-          <div class="active-badge">Active</div>
-        ` : ''}
-
-        ${this.showMenu ? html`
-          <div class="menu-overlay" @click=${(e) => { e.stopPropagation(); this.showMenu = false; }}>
-            <div class="menu-popup" style="left: ${this.menuX - 150}px; top: ${this.menuY}px;">
-              <button @click=${(e) => this.handleAction('rename', e)}>
-                <span class="emoji">✏️</span>
-                Rename
-              </button>
-              <button @click=${(e) => this.handleAction('share', e)}>
-                <span class="emoji">📤</span>
-                Share
-              </button>
-              <button @click=${(e) => this.handleAction('copy', e)}>
-                <span class="emoji">📋</span>
-                Copy
-              </button>
-              <button class="danger" @click=${(e) => this.handleAction('delete', e)}>
-                <span class="emoji">🗑️</span>
-                Delete
-              </button>
-            </div>
-          </div>
-        ` : ''}
-      </div>
-    `;
+    const rect = e.target.getBoundingClientRect();
+    this.menuX = rect.right - 150;
+    this.menuY = rect.bottom + 5;
+    
+    this.showMenu = !this.showMenu;
   }
 
   handleAction(action, e) {
@@ -100,47 +77,51 @@ class SLMListCard extends LitElement {
 
   render() {
     return html`
-      <div class="list-card ${this.isActive ? 'active' : ''}" @click=${this.handleCardClick}>
-        <div class="card-header">
-          <span class="emoji">${this.emoji}</span>
-          <button class="menu-btn" @click=${this.handleMenuClick}>
-            <span class="dots">⋮</span>
-          </button>
-        </div>
-
-        <h3>${this.list.name}</h3>
-        
+      <div 
+        class="list-card ${this.isActive ? 'active' : ''}" 
+        style="background: ${this.getCardColor()}"
+        @click=${this.handleCardClick}
+      >
         ${this.isActive ? html`
-          <div class="card-stats">
-            <div class="stat">
-              <span class="stat-value">${this.itemCount}</span>
-              <span class="stat-label">items</span>
-            </div>
-            <div class="stat">
-              <span class="stat-value">${this.currency} $${this.totalCost.toFixed(2)}</span>
-              <span class="stat-label">total</span>
-            </div>
-          </div>
           <div class="active-badge">Active</div>
         ` : ''}
 
+        <div class="card-content">
+          <div class="card-header">
+            <ha-icon icon="${this.list.icon}"></ha-icon>
+            <h3>${this.list.name}</h3>
+          </div>
+
+          ${this.isActive ? html`
+            <div class="card-stats">
+              <span class="stat-value">${this.itemCount}</span>
+              <span class="stat-separator">·</span>
+              <span class="stat-value">${this.currency} $${this.totalCost.toFixed(2)}</span>
+            </div>
+          ` : ''}
+        </div>
+
+        <button class="menu-btn" @click=${this.handleMenuClick}>
+          <ha-icon icon="mdi:dots-vertical"></ha-icon>
+        </button>
+
         ${this.showMenu ? html`
           <div class="menu-overlay" @click=${(e) => { e.stopPropagation(); this.showMenu = false; }}>
-            <div class="menu-popup">
+            <div class="menu-popup" style="left: ${this.menuX}px; top: ${this.menuY}px;">
               <button @click=${(e) => this.handleAction('rename', e)}>
-                <span class="emoji">✏️</span>
+                <ha-icon icon="mdi:pencil"></ha-icon>
                 Rename
               </button>
               <button @click=${(e) => this.handleAction('share', e)}>
-                <span class="emoji">📤</span>
+                <ha-icon icon="mdi:share-variant"></ha-icon>
                 Share
               </button>
               <button @click=${(e) => this.handleAction('copy', e)}>
-                <span class="emoji">📋</span>
+                <ha-icon icon="mdi:content-copy"></ha-icon>
                 Copy
               </button>
               <button class="danger" @click=${(e) => this.handleAction('delete', e)}>
-                <span class="emoji">🗑️</span>
+                <ha-icon icon="mdi:delete"></ha-icon>
                 Delete
               </button>
             </div>
@@ -153,76 +134,75 @@ class SLMListCard extends LitElement {
   static styles = css`
     .list-card {
       position: relative;
-      background: var(--card-background-color);
-      border: 2px solid var(--divider-color);
       border-radius: 12px;
       padding: 16px;
       cursor: pointer;
       transition: all 0.2s;
       -webkit-tap-highlight-color: transparent;
+      min-height: 100px;
+      display: flex;
+      align-items: center;
+      color: white;
     }
     .list-card:active {
       transform: scale(0.98);
     }
-    .list-card.active {
-      background: var(--primary-color);
-      color: white;
-      border-color: var(--primary-color);
-    }
-    .card-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 12px;
-    }
-    .emoji {
-      font-size: 32px;
-    }
-    .menu-btn {
-      background: none;
-      border: none;
-      padding: 4px;
-      cursor: pointer;
-      opacity: 0.6;
-      font-size: 20px;
-      color: inherit;
-      -webkit-tap-highlight-color: transparent;
-      z-index: 10;
-      position: relative;
-    }
-    h3 {
-      margin: 0 0 10px 0;
-      font-size: 16px;
-      font-weight: 600;
-    }
-    .card-stats {
-      display: flex;
-      gap: 16px;
-      margin-top: 10px;
-    }
-    .stat {
-      display: flex;
-      flex-direction: column;
-    }
-    .stat-value {
-      font-size: 15px;
-      font-weight: 700;
-    }
-    .stat-label {
-      font-size: 11px;
-      opacity: 0.85;
-    }
     .active-badge {
       position: absolute;
-      top: 12px;
-      right: 12px;
+      top: 8px;
+      left: 8px;
       background: rgba(255,255,255,0.3);
-      color: white;
       padding: 3px 8px;
       border-radius: 6px;
       font-size: 10px;
       font-weight: 700;
       pointer-events: none;
+    }
+    .card-content {
+      flex: 1;
+    }
+    .card-header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 8px;
+    }
+    .card-header ha-icon {
+      --mdc-icon-size: 28px;
+    }
+    h3 {
+      margin: 0;
+      font-size: 16px;
+      font-weight: 600;
+    }
+    .card-stats {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 14px;
+      opacity: 0.95;
+    }
+    .stat-value {
+      font-weight: 600;
+    }
+    .stat-separator {
+      opacity: 0.6;
+    }
+    .menu-btn {
+      background: rgba(255,255,255,0.2);
+      border: none;
+      padding: 6px;
+      cursor: pointer;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      -webkit-tap-highlight-color: transparent;
+      z-index: 10;
+    }
+    .menu-btn ha-icon {
+      --mdc-icon-size: 20px;
+      color: white;
     }
     .menu-overlay {
       position: fixed;
@@ -236,7 +216,7 @@ class SLMListCard extends LitElement {
       position: fixed;
       background: var(--card-background-color);
       border-radius: 10px;
-      box-shadow: 0 4px 16px rgba(0,0,0,0.2);
+      box-shadow: 0 4px 16px rgba(0,0,0,0.3);
       overflow: hidden;
       min-width: 150px;
       z-index: 10000;
@@ -264,6 +244,9 @@ class SLMListCard extends LitElement {
     .menu-popup button.danger:active {
       background: var(--error-color);
       color: white;
+    }
+    .menu-popup ha-icon {
+      --mdc-icon-size: 18px;
     }
   `;
 }
