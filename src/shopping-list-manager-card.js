@@ -108,13 +108,6 @@ class ShoppingListManagerCard extends LitElement {
     }
   }
 
-  async updated(changedProps) {
-    if (changedProps.has('items')) {
-      this.recentItems = await this.getRecentlyUsedItems();
-    }
-  }
-
-
   async loadData() {
     try {
       this.loading = true;
