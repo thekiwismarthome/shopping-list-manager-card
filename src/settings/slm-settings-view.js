@@ -204,19 +204,20 @@ class SLMSettingsView extends LitElement {
     }
     .settings-header {
       padding: 16px;
-      border-bottom: 1px solid var(--border-color, #e8eaf6);
+      border-bottom: 1px solid var(--slm-border-subtle);
     }
     .settings-header h2 {
       margin: 0;
       font-size: 24px;
       font-weight: 700;
-      color: var(--text-primary, #424242);
+      color: var(var(--slm-text-primary)
+);
     }
     .section-header {
       padding: 14px 16px 6px;
       font-size: 12px;
       font-weight: 700;
-      color: var(--text-secondary, #757575);
+      color: var(--slm-text-secondary);
       text-transform: uppercase;
       letter-spacing: 0.5px;
     }
@@ -230,7 +231,7 @@ class SLMSettingsView extends LitElement {
       width: 100%;
       text-align: left;
       cursor: pointer;
-      border-bottom: 1px solid var(--border-color, #e8eaf6);
+      border-bottom: 1px solid var(--slm-border-subtle);
       transition: background 0.2s;
       -webkit-tap-highlight-color: transparent;
     }
@@ -254,11 +255,12 @@ class SLMSettingsView extends LitElement {
       font-weight: 600;
       font-size: 14px;
       margin-bottom: 2px;
-      color: var(--text-primary, #424242);
+      color: var(var(--slm-text-primary)
+);
     }
     .item-subtitle {
       font-size: 12px;
-      color: var(--text-secondary, #757575);
+      color: var(--slm-text-secondary);
     }
     .chevron {
       font-size: 14px;

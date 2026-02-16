@@ -59,8 +59,8 @@ class SLMBottomNav extends LitElement {
       right: 0;
       display: flex;
       justify-content: space-around;
-      background: white;
-      border-top: 1px solid var(--border-color, #e8eaf6);
+      background: var(--slm-bg-surface);
+      border-top: 1px solid var(--slm-border-subtle);
       padding: 6px 0;
       box-shadow: 0 -2px 8px rgba(0,0,0,0.06);
       z-index: 100;
@@ -74,14 +74,14 @@ class SLMBottomNav extends LitElement {
       padding: 6px;
       border: none;
       background: transparent;
-      color: var(--text-secondary, #757575);
+      color: var(--slm-text-secondary);
       cursor: pointer;
       transition: color 0.2s;
       -webkit-tap-highlight-color: transparent;
       outline: none;
     }
     .nav-item.active {
-      color: var(--primary-pastel, #9fa8da);
+      color: var(--slm-accent-primary);
     }
     .emoji {
       font-size: 22px;

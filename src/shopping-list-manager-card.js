@@ -91,12 +91,23 @@ class ShoppingListManagerCard extends LitElement {
   }
 
   applyColorScheme() {
-    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-    const useDark = this.settings.darkMode === 'on' || 
-                    (this.settings.darkMode === 'system' && prefersDark);
-    
-    document.documentElement.setAttribute('data-theme', useDark ? 'dark' : 'light');
+    const mode = this.settings.darkMode;
+
+    if (mode === 'on') {
+      // Force SLM Dark
+      this.setAttribute('data-theme', 'dark');
+    } 
+    else if (mode === 'off') {
+      // Force SLM Light
+      this.setAttribute('data-theme', 'light');
+    } 
+    else {
+      // System = Follow Home Assistant Theme
+      this.removeAttribute('data-theme');
+    }
   }
+
+
 
   async loadData() {
     try {
@@ -468,9 +479,9 @@ class ShoppingListManagerCard extends LitElement {
       padding: 10px 16px;
       margin: 0 4px 4px 4px;
       background: linear-gradient(90deg, #b0a8da 0%, #d4d0e8 100%);
-      color: white;
+      color: var(--slm-bg-surface);
       border-radius: 8px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.12);
+      box-shadow: 0 2px 8px rgba(--slm-shadow-soft);
       z-index: 90;
     }
     .total-amount {
@@ -482,29 +493,84 @@ class ShoppingListManagerCard extends LitElement {
       opacity: 0.9;
     }
 
-    /* Pastel Light Theme */
+    /* ===============================
+      DEFAULT (Home Assistant Theme – placeholder)
+    ================================ */
     :host {
-      --primary-pastel: #9fa8da;
-      --primary-light: #c5cae9;
-      --secondary-pastel: #a5d6a7;
-      --accent-pastel: #ffcc80;
-      --surface-pastel: #fafbfc;
-      --text-primary: #424242;
-      --text-secondary: #757575;
-      --border-color: #e8eaf6;
+      --slm-bg-main: var(--primary-background-color);
+      --slm-bg-surface: var(--card-background-color);
+      --slm-bg-elevated: var(--card-background-color);
+
+      --slm-text-primary: var(--primary-text-color);
+      --slm-text-secondary: var(--secondary-text-color);
+      --slm-text-muted: var(--secondary-text-color);
+
+      --slm-border-subtle: var(--divider-color);
+
+      --slm-accent-primary: var(--primary-color);
+      --slm-accent-secondary: var(--success-color, var(--primary-color));
+      --slm-accent-warning: var(--warning-color, var(--primary-color));
+      --slm-accent-danger: var(--error-color, var(--primary-color));
+
+      --slm-tile-bg: var(--card-background-color);
+      --slm-tile-checked-opacity: 0.4;
+
+      --slm-shadow-soft: 0 2px 6px rgba(0,0,0,0.1);
+      --slm-shadow-medium: 0 4px 12px rgba(0,0,0,0.2);
     }
 
-    /* Dark Theme */
-    :host([data-theme="dark"]) {
-      --primary-pastel: #7986cb;
-      --primary-light: #9499d4;
-      --secondary-pastel: #81c784;
-      --accent-pastel: #ffb74d;
-      --surface-pastel: #1e1e1e;
-      --text-primary: #e0e0e0;
-      --text-secondary: #b0b0b0;
-      --border-color: #2d2d2d;
+    /* ===============================
+      LIGHT – Soft Pastel Modern
+    ================================ */
+    :host([data-theme="light"]) {
+      --slm-bg-main: #fafbfc;
+      --slm-bg-surface: #ffffff;
+      --slm-bg-elevated: #ffffff;
+
+      --slm-text-primary: #424242;
+      --slm-text-secondary: #757575;
+      --slm-text-muted: #9e9e9e;
+
+      --slm-border-subtle: #e8eaf6;
+
+      --slm-accent-primary: #9fa8da;
+      --slm-accent-secondary: #a5d6a7;
+      --slm-accent-warning: #ffcc80;
+      --slm-accent-danger: #ef9a9a;
+
+      --slm-tile-bg: #ffffff;
+      --slm-tile-checked-opacity: 0.4;
+
+      --slm-shadow-soft: 0 2px 6px rgba(0,0,0,0.08);
+      --slm-shadow-medium: 0 4px 12px rgba(0,0,0,0.15);
     }
+    
+    /* ===============================
+      DARK – Soft Pastel Modern
+    ================================ */
+    :host([data-theme="dark"]) {
+      --slm-bg-main: #14161a;
+      --slm-bg-surface: #1b1f25;
+      --slm-bg-elevated: #232833;
+
+      --slm-text-primary: #e4e7ec;
+      --slm-text-secondary: #a8b0bd;
+      --slm-text-muted: #7a8594;
+
+      --slm-border-subtle: #2b313c;
+
+      --slm-accent-primary: #9fa8da;
+      --slm-accent-secondary: #81c784;
+      --slm-accent-warning: #ffb74d;
+      --slm-accent-danger: #ef9a9a;
+
+      --slm-tile-bg: #20242c;
+      --slm-tile-checked-opacity: 0.35;
+
+      --slm-shadow-soft: 0 2px 6px rgba(0,0,0,0.1);
+      --slm-shadow-medium: 0 6px 18px rgba(0,0,0,0.6);
+    }
+
   `;
 
   setConfig(config) {

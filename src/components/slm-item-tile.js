@@ -210,7 +210,7 @@ class SLMItemTile extends LitElement {
   static styles = css`
     .tile {
       position: relative;
-      background: #1a1a1a;
+      background: var(--slm-tile-bg);
       border-radius: 8px;
       padding: 8px;
       display: flex;
@@ -230,7 +230,7 @@ class SLMItemTile extends LitElement {
       opacity: 0.6;
     }
     .tile.checked {
-      opacity: 0.4;
+      opacity: var(--slm-tile-checked-opacity);
     }
     .decrease-btn {
       position: absolute;

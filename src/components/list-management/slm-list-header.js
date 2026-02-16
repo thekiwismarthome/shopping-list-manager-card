@@ -162,7 +162,7 @@ class SLMSearchBar extends LitElement {
       padding: 10px 12px;
       background: white;
       border-radius: 12px;
-      border: 2px solid var(--border-color, #e8eaf6);
+      border: 2px solid var(--slm-border-subtle);
       transition: border-color 0.2s;
     }
     .search-box:focus-within {
@@ -178,10 +178,11 @@ class SLMSearchBar extends LitElement {
       background: transparent;
       outline: none;
       font-size: 15px;
-      color: var(--text-primary, #424242);
+      color: var(var(--slm-text-primary)
+);
     }
     input::placeholder {
-      color: var(--text-secondary, #757575);
+      color: var(--slm-text-secondary);
     }
     .clear-btn {
       background: none;
@@ -198,7 +199,7 @@ class SLMSearchBar extends LitElement {
       right: 8px;
       background: white;
       border-radius: 12px;
-      box-shadow: 0 4px 16px rgba(0,0,0,0.12);
+      box-shadow: 0 4px 16px rgba(--slm-shadow-soft);
       max-height: 400px;
       overflow-y: auto;
       z-index: 100;
@@ -212,7 +213,7 @@ class SLMSearchBar extends LitElement {
       border: none;
       background: transparent;
       cursor: pointer;
-      border-bottom: 1px solid var(--border-color, #e8eaf6);
+      border-bottom: 1px solid var(--slm-border-subtle);
       transition: background 0.2s;
       text-align: left;
     }
@@ -246,7 +247,8 @@ class SLMSearchBar extends LitElement {
     .result-name {
       font-weight: 600;
       font-size: 14px;
-      color: var(--text-primary, #424242);
+      color: var(var(--slm-text-primary)
+);
       margin-bottom: 2px;
     }
     .result-price {
@@ -256,7 +258,7 @@ class SLMSearchBar extends LitElement {
     }
     .result-subtitle {
       font-size: 12px;
-      color: var(--text-secondary, #757575);
+      color: var(--slm-text-secondary);
     }
     .add-icon {
       font-size: 20px;

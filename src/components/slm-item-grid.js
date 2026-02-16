@@ -195,7 +195,7 @@ class SLMItemGrid extends LitElement {
       padding: 8px 4px;
       font-weight: 600;
       font-size: 14px;
-      color: var(--text-secondary, #757575);
+      color: var(--slm-text-secondary);
     }
     .emoji {
       font-size: 20px;
@@ -210,7 +210,7 @@ class SLMItemGrid extends LitElement {
     .empty {
       text-align: center;
       padding: 80px 32px;
-      color: var(--text-secondary, #757575);
+      color: var(--slm-text-secondary);
     }
     .empty-emoji {
       font-size: 80px;

@@ -142,7 +142,7 @@ class SLMEditItemDialog extends LitElement {
       left: 0;
       right: 0;
       bottom: 0;
-      background: rgba(0,0,0,0.5);
+      background: rgba(--slm-shadow-medium);
       display: flex;
       align-items: flex-end;
       z-index: 1000;
@@ -168,13 +168,14 @@ class SLMEditItemDialog extends LitElement {
       align-items: center;
       justify-content: space-between;
       padding: 16px;
-      border-bottom: 1px solid var(--border-color, #e8eaf6);
+      border-bottom: 1px solid var(--slm-border-subtle);
     }
     .dialog-header h3 {
       margin: 0;
       font-size: 18px;
       font-weight: 600;
-      color: var(--text-primary, #424242);
+      color: var(var(--slm-text-primary)
+);
     }
     .close-btn {
       background: none;
@@ -203,17 +204,18 @@ class SLMEditItemDialog extends LitElement {
       margin-bottom: 6px;
       font-weight: 600;
       font-size: 13px;
-      color: var(--text-secondary, #757575);
+      color: var(--slm-text-secondary);
     }
     .form-group input,
     .form-group textarea {
       width: 100%;
       padding: 10px;
-      border: 2px solid var(--border-color, #e8eaf6);
+      border: 2px solid var(--slm-border-subtle);
       border-radius: 8px;
       font-size: 15px;
       font-family: inherit;
-      color: var(--text-primary, #424242);
+      color: var(var(--slm-text-primary)
+);
       background: white;
     }
     .form-group input:focus,
@@ -241,7 +243,7 @@ class SLMEditItemDialog extends LitElement {
       display: flex;
       gap: 8px;
       padding: 16px;
-      border-top: 1px solid var(--border-color, #e8eaf6);
+      border-top: 1px solid var(--slm-border-subtle);
     }
     .action-btn {
       flex: 1;
@@ -259,7 +261,8 @@ class SLMEditItemDialog extends LitElement {
     }
     .action-btn.secondary {
       background: var(--surface-pastel, #fafbfc);
-      color: var(--text-primary, #424242);
+      color: var(var(--slm-text-primary)
+);
     }
     .action-btn.danger {
       background: #ef9a9a;

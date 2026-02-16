@@ -217,7 +217,7 @@ class SLMListCard extends LitElement {
       position: fixed;
       background: var(--card-background-color);
       border-radius: 10px;
-      box-shadow: 0 4px 20px rgba(0,0,0,0.4);
+      box-shadow: 0 4px 20px rgba(--slm-shadow-medium);
       overflow: hidden;
       min-width: 160px;
       z-index: 10000;

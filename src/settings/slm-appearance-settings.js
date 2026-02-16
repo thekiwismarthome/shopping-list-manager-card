@@ -42,6 +42,31 @@ class SLMAppearanceSettings extends LitElement {
             <ha-icon icon="mdi:chevron-right"></ha-icon>
           </button>
 
+          <div class="settings-item">
+            <div class="item-content">
+              <div class="item-title">Theme Style</div>
+              <div class="item-subtitle">
+                ${this.settings.theme || 'soft'}
+              </div>
+            </div>
+
+            <select
+              class="theme-select"
+              @change=${(e) =>
+                this.handleSettingChange('theme', e.target.value)}
+            >
+              <option value="soft" ?selected=${this.settings.theme === 'soft'}>
+                Soft Pastel
+              </option>
+              <option value="minimal" ?selected=${this.settings.theme === 'minimal'}>
+                Minimal
+              </option>
+              <option value="vibrant" ?selected=${this.settings.theme === 'vibrant'}>
+                Vibrant
+              </option>
+            </select>
+          </div>
+
           <div class="section-header">Display</div>
 
           <div class="settings-item">
@@ -169,6 +194,16 @@ class SLMAppearanceSettings extends LitElement {
   }
 
   static styles = css`
+    .theme-select {
+      background: var(--slm-bg-elevated);
+      color: var(--slm-text-primary);
+      border: 1px solid var(--slm-border-subtle);
+      border-radius: 8px;
+      padding: 6px 10px;
+      font-size: 13px;
+      cursor: pointer;
+    }
+
     .appearance-settings {
       padding-bottom: 80px;
     }
@@ -177,7 +212,7 @@ class SLMAppearanceSettings extends LitElement {
       align-items: center;
       gap: 16px;
       padding: 12px;
-      border-bottom: 1px solid var(--divider-color);
+      border-bottom: 1px solid var(--slm-border-subtle);
     }
     .back-btn {
       background: none;
@@ -192,13 +227,13 @@ class SLMAppearanceSettings extends LitElement {
       margin: 0;
       font-size: 20px;
       font-weight: 700;
-      color: var(--primary-text-color);
+      color: var(--slm-text-primary);
     }
     .section-header {
       padding: 14px 16px 6px;
       font-size: 12px;
       font-weight: 700;
-      color: var(--secondary-text-color);
+      color: var(--slm-text-secondary);
       text-transform: uppercase;
     }
     .settings-item {
@@ -211,7 +246,7 @@ class SLMAppearanceSettings extends LitElement {
       width: 100%;
       text-align: left;
       cursor: pointer;
-      border-bottom: 1px solid var(--divider-color);
+      border-bottom: 1px solid var(--slm-border-subtle);
       -webkit-tap-highlight-color: transparent;
     }
     .item-content {
@@ -224,11 +259,11 @@ class SLMAppearanceSettings extends LitElement {
       font-weight: 600;
       font-size: 14px;
       margin-bottom: 2px;
-      color: var(--primary-text-color);
+      color: var(--slm-text-primary);
     }
     .item-subtitle {
       font-size: 12px;
-      color: var(--secondary-text-color);
+      color: var(--slm-text-secondary);
     }
     .tile-options {
       display: flex;
@@ -238,18 +273,18 @@ class SLMAppearanceSettings extends LitElement {
     .tile-option {
       flex: 1;
       padding: 10px;
-      border: 2px solid var(--divider-color);
+      border: 2px solid var(--slm-border-subtle);
       border-radius: 8px;
       background: transparent;
       cursor: pointer;
       font-weight: 600;
-      color: var(--primary-text-color);
+      color: var(--slm-text-primary);
       -webkit-tap-highlight-color: transparent;
     }
     .tile-option.selected {
-      background: var(--primary-color);
+      background: var(--slm-accent-primary);
       color: white;
-      border-color: var(--primary-color);
+      border-color: var(--slm-accent-primary);
     }
     .size-slider {
       width: 100%;
@@ -258,7 +293,7 @@ class SLMAppearanceSettings extends LitElement {
     .size-value {
       text-align: center;
       font-weight: 600;
-      color: var(--primary-color);
+      color: var(--slm-accent-primary);
     }
     .toggle {
       position: relative;
@@ -294,7 +329,7 @@ class SLMAppearanceSettings extends LitElement {
       border-radius: 50%;
     }
     input:checked + .slider {
-      background: var(--primary-color);
+      background: var(--slm-accent-primary);
     }
     input:checked + .slider:before {
       transform: translateX(22px);

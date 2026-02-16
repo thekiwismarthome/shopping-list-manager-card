@@ -190,7 +190,7 @@ class SLMSearchBar extends LitElement {
       right: 8px;
       background: var(--card-background-color);
       border-radius: 0 0 12px 12px;
-      box-shadow: 0 4px 16px rgba(0,0,0,0.12);
+      box-shadow: 0 4px 16px rgba(--slm-shadow-soft);
       max-height: 400px;
       overflow-y: auto;
       z-index: 100;
