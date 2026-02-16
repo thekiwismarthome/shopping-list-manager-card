@@ -39,6 +39,14 @@ export class ShoppingListAPI {
   }
 
   // Items
+  async incrementItem(itemId, amount) {
+    return await this.hass.callWS({
+      type: "shopping_list_manager/items/increment",
+      item_id: itemId,
+      amount: amount
+    });
+  }
+
   async getItems(listId) {
     return await this.hass.callWS({
       type: 'shopping_list_manager/items/get',

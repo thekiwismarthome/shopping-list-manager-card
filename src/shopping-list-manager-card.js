@@ -164,8 +164,9 @@ class ShoppingListManagerCard extends LitElement {
   async handleItemClick(e) {
     const { itemId } = e.detail;
     const item = this.items.find(i => i.id === itemId);
+
     if (item && !item.checked) {
-      await this.api.updateItem(itemId, { quantity: item.quantity + 1 });
+      await this.api.incrementItem(itemId, 1);
       await this.loadActiveListData();
     }
   }
@@ -173,15 +174,18 @@ class ShoppingListManagerCard extends LitElement {
   async handleItemDecrease(e) {
     const { itemId } = e.detail;
     const item = this.items.find(i => i.id === itemId);
-    if (item) {
-      if (item.quantity > 1) {
-        await this.api.updateItem(itemId, { quantity: item.quantity - 1 });
-      } else {
-        await this.api.deleteItem(itemId);
-      }
-      await this.loadActiveListData();
+
+    if (!item) return;
+
+    if (item.quantity > 1) {
+      await this.api.incrementItem(itemId, -1);
+    } else {
+      await this.api.deleteItem(itemId);
     }
+
+    await this.loadActiveListData();
   }
+
 
   async handleItemCheck(e) {
     const { itemId, checked } = e.detail;

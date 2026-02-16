@@ -3,23 +3,23 @@
  * Copyright 2019 Google LLC
  * SPDX-License-Identifier: BSD-3-Clause
  */
-const t=globalThis,e=t.ShadowRoot&&(void 0===t.ShadyCSS||t.ShadyCSS.nativeShadow)&&"adoptedStyleSheets"in Document.prototype&&"replace"in CSSStyleSheet.prototype,i=Symbol(),s=new WeakMap;let a=class{constructor(t,e,s){if(this._$cssResult$=!0,s!==i)throw Error("CSSResult is not constructable. Use `unsafeCSS` or `css` instead.");this.cssText=t,this.t=e}get styleSheet(){let t=this.o;const i=this.t;if(e&&void 0===t){const e=void 0!==i&&1===i.length;e&&(t=s.get(i)),void 0===t&&((this.o=t=new CSSStyleSheet).replaceSync(this.cssText),e&&s.set(i,t))}return t}toString(){return this.cssText}};const o=(t,...e)=>{const s=1===t.length?t[0]:e.reduce((e,i,s)=>e+(t=>{if(!0===t._$cssResult$)return t.cssText;if("number"==typeof t)return t;throw Error("Value passed to 'css' function must be a 'css' function result: "+t+". Use 'unsafeCSS' to pass non-literal values, but take care to ensure page security.")})(i)+t[s+1],t[0]);return new a(s,t,i)},n=e?t=>t:t=>t instanceof CSSStyleSheet?(t=>{let e="";for(const i of t.cssRules)e+=i.cssText;return(t=>new a("string"==typeof t?t:t+"",void 0,i))(e)})(t):t,{is:r,defineProperty:l,getOwnPropertyDescriptor:c,getOwnPropertyNames:d,getOwnPropertySymbols:p,getPrototypeOf:h}=Object,m=globalThis,u=m.trustedTypes,g=u?u.emptyScript:"",b=m.reactiveElementPolyfillSupport,v=(t,e)=>t,y={toAttribute(t,e){switch(e){case Boolean:t=t?g:null;break;case Object:case Array:t=null==t?t:JSON.stringify(t)}return t},fromAttribute(t,e){let i=t;switch(e){case Boolean:i=null!==t;break;case Number:i=null===t?null:Number(t);break;case Object:case Array:try{i=JSON.parse(t)}catch(t){i=null}}return i}},x=(t,e)=>!r(t,e),f={attribute:!0,type:String,converter:y,reflect:!1,useDefault:!1,hasChanged:x};
+const t=globalThis,e=t.ShadowRoot&&(void 0===t.ShadyCSS||t.ShadyCSS.nativeShadow)&&"adoptedStyleSheets"in Document.prototype&&"replace"in CSSStyleSheet.prototype,i=Symbol(),s=new WeakMap;let a=class{constructor(t,e,s){if(this._$cssResult$=!0,s!==i)throw Error("CSSResult is not constructable. Use `unsafeCSS` or `css` instead.");this.cssText=t,this.t=e}get styleSheet(){let t=this.o;const i=this.t;if(e&&void 0===t){const e=void 0!==i&&1===i.length;e&&(t=s.get(i)),void 0===t&&((this.o=t=new CSSStyleSheet).replaceSync(this.cssText),e&&s.set(i,t))}return t}toString(){return this.cssText}};const o=(t,...e)=>{const s=1===t.length?t[0]:e.reduce((e,i,s)=>e+(t=>{if(!0===t._$cssResult$)return t.cssText;if("number"==typeof t)return t;throw Error("Value passed to 'css' function must be a 'css' function result: "+t+". Use 'unsafeCSS' to pass non-literal values, but take care to ensure page security.")})(i)+t[s+1],t[0]);return new a(s,t,i)},n=e?t=>t:t=>t instanceof CSSStyleSheet?(t=>{let e="";for(const i of t.cssRules)e+=i.cssText;return(t=>new a("string"==typeof t?t:t+"",void 0,i))(e)})(t):t,{is:r,defineProperty:l,getOwnPropertyDescriptor:c,getOwnPropertyNames:d,getOwnPropertySymbols:h,getPrototypeOf:p}=Object,m=globalThis,u=m.trustedTypes,g=u?u.emptyScript:"",b=m.reactiveElementPolyfillSupport,v=(t,e)=>t,x={toAttribute(t,e){switch(e){case Boolean:t=t?g:null;break;case Object:case Array:t=null==t?t:JSON.stringify(t)}return t},fromAttribute(t,e){let i=t;switch(e){case Boolean:i=null!==t;break;case Number:i=null===t?null:Number(t);break;case Object:case Array:try{i=JSON.parse(t)}catch(t){i=null}}return i}},y=(t,e)=>!r(t,e),f={attribute:!0,type:String,converter:x,reflect:!1,useDefault:!1,hasChanged:y};
 /**
  * @license
  * Copyright 2017 Google LLC
  * SPDX-License-Identifier: BSD-3-Clause
- */Symbol.metadata??=Symbol("metadata"),m.litPropertyMetadata??=new WeakMap;let w=class extends HTMLElement{static addInitializer(t){this._$Ei(),(this.l??=[]).push(t)}static get observedAttributes(){return this.finalize(),this._$Eh&&[...this._$Eh.keys()]}static createProperty(t,e=f){if(e.state&&(e.attribute=!1),this._$Ei(),this.prototype.hasOwnProperty(t)&&((e=Object.create(e)).wrapped=!0),this.elementProperties.set(t,e),!e.noAccessor){const i=Symbol(),s=this.getPropertyDescriptor(t,i,e);void 0!==s&&l(this.prototype,t,s)}}static getPropertyDescriptor(t,e,i){const{get:s,set:a}=c(this.prototype,t)??{get(){return this[e]},set(t){this[e]=t}};return{get:s,set(e){const o=s?.call(this);a?.call(this,e),this.requestUpdate(t,o,i)},configurable:!0,enumerable:!0}}static getPropertyOptions(t){return this.elementProperties.get(t)??f}static _$Ei(){if(this.hasOwnProperty(v("elementProperties")))return;const t=h(this);t.finalize(),void 0!==t.l&&(this.l=[...t.l]),this.elementProperties=new Map(t.elementProperties)}static finalize(){if(this.hasOwnProperty(v("finalized")))return;if(this.finalized=!0,this._$Ei(),this.hasOwnProperty(v("properties"))){const t=this.properties,e=[...d(t),...p(t)];for(const i of e)this.createProperty(i,t[i])}const t=this[Symbol.metadata];if(null!==t){const e=litPropertyMetadata.get(t);if(void 0!==e)for(const[t,i]of e)this.elementProperties.set(t,i)}this._$Eh=new Map;for(const[t,e]of this.elementProperties){const i=this._$Eu(t,e);void 0!==i&&this._$Eh.set(i,t)}this.elementStyles=this.finalizeStyles(this.styles)}static finalizeStyles(t){const e=[];if(Array.isArray(t)){const i=new Set(t.flat(1/0).reverse());for(const t of i)e.unshift(n(t))}else void 0!==t&&e.push(n(t));return e}static _$Eu(t,e){const i=e.attribute;return!1===i?void 0:"string"==typeof i?i:"string"==typeof t?t.toLowerCase():void 0}constructor(){super(),this._$Ep=void 0,this.isUpdatePending=!1,this.hasUpdated=!1,this._$Em=null,this._$Ev()}_$Ev(){this._$ES=new Promise(t=>this.enableUpdating=t),this._$AL=new Map,this._$E_(),this.requestUpdate(),this.constructor.l?.forEach(t=>t(this))}addController(t){(this._$EO??=new Set).add(t),void 0!==this.renderRoot&&this.isConnected&&t.hostConnected?.()}removeController(t){this._$EO?.delete(t)}_$E_(){const t=new Map,e=this.constructor.elementProperties;for(const i of e.keys())this.hasOwnProperty(i)&&(t.set(i,this[i]),delete this[i]);t.size>0&&(this._$Ep=t)}createRenderRoot(){const i=this.shadowRoot??this.attachShadow(this.constructor.shadowRootOptions);return((i,s)=>{if(e)i.adoptedStyleSheets=s.map(t=>t instanceof CSSStyleSheet?t:t.styleSheet);else for(const e of s){const s=document.createElement("style"),a=t.litNonce;void 0!==a&&s.setAttribute("nonce",a),s.textContent=e.cssText,i.appendChild(s)}})(i,this.constructor.elementStyles),i}connectedCallback(){this.renderRoot??=this.createRenderRoot(),this.enableUpdating(!0),this._$EO?.forEach(t=>t.hostConnected?.())}enableUpdating(t){}disconnectedCallback(){this._$EO?.forEach(t=>t.hostDisconnected?.())}attributeChangedCallback(t,e,i){this._$AK(t,i)}_$ET(t,e){const i=this.constructor.elementProperties.get(t),s=this.constructor._$Eu(t,i);if(void 0!==s&&!0===i.reflect){const a=(void 0!==i.converter?.toAttribute?i.converter:y).toAttribute(e,i.type);this._$Em=t,null==a?this.removeAttribute(s):this.setAttribute(s,a),this._$Em=null}}_$AK(t,e){const i=this.constructor,s=i._$Eh.get(t);if(void 0!==s&&this._$Em!==s){const t=i.getPropertyOptions(s),a="function"==typeof t.converter?{fromAttribute:t.converter}:void 0!==t.converter?.fromAttribute?t.converter:y;this._$Em=s;const o=a.fromAttribute(e,t.type);this[s]=o??this._$Ej?.get(s)??o,this._$Em=null}}requestUpdate(t,e,i,s=!1,a){if(void 0!==t){const o=this.constructor;if(!1===s&&(a=this[t]),i??=o.getPropertyOptions(t),!((i.hasChanged??x)(a,e)||i.useDefault&&i.reflect&&a===this._$Ej?.get(t)&&!this.hasAttribute(o._$Eu(t,i))))return;this.C(t,e,i)}!1===this.isUpdatePending&&(this._$ES=this._$EP())}C(t,e,{useDefault:i,reflect:s,wrapped:a},o){i&&!(this._$Ej??=new Map).has(t)&&(this._$Ej.set(t,o??e??this[t]),!0!==a||void 0!==o)||(this._$AL.has(t)||(this.hasUpdated||i||(e=void 0),this._$AL.set(t,e)),!0===s&&this._$Em!==t&&(this._$Eq??=new Set).add(t))}async _$EP(){this.isUpdatePending=!0;try{await this._$ES}catch(t){Promise.reject(t)}const t=this.scheduleUpdate();return null!=t&&await t,!this.isUpdatePending}scheduleUpdate(){return this.performUpdate()}performUpdate(){if(!this.isUpdatePending)return;if(!this.hasUpdated){if(this.renderRoot??=this.createRenderRoot(),this._$Ep){for(const[t,e]of this._$Ep)this[t]=e;this._$Ep=void 0}const t=this.constructor.elementProperties;if(t.size>0)for(const[e,i]of t){const{wrapped:t}=i,s=this[e];!0!==t||this._$AL.has(e)||void 0===s||this.C(e,void 0,i,s)}}let t=!1;const e=this._$AL;try{t=this.shouldUpdate(e),t?(this.willUpdate(e),this._$EO?.forEach(t=>t.hostUpdate?.()),this.update(e)):this._$EM()}catch(e){throw t=!1,this._$EM(),e}t&&this._$AE(e)}willUpdate(t){}_$AE(t){this._$EO?.forEach(t=>t.hostUpdated?.()),this.hasUpdated||(this.hasUpdated=!0,this.firstUpdated(t)),this.updated(t)}_$EM(){this._$AL=new Map,this.isUpdatePending=!1}get updateComplete(){return this.getUpdateComplete()}getUpdateComplete(){return this._$ES}shouldUpdate(t){return!0}update(t){this._$Eq&&=this._$Eq.forEach(t=>this._$ET(t,this[t])),this._$EM()}updated(t){}firstUpdated(t){}};w.elementStyles=[],w.shadowRootOptions={mode:"open"},w[v("elementProperties")]=new Map,w[v("finalized")]=new Map,b?.({ReactiveElement:w}),(m.reactiveElementVersions??=[]).push("2.1.2");
+ */Symbol.metadata??=Symbol("metadata"),m.litPropertyMetadata??=new WeakMap;let w=class extends HTMLElement{static addInitializer(t){this._$Ei(),(this.l??=[]).push(t)}static get observedAttributes(){return this.finalize(),this._$Eh&&[...this._$Eh.keys()]}static createProperty(t,e=f){if(e.state&&(e.attribute=!1),this._$Ei(),this.prototype.hasOwnProperty(t)&&((e=Object.create(e)).wrapped=!0),this.elementProperties.set(t,e),!e.noAccessor){const i=Symbol(),s=this.getPropertyDescriptor(t,i,e);void 0!==s&&l(this.prototype,t,s)}}static getPropertyDescriptor(t,e,i){const{get:s,set:a}=c(this.prototype,t)??{get(){return this[e]},set(t){this[e]=t}};return{get:s,set(e){const o=s?.call(this);a?.call(this,e),this.requestUpdate(t,o,i)},configurable:!0,enumerable:!0}}static getPropertyOptions(t){return this.elementProperties.get(t)??f}static _$Ei(){if(this.hasOwnProperty(v("elementProperties")))return;const t=p(this);t.finalize(),void 0!==t.l&&(this.l=[...t.l]),this.elementProperties=new Map(t.elementProperties)}static finalize(){if(this.hasOwnProperty(v("finalized")))return;if(this.finalized=!0,this._$Ei(),this.hasOwnProperty(v("properties"))){const t=this.properties,e=[...d(t),...h(t)];for(const i of e)this.createProperty(i,t[i])}const t=this[Symbol.metadata];if(null!==t){const e=litPropertyMetadata.get(t);if(void 0!==e)for(const[t,i]of e)this.elementProperties.set(t,i)}this._$Eh=new Map;for(const[t,e]of this.elementProperties){const i=this._$Eu(t,e);void 0!==i&&this._$Eh.set(i,t)}this.elementStyles=this.finalizeStyles(this.styles)}static finalizeStyles(t){const e=[];if(Array.isArray(t)){const i=new Set(t.flat(1/0).reverse());for(const t of i)e.unshift(n(t))}else void 0!==t&&e.push(n(t));return e}static _$Eu(t,e){const i=e.attribute;return!1===i?void 0:"string"==typeof i?i:"string"==typeof t?t.toLowerCase():void 0}constructor(){super(),this._$Ep=void 0,this.isUpdatePending=!1,this.hasUpdated=!1,this._$Em=null,this._$Ev()}_$Ev(){this._$ES=new Promise(t=>this.enableUpdating=t),this._$AL=new Map,this._$E_(),this.requestUpdate(),this.constructor.l?.forEach(t=>t(this))}addController(t){(this._$EO??=new Set).add(t),void 0!==this.renderRoot&&this.isConnected&&t.hostConnected?.()}removeController(t){this._$EO?.delete(t)}_$E_(){const t=new Map,e=this.constructor.elementProperties;for(const i of e.keys())this.hasOwnProperty(i)&&(t.set(i,this[i]),delete this[i]);t.size>0&&(this._$Ep=t)}createRenderRoot(){const i=this.shadowRoot??this.attachShadow(this.constructor.shadowRootOptions);return((i,s)=>{if(e)i.adoptedStyleSheets=s.map(t=>t instanceof CSSStyleSheet?t:t.styleSheet);else for(const e of s){const s=document.createElement("style"),a=t.litNonce;void 0!==a&&s.setAttribute("nonce",a),s.textContent=e.cssText,i.appendChild(s)}})(i,this.constructor.elementStyles),i}connectedCallback(){this.renderRoot??=this.createRenderRoot(),this.enableUpdating(!0),this._$EO?.forEach(t=>t.hostConnected?.())}enableUpdating(t){}disconnectedCallback(){this._$EO?.forEach(t=>t.hostDisconnected?.())}attributeChangedCallback(t,e,i){this._$AK(t,i)}_$ET(t,e){const i=this.constructor.elementProperties.get(t),s=this.constructor._$Eu(t,i);if(void 0!==s&&!0===i.reflect){const a=(void 0!==i.converter?.toAttribute?i.converter:x).toAttribute(e,i.type);this._$Em=t,null==a?this.removeAttribute(s):this.setAttribute(s,a),this._$Em=null}}_$AK(t,e){const i=this.constructor,s=i._$Eh.get(t);if(void 0!==s&&this._$Em!==s){const t=i.getPropertyOptions(s),a="function"==typeof t.converter?{fromAttribute:t.converter}:void 0!==t.converter?.fromAttribute?t.converter:x;this._$Em=s;const o=a.fromAttribute(e,t.type);this[s]=o??this._$Ej?.get(s)??o,this._$Em=null}}requestUpdate(t,e,i,s=!1,a){if(void 0!==t){const o=this.constructor;if(!1===s&&(a=this[t]),i??=o.getPropertyOptions(t),!((i.hasChanged??y)(a,e)||i.useDefault&&i.reflect&&a===this._$Ej?.get(t)&&!this.hasAttribute(o._$Eu(t,i))))return;this.C(t,e,i)}!1===this.isUpdatePending&&(this._$ES=this._$EP())}C(t,e,{useDefault:i,reflect:s,wrapped:a},o){i&&!(this._$Ej??=new Map).has(t)&&(this._$Ej.set(t,o??e??this[t]),!0!==a||void 0!==o)||(this._$AL.has(t)||(this.hasUpdated||i||(e=void 0),this._$AL.set(t,e)),!0===s&&this._$Em!==t&&(this._$Eq??=new Set).add(t))}async _$EP(){this.isUpdatePending=!0;try{await this._$ES}catch(t){Promise.reject(t)}const t=this.scheduleUpdate();return null!=t&&await t,!this.isUpdatePending}scheduleUpdate(){return this.performUpdate()}performUpdate(){if(!this.isUpdatePending)return;if(!this.hasUpdated){if(this.renderRoot??=this.createRenderRoot(),this._$Ep){for(const[t,e]of this._$Ep)this[t]=e;this._$Ep=void 0}const t=this.constructor.elementProperties;if(t.size>0)for(const[e,i]of t){const{wrapped:t}=i,s=this[e];!0!==t||this._$AL.has(e)||void 0===s||this.C(e,void 0,i,s)}}let t=!1;const e=this._$AL;try{t=this.shouldUpdate(e),t?(this.willUpdate(e),this._$EO?.forEach(t=>t.hostUpdate?.()),this.update(e)):this._$EM()}catch(e){throw t=!1,this._$EM(),e}t&&this._$AE(e)}willUpdate(t){}_$AE(t){this._$EO?.forEach(t=>t.hostUpdated?.()),this.hasUpdated||(this.hasUpdated=!0,this.firstUpdated(t)),this.updated(t)}_$EM(){this._$AL=new Map,this.isUpdatePending=!1}get updateComplete(){return this.getUpdateComplete()}getUpdateComplete(){return this._$ES}shouldUpdate(t){return!0}update(t){this._$Eq&&=this._$Eq.forEach(t=>this._$ET(t,this[t])),this._$EM()}updated(t){}firstUpdated(t){}};w.elementStyles=[],w.shadowRootOptions={mode:"open"},w[v("elementProperties")]=new Map,w[v("finalized")]=new Map,b?.({ReactiveElement:w}),(m.reactiveElementVersions??=[]).push("2.1.2");
 /**
  * @license
  * Copyright 2017 Google LLC
  * SPDX-License-Identifier: BSD-3-Clause
  */
-const $=globalThis,k=t=>t,_=$.trustedTypes,C=_?_.createPolicy("lit-html",{createHTML:t=>t}):void 0,S="$lit$",A=`lit$${Math.random().toFixed(9).slice(2)}$`,E="?"+A,P=`<${E}>`,z=document,I=()=>z.createComment(""),L=t=>null===t||"object"!=typeof t&&"function"!=typeof t,D=Array.isArray,j="[ \t\n\f\r]",T=/<(?:(!--|\/[^a-zA-Z])|(\/?[a-zA-Z][^>\s]*)|(\/?$))/g,N=/-->/g,M=/>/g,O=RegExp(`>|${j}(?:([^\\s"'>=/]+)(${j}*=${j}*(?:[^ \t\n\f\r"'\`<>=]|("|')|))|$)`,"g"),R=/'/g,U=/"/g,q=/^(?:script|style|textarea|title)$/i,F=(t=>(e,...i)=>({_$litType$:t,strings:e,values:i}))(1),B=Symbol.for("lit-noChange"),H=Symbol.for("lit-nothing"),Q=new WeakMap,W=z.createTreeWalker(z,129);function V(t,e){if(!D(t)||!t.hasOwnProperty("raw"))throw Error("invalid template strings array");return void 0!==C?C.createHTML(e):e}const Y=(t,e)=>{const i=t.length-1,s=[];let a,o=2===e?"<svg>":3===e?"<math>":"",n=T;for(let e=0;e<i;e++){const i=t[e];let r,l,c=-1,d=0;for(;d<i.length&&(n.lastIndex=d,l=n.exec(i),null!==l);)d=n.lastIndex,n===T?"!--"===l[1]?n=N:void 0!==l[1]?n=M:void 0!==l[2]?(q.test(l[2])&&(a=RegExp("</"+l[2],"g")),n=O):void 0!==l[3]&&(n=O):n===O?">"===l[0]?(n=a??T,c=-1):void 0===l[1]?c=-2:(c=n.lastIndex-l[2].length,r=l[1],n=void 0===l[3]?O:'"'===l[3]?U:R):n===U||n===R?n=O:n===N||n===M?n=T:(n=O,a=void 0);const p=n===O&&t[e+1].startsWith("/>")?" ":"";o+=n===T?i+P:c>=0?(s.push(r),i.slice(0,c)+S+i.slice(c)+A+p):i+A+(-2===c?e:p)}return[V(t,o+(t[i]||"<?>")+(2===e?"</svg>":3===e?"</math>":"")),s]};class X{constructor({strings:t,_$litType$:e},i){let s;this.parts=[];let a=0,o=0;const n=t.length-1,r=this.parts,[l,c]=Y(t,e);if(this.el=X.createElement(l,i),W.currentNode=this.el.content,2===e||3===e){const t=this.el.content.firstChild;t.replaceWith(...t.childNodes)}for(;null!==(s=W.nextNode())&&r.length<n;){if(1===s.nodeType){if(s.hasAttributes())for(const t of s.getAttributeNames())if(t.endsWith(S)){const e=c[o++],i=s.getAttribute(t).split(A),n=/([.?@])?(.*)/.exec(e);r.push({type:1,index:a,name:n[2],strings:i,ctor:"."===n[1]?tt:"?"===n[1]?et:"@"===n[1]?it:K}),s.removeAttribute(t)}else t.startsWith(A)&&(r.push({type:6,index:a}),s.removeAttribute(t));if(q.test(s.tagName)){const t=s.textContent.split(A),e=t.length-1;if(e>0){s.textContent=_?_.emptyScript:"";for(let i=0;i<e;i++)s.append(t[i],I()),W.nextNode(),r.push({type:2,index:++a});s.append(t[e],I())}}}else if(8===s.nodeType)if(s.data===E)r.push({type:2,index:a});else{let t=-1;for(;-1!==(t=s.data.indexOf(A,t+1));)r.push({type:7,index:a}),t+=A.length-1}a++}}static createElement(t,e){const i=z.createElement("template");return i.innerHTML=t,i}}function J(t,e,i=t,s){if(e===B)return e;let a=void 0!==s?i._$Co?.[s]:i._$Cl;const o=L(e)?void 0:e._$litDirective$;return a?.constructor!==o&&(a?._$AO?.(!1),void 0===o?a=void 0:(a=new o(t),a._$AT(t,i,s)),void 0!==s?(i._$Co??=[])[s]=a:i._$Cl=a),void 0!==a&&(e=J(t,a._$AS(t,e.values),a,s)),e}class G{constructor(t,e){this._$AV=[],this._$AN=void 0,this._$AD=t,this._$AM=e}get parentNode(){return this._$AM.parentNode}get _$AU(){return this._$AM._$AU}u(t){const{el:{content:e},parts:i}=this._$AD,s=(t?.creationScope??z).importNode(e,!0);W.currentNode=s;let a=W.nextNode(),o=0,n=0,r=i[0];for(;void 0!==r;){if(o===r.index){let e;2===r.type?e=new Z(a,a.nextSibling,this,t):1===r.type?e=new r.ctor(a,r.name,r.strings,this,t):6===r.type&&(e=new st(a,this,t)),this._$AV.push(e),r=i[++n]}o!==r?.index&&(a=W.nextNode(),o++)}return W.currentNode=z,s}p(t){let e=0;for(const i of this._$AV)void 0!==i&&(void 0!==i.strings?(i._$AI(t,i,e),e+=i.strings.length-2):i._$AI(t[e])),e++}}class Z{get _$AU(){return this._$AM?._$AU??this._$Cv}constructor(t,e,i,s){this.type=2,this._$AH=H,this._$AN=void 0,this._$AA=t,this._$AB=e,this._$AM=i,this.options=s,this._$Cv=s?.isConnected??!0}get parentNode(){let t=this._$AA.parentNode;const e=this._$AM;return void 0!==e&&11===t?.nodeType&&(t=e.parentNode),t}get startNode(){return this._$AA}get endNode(){return this._$AB}_$AI(t,e=this){t=J(this,t,e),L(t)?t===H||null==t||""===t?(this._$AH!==H&&this._$AR(),this._$AH=H):t!==this._$AH&&t!==B&&this._(t):void 0!==t._$litType$?this.$(t):void 0!==t.nodeType?this.T(t):(t=>D(t)||"function"==typeof t?.[Symbol.iterator])(t)?this.k(t):this._(t)}O(t){return this._$AA.parentNode.insertBefore(t,this._$AB)}T(t){this._$AH!==t&&(this._$AR(),this._$AH=this.O(t))}_(t){this._$AH!==H&&L(this._$AH)?this._$AA.nextSibling.data=t:this.T(z.createTextNode(t)),this._$AH=t}$(t){const{values:e,_$litType$:i}=t,s="number"==typeof i?this._$AC(t):(void 0===i.el&&(i.el=X.createElement(V(i.h,i.h[0]),this.options)),i);if(this._$AH?._$AD===s)this._$AH.p(e);else{const t=new G(s,this),i=t.u(this.options);t.p(e),this.T(i),this._$AH=t}}_$AC(t){let e=Q.get(t.strings);return void 0===e&&Q.set(t.strings,e=new X(t)),e}k(t){D(this._$AH)||(this._$AH=[],this._$AR());const e=this._$AH;let i,s=0;for(const a of t)s===e.length?e.push(i=new Z(this.O(I()),this.O(I()),this,this.options)):i=e[s],i._$AI(a),s++;s<e.length&&(this._$AR(i&&i._$AB.nextSibling,s),e.length=s)}_$AR(t=this._$AA.nextSibling,e){for(this._$AP?.(!1,!0,e);t!==this._$AB;){const e=k(t).nextSibling;k(t).remove(),t=e}}setConnected(t){void 0===this._$AM&&(this._$Cv=t,this._$AP?.(t))}}class K{get tagName(){return this.element.tagName}get _$AU(){return this._$AM._$AU}constructor(t,e,i,s,a){this.type=1,this._$AH=H,this._$AN=void 0,this.element=t,this.name=e,this._$AM=s,this.options=a,i.length>2||""!==i[0]||""!==i[1]?(this._$AH=Array(i.length-1).fill(new String),this.strings=i):this._$AH=H}_$AI(t,e=this,i,s){const a=this.strings;let o=!1;if(void 0===a)t=J(this,t,e,0),o=!L(t)||t!==this._$AH&&t!==B,o&&(this._$AH=t);else{const s=t;let n,r;for(t=a[0],n=0;n<a.length-1;n++)r=J(this,s[i+n],e,n),r===B&&(r=this._$AH[n]),o||=!L(r)||r!==this._$AH[n],r===H?t=H:t!==H&&(t+=(r??"")+a[n+1]),this._$AH[n]=r}o&&!s&&this.j(t)}j(t){t===H?this.element.removeAttribute(this.name):this.element.setAttribute(this.name,t??"")}}class tt extends K{constructor(){super(...arguments),this.type=3}j(t){this.element[this.name]=t===H?void 0:t}}class et extends K{constructor(){super(...arguments),this.type=4}j(t){this.element.toggleAttribute(this.name,!!t&&t!==H)}}class it extends K{constructor(t,e,i,s,a){super(t,e,i,s,a),this.type=5}_$AI(t,e=this){if((t=J(this,t,e,0)??H)===B)return;const i=this._$AH,s=t===H&&i!==H||t.capture!==i.capture||t.once!==i.once||t.passive!==i.passive,a=t!==H&&(i===H||s);s&&this.element.removeEventListener(this.name,this,i),a&&this.element.addEventListener(this.name,this,t),this._$AH=t}handleEvent(t){"function"==typeof this._$AH?this._$AH.call(this.options?.host??this.element,t):this._$AH.handleEvent(t)}}class st{constructor(t,e,i){this.element=t,this.type=6,this._$AN=void 0,this._$AM=e,this.options=i}get _$AU(){return this._$AM._$AU}_$AI(t){J(this,t)}}const at=$.litHtmlPolyfillSupport;at?.(X,Z),($.litHtmlVersions??=[]).push("3.3.2");const ot=globalThis;
+const $=globalThis,k=t=>t,_=$.trustedTypes,C=_?_.createPolicy("lit-html",{createHTML:t=>t}):void 0,S="$lit$",A=`lit$${Math.random().toFixed(9).slice(2)}$`,E="?"+A,P=`<${E}>`,z=document,I=()=>z.createComment(""),L=t=>null===t||"object"!=typeof t&&"function"!=typeof t,D=Array.isArray,j="[ \t\n\f\r]",T=/<(?:(!--|\/[^a-zA-Z])|(\/?[a-zA-Z][^>\s]*)|(\/?$))/g,N=/-->/g,M=/>/g,O=RegExp(`>|${j}(?:([^\\s"'>=/]+)(${j}*=${j}*(?:[^ \t\n\f\r"'\`<>=]|("|')|))|$)`,"g"),R=/'/g,U=/"/g,F=/^(?:script|style|textarea|title)$/i,q=(t=>(e,...i)=>({_$litType$:t,strings:e,values:i}))(1),B=Symbol.for("lit-noChange"),H=Symbol.for("lit-nothing"),W=new WeakMap,Q=z.createTreeWalker(z,129);function V(t,e){if(!D(t)||!t.hasOwnProperty("raw"))throw Error("invalid template strings array");return void 0!==C?C.createHTML(e):e}const Y=(t,e)=>{const i=t.length-1,s=[];let a,o=2===e?"<svg>":3===e?"<math>":"",n=T;for(let e=0;e<i;e++){const i=t[e];let r,l,c=-1,d=0;for(;d<i.length&&(n.lastIndex=d,l=n.exec(i),null!==l);)d=n.lastIndex,n===T?"!--"===l[1]?n=N:void 0!==l[1]?n=M:void 0!==l[2]?(F.test(l[2])&&(a=RegExp("</"+l[2],"g")),n=O):void 0!==l[3]&&(n=O):n===O?">"===l[0]?(n=a??T,c=-1):void 0===l[1]?c=-2:(c=n.lastIndex-l[2].length,r=l[1],n=void 0===l[3]?O:'"'===l[3]?U:R):n===U||n===R?n=O:n===N||n===M?n=T:(n=O,a=void 0);const h=n===O&&t[e+1].startsWith("/>")?" ":"";o+=n===T?i+P:c>=0?(s.push(r),i.slice(0,c)+S+i.slice(c)+A+h):i+A+(-2===c?e:h)}return[V(t,o+(t[i]||"<?>")+(2===e?"</svg>":3===e?"</math>":"")),s]};class X{constructor({strings:t,_$litType$:e},i){let s;this.parts=[];let a=0,o=0;const n=t.length-1,r=this.parts,[l,c]=Y(t,e);if(this.el=X.createElement(l,i),Q.currentNode=this.el.content,2===e||3===e){const t=this.el.content.firstChild;t.replaceWith(...t.childNodes)}for(;null!==(s=Q.nextNode())&&r.length<n;){if(1===s.nodeType){if(s.hasAttributes())for(const t of s.getAttributeNames())if(t.endsWith(S)){const e=c[o++],i=s.getAttribute(t).split(A),n=/([.?@])?(.*)/.exec(e);r.push({type:1,index:a,name:n[2],strings:i,ctor:"."===n[1]?tt:"?"===n[1]?et:"@"===n[1]?it:K}),s.removeAttribute(t)}else t.startsWith(A)&&(r.push({type:6,index:a}),s.removeAttribute(t));if(F.test(s.tagName)){const t=s.textContent.split(A),e=t.length-1;if(e>0){s.textContent=_?_.emptyScript:"";for(let i=0;i<e;i++)s.append(t[i],I()),Q.nextNode(),r.push({type:2,index:++a});s.append(t[e],I())}}}else if(8===s.nodeType)if(s.data===E)r.push({type:2,index:a});else{let t=-1;for(;-1!==(t=s.data.indexOf(A,t+1));)r.push({type:7,index:a}),t+=A.length-1}a++}}static createElement(t,e){const i=z.createElement("template");return i.innerHTML=t,i}}function J(t,e,i=t,s){if(e===B)return e;let a=void 0!==s?i._$Co?.[s]:i._$Cl;const o=L(e)?void 0:e._$litDirective$;return a?.constructor!==o&&(a?._$AO?.(!1),void 0===o?a=void 0:(a=new o(t),a._$AT(t,i,s)),void 0!==s?(i._$Co??=[])[s]=a:i._$Cl=a),void 0!==a&&(e=J(t,a._$AS(t,e.values),a,s)),e}class G{constructor(t,e){this._$AV=[],this._$AN=void 0,this._$AD=t,this._$AM=e}get parentNode(){return this._$AM.parentNode}get _$AU(){return this._$AM._$AU}u(t){const{el:{content:e},parts:i}=this._$AD,s=(t?.creationScope??z).importNode(e,!0);Q.currentNode=s;let a=Q.nextNode(),o=0,n=0,r=i[0];for(;void 0!==r;){if(o===r.index){let e;2===r.type?e=new Z(a,a.nextSibling,this,t):1===r.type?e=new r.ctor(a,r.name,r.strings,this,t):6===r.type&&(e=new st(a,this,t)),this._$AV.push(e),r=i[++n]}o!==r?.index&&(a=Q.nextNode(),o++)}return Q.currentNode=z,s}p(t){let e=0;for(const i of this._$AV)void 0!==i&&(void 0!==i.strings?(i._$AI(t,i,e),e+=i.strings.length-2):i._$AI(t[e])),e++}}class Z{get _$AU(){return this._$AM?._$AU??this._$Cv}constructor(t,e,i,s){this.type=2,this._$AH=H,this._$AN=void 0,this._$AA=t,this._$AB=e,this._$AM=i,this.options=s,this._$Cv=s?.isConnected??!0}get parentNode(){let t=this._$AA.parentNode;const e=this._$AM;return void 0!==e&&11===t?.nodeType&&(t=e.parentNode),t}get startNode(){return this._$AA}get endNode(){return this._$AB}_$AI(t,e=this){t=J(this,t,e),L(t)?t===H||null==t||""===t?(this._$AH!==H&&this._$AR(),this._$AH=H):t!==this._$AH&&t!==B&&this._(t):void 0!==t._$litType$?this.$(t):void 0!==t.nodeType?this.T(t):(t=>D(t)||"function"==typeof t?.[Symbol.iterator])(t)?this.k(t):this._(t)}O(t){return this._$AA.parentNode.insertBefore(t,this._$AB)}T(t){this._$AH!==t&&(this._$AR(),this._$AH=this.O(t))}_(t){this._$AH!==H&&L(this._$AH)?this._$AA.nextSibling.data=t:this.T(z.createTextNode(t)),this._$AH=t}$(t){const{values:e,_$litType$:i}=t,s="number"==typeof i?this._$AC(t):(void 0===i.el&&(i.el=X.createElement(V(i.h,i.h[0]),this.options)),i);if(this._$AH?._$AD===s)this._$AH.p(e);else{const t=new G(s,this),i=t.u(this.options);t.p(e),this.T(i),this._$AH=t}}_$AC(t){let e=W.get(t.strings);return void 0===e&&W.set(t.strings,e=new X(t)),e}k(t){D(this._$AH)||(this._$AH=[],this._$AR());const e=this._$AH;let i,s=0;for(const a of t)s===e.length?e.push(i=new Z(this.O(I()),this.O(I()),this,this.options)):i=e[s],i._$AI(a),s++;s<e.length&&(this._$AR(i&&i._$AB.nextSibling,s),e.length=s)}_$AR(t=this._$AA.nextSibling,e){for(this._$AP?.(!1,!0,e);t!==this._$AB;){const e=k(t).nextSibling;k(t).remove(),t=e}}setConnected(t){void 0===this._$AM&&(this._$Cv=t,this._$AP?.(t))}}class K{get tagName(){return this.element.tagName}get _$AU(){return this._$AM._$AU}constructor(t,e,i,s,a){this.type=1,this._$AH=H,this._$AN=void 0,this.element=t,this.name=e,this._$AM=s,this.options=a,i.length>2||""!==i[0]||""!==i[1]?(this._$AH=Array(i.length-1).fill(new String),this.strings=i):this._$AH=H}_$AI(t,e=this,i,s){const a=this.strings;let o=!1;if(void 0===a)t=J(this,t,e,0),o=!L(t)||t!==this._$AH&&t!==B,o&&(this._$AH=t);else{const s=t;let n,r;for(t=a[0],n=0;n<a.length-1;n++)r=J(this,s[i+n],e,n),r===B&&(r=this._$AH[n]),o||=!L(r)||r!==this._$AH[n],r===H?t=H:t!==H&&(t+=(r??"")+a[n+1]),this._$AH[n]=r}o&&!s&&this.j(t)}j(t){t===H?this.element.removeAttribute(this.name):this.element.setAttribute(this.name,t??"")}}class tt extends K{constructor(){super(...arguments),this.type=3}j(t){this.element[this.name]=t===H?void 0:t}}class et extends K{constructor(){super(...arguments),this.type=4}j(t){this.element.toggleAttribute(this.name,!!t&&t!==H)}}class it extends K{constructor(t,e,i,s,a){super(t,e,i,s,a),this.type=5}_$AI(t,e=this){if((t=J(this,t,e,0)??H)===B)return;const i=this._$AH,s=t===H&&i!==H||t.capture!==i.capture||t.once!==i.once||t.passive!==i.passive,a=t!==H&&(i===H||s);s&&this.element.removeEventListener(this.name,this,i),a&&this.element.addEventListener(this.name,this,t),this._$AH=t}handleEvent(t){"function"==typeof this._$AH?this._$AH.call(this.options?.host??this.element,t):this._$AH.handleEvent(t)}}class st{constructor(t,e,i){this.element=t,this.type=6,this._$AN=void 0,this._$AM=e,this.options=i}get _$AU(){return this._$AM._$AU}_$AI(t){J(this,t)}}const at=$.litHtmlPolyfillSupport;at?.(X,Z),($.litHtmlVersions??=[]).push("3.3.2");const ot=globalThis;
 /**
  * @license
  * Copyright 2017 Google LLC
  * SPDX-License-Identifier: BSD-3-Clause
- */class nt extends w{constructor(){super(...arguments),this.renderOptions={host:this},this._$Do=void 0}createRenderRoot(){const t=super.createRenderRoot();return this.renderOptions.renderBefore??=t.firstChild,t}update(t){const e=this.render();this.hasUpdated||(this.renderOptions.isConnected=this.isConnected),super.update(t),this._$Do=((t,e,i)=>{const s=i?.renderBefore??e;let a=s._$litPart$;if(void 0===a){const t=i?.renderBefore??null;s._$litPart$=a=new Z(e.insertBefore(I(),t),t,void 0,i??{})}return a._$AI(t),a})(e,this.renderRoot,this.renderOptions)}connectedCallback(){super.connectedCallback(),this._$Do?.setConnected(!0)}disconnectedCallback(){super.disconnectedCallback(),this._$Do?.setConnected(!1)}render(){return B}}nt._$litElement$=!0,nt.finalized=!0,ot.litElementHydrateSupport?.({LitElement:nt});const rt=ot.litElementPolyfillSupport;rt?.({LitElement:nt}),(ot.litElementVersions??=[]).push("4.2.2");class lt{constructor(t){this.hass=t}async getLists(){return await this.hass.callWS({type:"shopping_list_manager/lists/get_all"})}async createList(t,e="mdi:cart"){return await this.hass.callWS({type:"shopping_list_manager/lists/create",name:t,icon:e})}async updateList(t,e){return await this.hass.callWS({type:"shopping_list_manager/lists/update",list_id:t,...e})}async deleteList(t){return await this.hass.callWS({type:"shopping_list_manager/lists/delete",list_id:t})}async setActiveList(t){return await this.hass.callWS({type:"shopping_list_manager/lists/set_active",list_id:t})}async getItems(t){return await this.hass.callWS({type:"shopping_list_manager/items/get",list_id:t})}async addItem(t,e){return await this.hass.callWS({type:"shopping_list_manager/items/add",list_id:t,...e})}async updateItem(t,e){return await this.hass.callWS({type:"shopping_list_manager/items/update",item_id:t,...e})}async checkItem(t,e){return await this.hass.callWS({type:"shopping_list_manager/items/check",item_id:t,checked:e})}async deleteItem(t){return await this.hass.callWS({type:"shopping_list_manager/items/delete",item_id:t})}async bulkCheckItems(t,e){return await this.hass.callWS({type:"shopping_list_manager/items/bulk_check",item_ids:t,checked:e})}async clearCheckedItems(t){return await this.hass.callWS({type:"shopping_list_manager/items/clear_checked",list_id:t})}async getListTotal(t){return await this.hass.callWS({type:"shopping_list_manager/items/get_total",list_id:t})}async searchProducts(t,e={}){return await this.hass.callWS({type:"shopping_list_manager/products/search",query:t,limit:e.limit||20,exclude_allergens:e.excludeAllergens,include_tags:e.includeTags,substitution_group:e.substitutionGroup})}async getProductSuggestions(t=20){return await this.hass.callWS({type:"shopping_list_manager/products/suggestions",limit:t})}async getProductSubstitutes(t,e=5){return await this.hass.callWS({type:"shopping_list_manager/products/substitutes",product_id:t,limit:e})}async addProduct(t){return await this.hass.callWS({type:"shopping_list_manager/products/add",...t})}async updateProduct(t,e){return await this.hass.callWS({type:"shopping_list_manager/products/update",product_id:t,...e})}async getCategories(){return await this.hass.callWS({type:"shopping_list_manager/categories/get_all"})}}class ct extends nt{static properties={currentView:{type:String}};handleNavClick(t){this.dispatchEvent(new CustomEvent("nav-changed",{detail:{view:t},bubbles:!0,composed:!0}))}render(){return F`
+ */class nt extends w{constructor(){super(...arguments),this.renderOptions={host:this},this._$Do=void 0}createRenderRoot(){const t=super.createRenderRoot();return this.renderOptions.renderBefore??=t.firstChild,t}update(t){const e=this.render();this.hasUpdated||(this.renderOptions.isConnected=this.isConnected),super.update(t),this._$Do=((t,e,i)=>{const s=i?.renderBefore??e;let a=s._$litPart$;if(void 0===a){const t=i?.renderBefore??null;s._$litPart$=a=new Z(e.insertBefore(I(),t),t,void 0,i??{})}return a._$AI(t),a})(e,this.renderRoot,this.renderOptions)}connectedCallback(){super.connectedCallback(),this._$Do?.setConnected(!0)}disconnectedCallback(){super.disconnectedCallback(),this._$Do?.setConnected(!1)}render(){return B}}nt._$litElement$=!0,nt.finalized=!0,ot.litElementHydrateSupport?.({LitElement:nt});const rt=ot.litElementPolyfillSupport;rt?.({LitElement:nt}),(ot.litElementVersions??=[]).push("4.2.2");class lt{constructor(t){this.hass=t}async getLists(){return await this.hass.callWS({type:"shopping_list_manager/lists/get_all"})}async createList(t,e="mdi:cart"){return await this.hass.callWS({type:"shopping_list_manager/lists/create",name:t,icon:e})}async updateList(t,e){return await this.hass.callWS({type:"shopping_list_manager/lists/update",list_id:t,...e})}async deleteList(t){return await this.hass.callWS({type:"shopping_list_manager/lists/delete",list_id:t})}async setActiveList(t){return await this.hass.callWS({type:"shopping_list_manager/lists/set_active",list_id:t})}async incrementItem(t,e){return await this.hass.callWS({type:"shopping_list_manager/items/increment",item_id:t,amount:e})}async getItems(t){return await this.hass.callWS({type:"shopping_list_manager/items/get",list_id:t})}async addItem(t,e){return await this.hass.callWS({type:"shopping_list_manager/items/add",list_id:t,...e})}async updateItem(t,e){return await this.hass.callWS({type:"shopping_list_manager/items/update",item_id:t,...e})}async checkItem(t,e){return await this.hass.callWS({type:"shopping_list_manager/items/check",item_id:t,checked:e})}async deleteItem(t){return await this.hass.callWS({type:"shopping_list_manager/items/delete",item_id:t})}async bulkCheckItems(t,e){return await this.hass.callWS({type:"shopping_list_manager/items/bulk_check",item_ids:t,checked:e})}async clearCheckedItems(t){return await this.hass.callWS({type:"shopping_list_manager/items/clear_checked",list_id:t})}async getListTotal(t){return await this.hass.callWS({type:"shopping_list_manager/items/get_total",list_id:t})}async searchProducts(t,e={}){return await this.hass.callWS({type:"shopping_list_manager/products/search",query:t,limit:e.limit||20,exclude_allergens:e.excludeAllergens,include_tags:e.includeTags,substitution_group:e.substitutionGroup})}async getProductSuggestions(t=20){return await this.hass.callWS({type:"shopping_list_manager/products/suggestions",limit:t})}async getProductSubstitutes(t,e=5){return await this.hass.callWS({type:"shopping_list_manager/products/substitutes",product_id:t,limit:e})}async addProduct(t){return await this.hass.callWS({type:"shopping_list_manager/products/add",...t})}async updateProduct(t,e){return await this.hass.callWS({type:"shopping_list_manager/products/update",product_id:t,...e})}async getCategories(){return await this.hass.callWS({type:"shopping_list_manager/categories/get_all"})}}class ct extends nt{static properties={currentView:{type:String}};handleNavClick(t){this.dispatchEvent(new CustomEvent("nav-changed",{detail:{view:t},bubbles:!0,composed:!0}))}render(){return q`
       <nav class="bottom-nav">
         <button
           class="nav-item ${"shopping"===this.currentView?"active":""}"
@@ -92,7 +92,7 @@ const $=globalThis,k=t=>t,_=$.trustedTypes,C=_?_.createPolicy("lit-html",{create
       font-size: 11px;
       font-weight: 500;
     }
-  `}customElements.define("slm-bottom-nav",ct);class dt extends nt{static properties={activeList:{type:Object},itemCount:{type:Number}};handleBack(){this.dispatchEvent(new CustomEvent("back",{bubbles:!0,composed:!0}))}handleShare(){this.dispatchEvent(new CustomEvent("share",{bubbles:!0,composed:!0}))}handleMenu(){alert("List menu coming soon")}render(){return F`
+  `}customElements.define("slm-bottom-nav",ct);class dt extends nt{static properties={activeList:{type:Object},itemCount:{type:Number}};handleBack(){this.dispatchEvent(new CustomEvent("back",{bubbles:!0,composed:!0}))}handleShare(){this.dispatchEvent(new CustomEvent("share",{bubbles:!0,composed:!0}))}handleMenu(){alert("List menu coming soon")}render(){return q`
       <div class="header">
         <button class="back-btn" @click=${this.handleBack}>
           <ha-icon icon="mdi:arrow-left"></ha-icon>
@@ -158,7 +158,7 @@ const $=globalThis,k=t=>t,_=$.trustedTypes,C=_?_.createPolicy("lit-html",{create
       display: flex;
       gap: 4px;
     }
-  `}customElements.define("slm-list-header",dt);class pt extends nt{static properties={api:{type:Object},settings:{type:Object},categories:{type:Array},activeListId:{type:String},searchQuery:{type:String},searchResults:{type:Array},recentProducts:{type:Array},showResults:{type:Boolean}};constructor(){super(),this.searchQuery="",this.searchResults=[],this.recentProducts=[],this.showResults=!1}async firstUpdated(){await this.loadRecentProducts()}async loadRecentProducts(){const t=localStorage.getItem("slm_recent_products"),e=t?JSON.parse(t):[],i=this.settings?.recentProductsCount||8;this.recentProducts=e.slice(0,i)}async handleSearch(t){if(this.searchQuery=t.target.value,this.searchQuery.length<1)this.showResults=!1;else{if(this.searchQuery.length>=2){const t=await this.api.searchProducts(this.searchQuery,{limit:20});this.searchResults=t.products||[]}else this.searchResults=[];this.showResults=!0}}handleProductSelect(t){this.dispatchEvent(new CustomEvent("add-item",{detail:{name:t.name,category_id:t.category_id,product_id:t.id,quantity:1,unit:t.default_unit,price:t.price,image_url:t.image_url},bubbles:!0,composed:!0})),this.searchQuery="",this.showResults=!1,this.shadowRoot.querySelector("input").blur()}handleAddCustom(){this.searchQuery.trim()&&(this.dispatchEvent(new CustomEvent("add-item",{detail:{name:this.searchQuery.trim(),category_id:"other",quantity:1,unit:"units"},bubbles:!0,composed:!0})),this.searchQuery="",this.showResults=!1)}render(){return F`
+  `}customElements.define("slm-list-header",dt);class ht extends nt{static properties={api:{type:Object},settings:{type:Object},categories:{type:Array},activeListId:{type:String},searchQuery:{type:String},searchResults:{type:Array},recentProducts:{type:Array},showResults:{type:Boolean}};constructor(){super(),this.searchQuery="",this.searchResults=[],this.recentProducts=[],this.showResults=!1}async firstUpdated(){await this.loadRecentProducts()}async loadRecentProducts(){const t=localStorage.getItem("slm_recent_products"),e=t?JSON.parse(t):[],i=this.settings?.recentProductsCount||8;this.recentProducts=e.slice(0,i)}async handleSearch(t){if(this.searchQuery=t.target.value,this.searchQuery.length<1)this.showResults=!1;else{if(this.searchQuery.length>=2){const t=await this.api.searchProducts(this.searchQuery,{limit:20});this.searchResults=t.products||[]}else this.searchResults=[];this.showResults=!0}}handleProductSelect(t){this.dispatchEvent(new CustomEvent("add-item",{detail:{name:t.name,category_id:t.category_id,product_id:t.id,quantity:1,unit:t.default_unit,price:t.price,image_url:t.image_url},bubbles:!0,composed:!0})),this.searchQuery="",this.showResults=!1,this.shadowRoot.querySelector("input").blur()}handleAddCustom(){this.searchQuery.trim()&&(this.dispatchEvent(new CustomEvent("add-item",{detail:{name:this.searchQuery.trim(),category_id:"other",quantity:1,unit:"units"},bubbles:!0,composed:!0})),this.searchQuery="",this.showResults=!1)}render(){return q`
       <div class="search-container">
         <div class="search-box">
           <span class="search-icon">🔍</span>
@@ -169,33 +169,33 @@ const $=globalThis,k=t=>t,_=$.trustedTypes,C=_?_.createPolicy("lit-html",{create
             @input=${this.handleSearch}
             @focus=${()=>this.showResults=this.searchQuery.length>0}
           />
-          ${this.searchQuery?F`
+          ${this.searchQuery?q`
             <button class="clear-btn" @click=${()=>{this.searchQuery="",this.showResults=!1}}>
               ✖
             </button>
           `:""}
         </div>
 
-        ${this.showResults?F`
+        ${this.showResults?q`
           <div class="results-dropdown">
-            ${this.searchResults.length>0?F`
-              ${this.searchResults.map(t=>F`
+            ${this.searchResults.length>0?q`
+              ${this.searchResults.map(t=>q`
                 <button class="result-item" @click=${()=>this.handleProductSelect(t)}>
-                  ${t.image_url?F`
+                  ${t.image_url?q`
                     <img src="${t.image_url}" alt="${t.name}">
-                  `:F`
+                  `:q`
                     <div class="no-image">📦</div>
                   `}
                   <div class="result-info">
                     <div class="result-name">${t.name}</div>
-                    ${t.price?F`
+                    ${t.price?q`
                       <div class="result-price">$${t.price.toFixed(2)}</div>
                     `:""}
                   </div>
                   <span class="add-icon">➕</span>
                 </button>
               `)}
-            `:F`
+            `:q`
               <button class="result-item add-custom" @click=${this.handleAddCustom}>
                 <div class="no-image">📝</div>
                 <div class="result-info">
@@ -318,7 +318,7 @@ const $=globalThis,k=t=>t,_=$.trustedTypes,C=_?_.createPolicy("lit-html",{create
       font-size: 20px;
       color: var(--primary-color);
     }
-  `}customElements.define("slm-search-bar",pt);class ht extends nt{static properties={item:{type:Object},categoryColor:{type:String},isRecentlyUsed:{type:Boolean},touchStartX:{type:Number},touchStartY:{type:Number},touchStartTime:{type:Number},longPressTimer:{type:Number},longPressTriggered:{type:Boolean}};constructor(){super(),this.isRecentlyUsed=!1,this.touchStartX=0,this.touchStartY=0,this.touchStartTime=0,this.longPressTimer=null,this.longPressTriggered=!1}handleTileClick(t){this.longPressTriggered?this.longPressTriggered=!1:t.target.closest(".decrease-btn")||t.target.closest(".quantity-badge")||this.dispatchEvent(new CustomEvent("item-check",{detail:{itemId:this.item.id,checked:!this.item.checked},bubbles:!0,composed:!0}))}handleDecrease(t){t.stopPropagation(),this.dispatchEvent(new CustomEvent("item-decrease",{detail:{itemId:this.item.id},bubbles:!0,composed:!0}))}handleQuantityClick(t){t.stopPropagation(),this.dispatchEvent(new CustomEvent("item-click",{detail:{itemId:this.item.id},bubbles:!0,composed:!0}))}handleContextMenu(t){return t.preventDefault(),t.stopPropagation(),!1}handleTouchStart(t){this.touchStartX=t.touches[0].clientX,this.touchStartY=t.touches[0].clientY,this.touchStartTime=Date.now(),this.longPressTriggered=!1,this.longPressTimer=setTimeout(()=>{this.longPressTriggered=!0,this.dispatchEvent(new CustomEvent("item-long-press",{detail:{item:this.item},bubbles:!0,composed:!0}))},500)}handleTouchMove(t){if(this.longPressTimer){const e=t.touches[0].clientX,i=t.touches[0].clientY,s=Math.abs(e-this.touchStartX),a=Math.abs(i-this.touchStartY);(s>10||a>10)&&(clearTimeout(this.longPressTimer),this.longPressTimer=null)}}handleTouchEnd(t){this.longPressTimer&&(clearTimeout(this.longPressTimer),this.longPressTimer=null)}handleMouseDown(t){if(2===t.button)return t.preventDefault(),!1;this.longPressTriggered=!1,this.longPressTimer=setTimeout(()=>{this.longPressTriggered=!0,this.dispatchEvent(new CustomEvent("item-long-press",{detail:{item:this.item},bubbles:!0,composed:!0}))},500)}handleMouseUp(t){this.longPressTimer&&(clearTimeout(this.longPressTimer),this.longPressTimer=null)}handleMouseLeave(t){this.longPressTimer&&(clearTimeout(this.longPressTimer),this.longPressTimer=null)}firstUpdated(){const t=this.shadowRoot.querySelector(".tile");t&&(t.addEventListener("touchstart",this.handleTouchStart.bind(this),{passive:!0}),t.addEventListener("touchmove",this.handleTouchMove.bind(this),{passive:!0}),t.addEventListener("touchend",this.handleTouchEnd.bind(this),{passive:!0}),t.addEventListener("contextmenu",this.handleContextMenu.bind(this)))}getCategoryEmoji(t){return{produce:"🥬",dairy:"🥛",meat:"🥩",bakery:"🍞",pantry:"🥫",frozen:"🧊",beverages:"🥤",snacks:"🍿",household:"🧹",health:"💊",pet:"🐾",baby:"👶",other:"📦"}[t]||"📦"}render(){return F`
+  `}customElements.define("slm-search-bar",ht);class pt extends nt{static properties={item:{type:Object},categoryColor:{type:String},isRecentlyUsed:{type:Boolean},touchStartX:{type:Number},touchStartY:{type:Number},touchStartTime:{type:Number},longPressTimer:{type:Number},longPressTriggered:{type:Boolean}};constructor(){super(),this.isRecentlyUsed=!1,this.touchStartX=0,this.touchStartY=0,this.touchStartTime=0,this.longPressTimer=null,this.longPressTriggered=!1}handleTileClick(t){this.longPressTriggered?this.longPressTriggered=!1:t.target.closest(".decrease-btn")||t.target.closest(".quantity-badge")||this.dispatchEvent(new CustomEvent("item-check",{detail:{itemId:this.item.id,checked:!this.item.checked},bubbles:!0,composed:!0}))}handleDecrease(t){t.stopPropagation(),this.dispatchEvent(new CustomEvent("item-decrease",{detail:{itemId:this.item.id},bubbles:!0,composed:!0}))}handleQuantityClick(t){t.stopPropagation(),this.dispatchEvent(new CustomEvent("item-click",{detail:{itemId:this.item.id},bubbles:!0,composed:!0}))}handleContextMenu(t){return t.preventDefault(),t.stopPropagation(),!1}handleTouchStart(t){this.touchStartX=t.touches[0].clientX,this.touchStartY=t.touches[0].clientY,this.touchStartTime=Date.now(),this.longPressTriggered=!1,this.longPressTimer=setTimeout(()=>{this.longPressTriggered=!0,this.dispatchEvent(new CustomEvent("item-long-press",{detail:{item:this.item},bubbles:!0,composed:!0}))},500)}handleTouchMove(t){if(this.longPressTimer){const e=t.touches[0].clientX,i=t.touches[0].clientY,s=Math.abs(e-this.touchStartX),a=Math.abs(i-this.touchStartY);(s>10||a>10)&&(clearTimeout(this.longPressTimer),this.longPressTimer=null)}}handleTouchEnd(t){this.longPressTimer&&(clearTimeout(this.longPressTimer),this.longPressTimer=null)}handleMouseDown(t){if(2===t.button)return t.preventDefault(),!1;this.longPressTriggered=!1,this.longPressTimer=setTimeout(()=>{this.longPressTriggered=!0,this.dispatchEvent(new CustomEvent("item-long-press",{detail:{item:this.item},bubbles:!0,composed:!0}))},500)}handleMouseUp(t){this.longPressTimer&&(clearTimeout(this.longPressTimer),this.longPressTimer=null)}handleMouseLeave(t){this.longPressTimer&&(clearTimeout(this.longPressTimer),this.longPressTimer=null)}firstUpdated(){const t=this.shadowRoot.querySelector(".tile");t&&(t.addEventListener("touchstart",this.handleTouchStart.bind(this),{passive:!0}),t.addEventListener("touchmove",this.handleTouchMove.bind(this),{passive:!0}),t.addEventListener("touchend",this.handleTouchEnd.bind(this),{passive:!0}),t.addEventListener("contextmenu",this.handleContextMenu.bind(this)))}getCategoryEmoji(t){return{produce:"🥬",dairy:"🥛",meat:"🥩",bakery:"🍞",pantry:"🥫",frozen:"🧊",beverages:"🥤",snacks:"🍿",household:"🧹",health:"💊",pet:"🐾",baby:"👶",other:"📦"}[t]||"📦"}render(){return q`
       <div 
         class="tile ${this.item.checked?"checked":""} ${this.isRecentlyUsed?"recently-used":""}"
         @click=${this.handleTileClick}
@@ -326,13 +326,13 @@ const $=globalThis,k=t=>t,_=$.trustedTypes,C=_?_.createPolicy("lit-html",{create
         @mouseup=${this.handleMouseUp}
         @mouseleave=${this.handleMouseLeave}
       >
-        ${this.item.checked?"":F`
+        ${this.item.checked?"":q`
           <button class="decrease-btn" @click=${this.handleDecrease}>
             <span>−</span>
           </button>
         `}
 
-        ${this.item.checked?"":F`
+        ${this.item.checked?"":q`
           <div 
             class="quantity-badge" 
             style="background: ${this.categoryColor}"
@@ -342,9 +342,9 @@ const $=globalThis,k=t=>t,_=$.trustedTypes,C=_?_.createPolicy("lit-html",{create
           </div>
         `}
 
-        ${this.item.image_url?F`
+        ${this.item.image_url?q`
           <img src="${this.item.image_url}" alt="${this.item.name}">
-        `:F`
+        `:q`
           <div class="no-image" style="background: ${this.categoryColor}15">
             <div class="emoji">${this.getCategoryEmoji(this.item.category_id)}</div>
           </div>
@@ -352,12 +352,12 @@ const $=globalThis,k=t=>t,_=$.trustedTypes,C=_?_.createPolicy("lit-html",{create
 
         <div class="info">
           <div class="name">${this.item.name}</div>
-          ${this.item.price?F`
+          ${this.item.price?q`
             <div class="price">$${(this.item.price*this.item.quantity).toFixed(2)}</div>
           `:""}
         </div>
 
-        ${this.item.checked?F`
+        ${this.item.checked?q`
           <div class="checked-overlay">
             <span class="check-icon">✓</span>
           </div>
@@ -474,7 +474,7 @@ const $=globalThis,k=t=>t,_=$.trustedTypes,C=_?_.createPolicy("lit-html",{create
       font-size: 40px;
       color: white;
     }
-  `}customElements.define("slm-item-tile",ht);class mt extends nt{static properties={items:{type:Array},categories:{type:Array},settings:{type:Object},api:{type:Object}};groupItemsByCategory(){const t={};return this.categories.forEach(e=>{t[e.id]={category:e,items:this.items.filter(t=>t.category_id===e.id&&!t.checked)}}),Object.values(t).filter(t=>t.items.length>0)}async getRecentlyUsedItems(){if(!this.api)return[];const t=localStorage.getItem("slm_recent_products"),e=t?JSON.parse(t):[],i=this.settings?.recentProductsCount||8,s=this.items.map(t=>t.product_id),a=e.filter(t=>!s.includes(t)).slice(0,i);if(0===a.length)return[];return(await Promise.all(a.map(t=>this.api.getProductSuggestions(1)))).flatMap(t=>t.products||[])}render(){const t=this.groupItemsByCategory(),e=this.getRecentlyUsedItems(),i=this.settings?.tilesPerRow||3;return F`
+  `}customElements.define("slm-item-tile",pt);class mt extends nt{static properties={items:{type:Array},categories:{type:Array},settings:{type:Object},api:{type:Object}};groupItemsByCategory(){const t={};return this.categories.forEach(e=>{t[e.id]={category:e,items:this.items.filter(t=>t.category_id===e.id&&!t.checked)}}),Object.values(t).filter(t=>t.items.length>0)}async getRecentlyUsedItems(){if(!this.api)return[];const t=localStorage.getItem("slm_recent_products"),e=t?JSON.parse(t):[],i=this.settings?.recentProductsCount||8,s=this.items.map(t=>t.product_id),a=e.filter(t=>!s.includes(t)).slice(0,i);if(0===a.length)return[];return(await Promise.all(a.map(t=>this.api.getProductSuggestions(1)))).flatMap(t=>t.products||[])}render(){const t=this.groupItemsByCategory(),e=this.getRecentlyUsedItems(),i=this.settings?.tilesPerRow||3;return q`
       <style>
         .items-grid {
           grid-template-columns: repeat(${i}, 1fr);
@@ -482,14 +482,14 @@ const $=globalThis,k=t=>t,_=$.trustedTypes,C=_?_.createPolicy("lit-html",{create
       </style>
 
       <div class="grid-container">
-        ${e.length>0?F`
+        ${e.length>0?q`
           <div class="category-section">
             <div class="category-header">
               <span class="emoji">⏱️</span>
               <span class="category-name">Recently Used</span>
             </div>
             <div class="items-grid">
-              ${e.map(t=>F`
+              ${e.map(t=>q`
                 <slm-item-tile
                   .item=${t}
                   .categoryColor=${"#b0bec5"}
@@ -505,7 +505,7 @@ const $=globalThis,k=t=>t,_=$.trustedTypes,C=_?_.createPolicy("lit-html",{create
           </div>
         `:""}
 
-        ${0===t.length&&0===e.length?F`
+        ${0===t.length&&0===e.length?q`
           <div class="empty">
             <div class="empty-emoji">🛒</div>
             <p>Your shopping list is empty</p>
@@ -513,14 +513,14 @@ const $=globalThis,k=t=>t,_=$.trustedTypes,C=_?_.createPolicy("lit-html",{create
           </div>
         `:""}
 
-        ${t.map(t=>F`
+        ${t.map(t=>q`
           <div class="category-section">
             <div class="category-header">
               <span class="emoji">${this.getCategoryEmoji(t.category.id)}</span>
               <span class="category-name">${t.category.name}</span>
             </div>
             <div class="items-grid">
-              ${t.items.map(e=>F`
+              ${t.items.map(e=>q`
                 <slm-item-tile
                   .item=${e}
                   .categoryColor=${this.getPastelColor(t.category.color)}
@@ -578,7 +578,7 @@ const $=globalThis,k=t=>t,_=$.trustedTypes,C=_?_.createPolicy("lit-html",{create
       font-size: 14px;
       opacity: 0.7;
     }
-  `}customElements.define("slm-item-grid",mt);class ut extends nt{static properties={api:{type:Object},categories:{type:Array},searchQuery:{type:String},searchResults:{type:Array},selectedProduct:{type:Object},quantity:{type:Number},customName:{type:String}};constructor(){super(),this.searchQuery="",this.searchResults=[],this.selectedProduct=null,this.quantity=1,this.customName=""}async handleSearch(t){if(this.searchQuery=t.target.value,this.searchQuery.length<2)return void(this.searchResults=[]);const e=await this.api.searchProducts(this.searchQuery,{limit:20});this.searchResults=e.products}selectProduct(t){this.selectedProduct=t,this.quantity=t.default_quantity,this.searchQuery="",this.searchResults=[]}handleAdd(){this.selectedProduct?this.dispatchEvent(new CustomEvent("add-item",{detail:{name:this.selectedProduct.name,category_id:this.selectedProduct.category_id,product_id:this.selectedProduct.id,quantity:this.quantity,unit:this.selectedProduct.default_unit,price:this.selectedProduct.price,image_url:this.selectedProduct.image_url},bubbles:!0,composed:!0})):this.customName&&this.dispatchEvent(new CustomEvent("add-item",{detail:{name:this.customName,category_id:"other",quantity:this.quantity,unit:"units"},bubbles:!0,composed:!0}))}handleClose(){this.dispatchEvent(new CustomEvent("close",{bubbles:!0,composed:!0}))}render(){return F`
+  `}customElements.define("slm-item-grid",mt);class ut extends nt{static properties={api:{type:Object},categories:{type:Array},searchQuery:{type:String},searchResults:{type:Array},selectedProduct:{type:Object},quantity:{type:Number},customName:{type:String}};constructor(){super(),this.searchQuery="",this.searchResults=[],this.selectedProduct=null,this.quantity=1,this.customName=""}async handleSearch(t){if(this.searchQuery=t.target.value,this.searchQuery.length<2)return void(this.searchResults=[]);const e=await this.api.searchProducts(this.searchQuery,{limit:20});this.searchResults=e.products}selectProduct(t){this.selectedProduct=t,this.quantity=t.default_quantity,this.searchQuery="",this.searchResults=[]}handleAdd(){this.selectedProduct?this.dispatchEvent(new CustomEvent("add-item",{detail:{name:this.selectedProduct.name,category_id:this.selectedProduct.category_id,product_id:this.selectedProduct.id,quantity:this.quantity,unit:this.selectedProduct.default_unit,price:this.selectedProduct.price,image_url:this.selectedProduct.image_url},bubbles:!0,composed:!0})):this.customName&&this.dispatchEvent(new CustomEvent("add-item",{detail:{name:this.customName,category_id:"other",quantity:this.quantity,unit:"units"},bubbles:!0,composed:!0}))}handleClose(){this.dispatchEvent(new CustomEvent("close",{bubbles:!0,composed:!0}))}render(){return q`
       <div class="overlay" @click=${this.handleClose}>
         <div class="dialog" @click=${t=>t.stopPropagation()}>
           <div class="dialog-header">
@@ -589,9 +589,9 @@ const $=globalThis,k=t=>t,_=$.trustedTypes,C=_?_.createPolicy("lit-html",{create
           </div>
 
           <div class="dialog-content">
-            ${this.selectedProduct?F`
+            ${this.selectedProduct?q`
               <div class="selected-product">
-                ${this.selectedProduct.image_url?F`
+                ${this.selectedProduct.image_url?q`
                   <img src="${this.selectedProduct.image_url}" alt="${this.selectedProduct.name}">
                 `:""}
                 <h4>${this.selectedProduct.name}</h4>
@@ -606,13 +606,13 @@ const $=globalThis,k=t=>t,_=$.trustedTypes,C=_?_.createPolicy("lit-html",{create
                   </button>
                 </div>
 
-                ${this.selectedProduct.price?F`
+                ${this.selectedProduct.price?q`
                   <div class="total-price">
                     Total: $${(this.selectedProduct.price*this.quantity).toFixed(2)}
                   </div>
                 `:""}
               </div>
-            `:F`
+            `:q`
               <div class="search-section">
                 <input
                   type="text"
@@ -622,20 +622,20 @@ const $=globalThis,k=t=>t,_=$.trustedTypes,C=_?_.createPolicy("lit-html",{create
                   autofocus
                 />
 
-                ${this.searchResults.length>0?F`
+                ${this.searchResults.length>0?q`
                   <div class="results">
-                    ${this.searchResults.map(t=>F`
+                    ${this.searchResults.map(t=>q`
                       <div class="result-item" @click=${()=>this.selectProduct(t)}>
-                        ${t.image_url?F`
+                        ${t.image_url?q`
                           <img src="${t.image_url}" alt="${t.name}">
-                        `:F`
+                        `:q`
                           <div class="no-image">
                             <ha-icon icon="mdi:food-variant"></ha-icon>
                           </div>
                         `}
                         <div class="result-info">
                           <div class="result-name">${t.name}</div>
-                          ${t.price?F`
+                          ${t.price?q`
                             <div class="result-price">$${t.price.toFixed(2)}</div>
                           `:""}
                         </div>
@@ -851,7 +851,7 @@ const $=globalThis,k=t=>t,_=$.trustedTypes,C=_?_.createPolicy("lit-html",{create
       opacity: 0.5;
       cursor: not-allowed;
     }
-  `}customElements.define("slm-add-item-dialog",ut);class gt extends nt{static properties={api:{type:Object},item:{type:Object},categories:{type:Array},editedItem:{type:Object}};constructor(){super(),this.editedItem={}}updated(t){t.has("item")&&this.item&&(this.editedItem={name:this.item.name,quantity:this.item.quantity,unit:this.item.unit,notes:this.item.notes||""})}handleSave(){this.dispatchEvent(new CustomEvent("save-item",{detail:{itemId:this.item.id,data:this.editedItem},bubbles:!0,composed:!0}))}handleDelete(){confirm(`Delete ${this.item.name}?`)&&this.dispatchEvent(new CustomEvent("delete-item",{detail:{itemId:this.item.id},bubbles:!0,composed:!0}))}handleDuplicate(){alert("Duplicate feature coming soon")}handleClose(){this.dispatchEvent(new CustomEvent("close",{bubbles:!0,composed:!0}))}render(){return this.item?F`
+  `}customElements.define("slm-add-item-dialog",ut);class gt extends nt{static properties={api:{type:Object},item:{type:Object},categories:{type:Array},editedItem:{type:Object}};constructor(){super(),this.editedItem={}}updated(t){t.has("item")&&this.item&&(this.editedItem={name:this.item.name,quantity:this.item.quantity,unit:this.item.unit,notes:this.item.notes||""})}handleSave(){this.dispatchEvent(new CustomEvent("save-item",{detail:{itemId:this.item.id,data:this.editedItem},bubbles:!0,composed:!0}))}handleDelete(){confirm(`Delete ${this.item.name}?`)&&this.dispatchEvent(new CustomEvent("delete-item",{detail:{itemId:this.item.id},bubbles:!0,composed:!0}))}handleDuplicate(){alert("Duplicate feature coming soon")}handleClose(){this.dispatchEvent(new CustomEvent("close",{bubbles:!0,composed:!0}))}render(){return this.item?q`
       <div class="overlay" @click=${this.handleClose}>
         <div class="dialog" @click=${t=>t.stopPropagation()}>
           <div class="dialog-header">
@@ -892,7 +892,7 @@ const $=globalThis,k=t=>t,_=$.trustedTypes,C=_?_.createPolicy("lit-html",{create
               </div>
             </div>
 
-            ${this.item.price?F`
+            ${this.item.price?q`
               <div class="price-info">
                 <span>Total:</span>
                 <span class="price-value">$${(this.item.price*(this.editedItem.quantity||1)).toFixed(2)}</span>
@@ -923,7 +923,7 @@ const $=globalThis,k=t=>t,_=$.trustedTypes,C=_?_.createPolicy("lit-html",{create
           </div>
         </div>
       </div>
-    `:F``}static styles=o`
+    `:q``}static styles=o`
     .overlay {
       position: fixed;
       top: 0;
@@ -1059,13 +1059,13 @@ const $=globalThis,k=t=>t,_=$.trustedTypes,C=_?_.createPolicy("lit-html",{create
     .action-btn:active {
       transform: scale(0.97);
     }
-  `}customElements.define("slm-edit-item-dialog",gt);class bt extends nt{static properties={list:{type:Object},isActive:{type:Boolean},itemCount:{type:Number},totalCost:{type:Number},currency:{type:String},emoji:{type:String},showMenu:{type:Boolean},menuX:{type:Number},menuY:{type:Number}};constructor(){super(),this.showMenu=!1,this.itemCount=0,this.totalCost=0,this.currency="NZD",this.menuX=0,this.menuY=0}getColorClass(){return`color-${parseInt(this.list.id.slice(-1),16)%6}`}dimColor(t){return`rgba(${parseInt(t.slice(1,3),16)}, ${parseInt(t.slice(3,5),16)}, ${parseInt(t.slice(5,7),16)}, 0.5)`}handleCardClick(t){t.target.closest(".menu-btn")||this.dispatchEvent(new CustomEvent("list-select",{detail:{listId:this.list.id},bubbles:!0,composed:!0}))}handleMenuClick(t){t.stopPropagation();const e=t.target.closest(".menu-btn").getBoundingClientRect();this.menuX=e.right-160,this.menuY=e.bottom+5,this.showMenu=!this.showMenu}handleAction(t,e){e.stopPropagation(),this.showMenu=!1,this.dispatchEvent(new CustomEvent("list-action",{detail:{action:t,listId:this.list.id},bubbles:!0,composed:!0}))}render(){return F`
+  `}customElements.define("slm-edit-item-dialog",gt);class bt extends nt{static properties={list:{type:Object},isActive:{type:Boolean},itemCount:{type:Number},totalCost:{type:Number},currency:{type:String},emoji:{type:String},showMenu:{type:Boolean},menuX:{type:Number},menuY:{type:Number}};constructor(){super(),this.showMenu=!1,this.itemCount=0,this.totalCost=0,this.currency="NZD",this.menuX=0,this.menuY=0}getColorClass(){return`color-${parseInt(this.list.id.slice(-1),16)%6}`}dimColor(t){return`rgba(${parseInt(t.slice(1,3),16)}, ${parseInt(t.slice(3,5),16)}, ${parseInt(t.slice(5,7),16)}, 0.5)`}handleCardClick(t){t.target.closest(".menu-btn")||this.dispatchEvent(new CustomEvent("list-select",{detail:{listId:this.list.id},bubbles:!0,composed:!0}))}handleMenuClick(t){t.stopPropagation();const e=t.target.closest(".menu-btn").getBoundingClientRect();this.menuX=e.right-160,this.menuY=e.bottom+5,this.showMenu=!this.showMenu}handleAction(t,e){e.stopPropagation(),this.showMenu=!1,this.dispatchEvent(new CustomEvent("list-action",{detail:{action:t,listId:this.list.id},bubbles:!0,composed:!0}))}render(){return q`
       <div 
         class="list-card ${this.isActive?"active":"inactive"} ${this.getColorClass()}"
         @click=${this.handleCardClick}
       >
 
-        ${this.isActive?F`
+        ${this.isActive?q`
           <div class="active-badge">Active</div>
         `:""}
 
@@ -1085,7 +1085,7 @@ const $=globalThis,k=t=>t,_=$.trustedTypes,C=_?_.createPolicy("lit-html",{create
           <ha-icon icon="mdi:dots-vertical"></ha-icon>
         </button>
 
-        ${this.showMenu?F`
+        ${this.showMenu?q`
           <div class="menu-overlay" @click=${t=>{t.stopPropagation(),this.showMenu=!1}}>
             <div class="menu-popup" style="left: ${this.menuX}px; top: ${this.menuY}px;">
               <button @click=${t=>this.handleAction("rename",t)}>
@@ -1258,7 +1258,7 @@ const $=globalThis,k=t=>t,_=$.trustedTypes,C=_?_.createPolicy("lit-html",{create
     .menu-popup ha-icon {
       --mdc-icon-size: 20px;
     }
-  `}customElements.define("slm-list-card",bt);class vt extends nt{static properties={api:{type:Object},lists:{type:Array},activeList:{type:Object},items:{type:Array},total:{type:Object},listTotals:{type:Object},showCreateDialog:{type:Boolean},newListName:{type:String},newListIcon:{type:String}};constructor(){super(),this.lists=[],this.showCreateDialog=!1,this.listTotals={},this.newListName="",this.newListIcon="mdi:cart"}handleCreateList(){this.showCreateDialog=!0}async loadTotals(){if(!this.api||!this.lists?.length)return;const t={};await Promise.all(this.lists.map(async e=>{try{const i=await this.api.getListTotal(e.id);t[e.id]=i}catch(t){console.error("Failed to load total for list",e.id,t)}})),this.listTotals=t}async handleSaveNewList(){this.newListName.trim()&&(await this.api.createList(this.newListName,this.newListIcon),this.showCreateDialog=!1,this.newListName="",this.newListIcon="mdi:cart",this.dispatchEvent(new CustomEvent("lists-updated",{bubbles:!0,composed:!0})))}handleListSelect(t){this.dispatchEvent(new CustomEvent("list-selected",{detail:t.detail,bubbles:!0,composed:!0}))}async handleListAction(t){const{action:e,listId:i}=t.detail;switch(e){case"rename":const t=prompt("Enter new list name:");t&&(await this.api.updateList(i,{name:t}),this.dispatchEvent(new CustomEvent("lists-updated",{bubbles:!0,composed:!0})));break;case"delete":confirm("Delete this list?")&&(await this.api.deleteList(i),this.dispatchEvent(new CustomEvent("lists-updated",{bubbles:!0,composed:!0})));break;case"share":alert("Share feature coming soon!");break;case"copy":alert("Copy feature coming soon!")}}getListEmoji(t){return{"mdi:cart":"🛒","mdi:home":"🏠","mdi:food":"🍽️","mdi:shopping":"🛍️","mdi:store":"🏪"}[t]||"🛒"}updated(t){t.has("lists")&&this.loadTotals()}render(){return F`
+  `}customElements.define("slm-list-card",bt);class vt extends nt{static properties={api:{type:Object},lists:{type:Array},activeList:{type:Object},items:{type:Array},total:{type:Object},listTotals:{type:Object},showCreateDialog:{type:Boolean},newListName:{type:String},newListIcon:{type:String}};constructor(){super(),this.lists=[],this.showCreateDialog=!1,this.listTotals={},this.newListName="",this.newListIcon="mdi:cart"}handleCreateList(){this.showCreateDialog=!0}async loadTotals(){if(!this.api||!this.lists?.length)return;const t={};await Promise.all(this.lists.map(async e=>{try{const i=await this.api.getListTotal(e.id);t[e.id]=i}catch(t){console.error("Failed to load total for list",e.id,t)}})),this.listTotals=t}async handleSaveNewList(){this.newListName.trim()&&(await this.api.createList(this.newListName,this.newListIcon),this.showCreateDialog=!1,this.newListName="",this.newListIcon="mdi:cart",this.dispatchEvent(new CustomEvent("lists-updated",{bubbles:!0,composed:!0})))}handleListSelect(t){this.dispatchEvent(new CustomEvent("list-selected",{detail:t.detail,bubbles:!0,composed:!0}))}async handleListAction(t){const{action:e,listId:i}=t.detail;switch(e){case"rename":const t=prompt("Enter new list name:");t&&(await this.api.updateList(i,{name:t}),this.dispatchEvent(new CustomEvent("lists-updated",{bubbles:!0,composed:!0})));break;case"delete":confirm("Delete this list?")&&(await this.api.deleteList(i),this.dispatchEvent(new CustomEvent("lists-updated",{bubbles:!0,composed:!0})));break;case"share":alert("Share feature coming soon!");break;case"copy":alert("Copy feature coming soon!")}}getListEmoji(t){return{"mdi:cart":"🛒","mdi:home":"🏠","mdi:food":"🍽️","mdi:shopping":"🛍️","mdi:store":"🏪"}[t]||"🛒"}updated(t){t.has("lists")&&this.loadTotals()}render(){return q`
       <div class="lists-view">
         <div class="header">
           <h2>My Lists</h2>
@@ -1268,7 +1268,7 @@ const $=globalThis,k=t=>t,_=$.trustedTypes,C=_?_.createPolicy("lit-html",{create
           </button>
         </div>
 
-        ${0===this.lists.length?F`
+        ${0===this.lists.length?q`
           <div class="empty">
             <div class="empty-emoji">📋</div>
             <p>No lists yet</p>
@@ -1278,9 +1278,9 @@ const $=globalThis,k=t=>t,_=$.trustedTypes,C=_?_.createPolicy("lit-html",{create
               Create List
             </button>
           </div>
-        `:F`
+        `:q`
           <div class="lists-grid">
-            ${this.lists.map(t=>F`
+            ${this.lists.map(t=>q`
               <slm-list-card
                 .list=${t}
                 .isActive=${t.id===this.activeList?.id}
@@ -1298,7 +1298,7 @@ const $=globalThis,k=t=>t,_=$.trustedTypes,C=_?_.createPolicy("lit-html",{create
           </div>
         `}
 
-        ${this.showCreateDialog?F`
+        ${this.showCreateDialog?q`
           <div class="overlay" @click=${()=>this.showCreateDialog=!1}>
             <div class="dialog" @click=${t=>t.stopPropagation()}>
               <div class="dialog-header">
@@ -1319,7 +1319,7 @@ const $=globalThis,k=t=>t,_=$.trustedTypes,C=_?_.createPolicy("lit-html",{create
 
                 <label>Icon</label>
                 <div class="icon-picker">
-                  ${["mdi:cart","mdi:home","mdi:food","mdi:shopping","mdi:store"].map(t=>F`
+                  ${["mdi:cart","mdi:home","mdi:food","mdi:shopping","mdi:store"].map(t=>q`
                     <button
                       class="icon-option ${this.newListIcon===t?"selected":""}"
                       @click=${()=>this.newListIcon=t}
@@ -1517,7 +1517,7 @@ const $=globalThis,k=t=>t,_=$.trustedTypes,C=_?_.createPolicy("lit-html",{create
       background: var(--primary-color);
       color: white;
     }
-  `}customElements.define("slm-lists-view",vt);class yt extends nt{static properties={api:{type:Object},cards:{type:Array},showAddDialog:{type:Boolean},showEditDialog:{type:Boolean},showFullscreenCard:{type:Boolean},editingCard:{type:Object},fullscreenCard:{type:Object},newCard:{type:Object}};constructor(){super(),this.cards=[],this.showAddDialog=!1,this.showEditDialog=!1,this.showFullscreenCard=!1,this.editingCard=null,this.fullscreenCard=null,this.newCard={name:"",number:"",barcode:"",logo:"",notes:"",color:"#9fa8da"},this.loadCards()}loadCards(){const t=localStorage.getItem("slm_loyalty_cards");this.cards=t?JSON.parse(t):[]}saveCards(){localStorage.setItem("slm_loyalty_cards",JSON.stringify(this.cards))}handleAddCard(){this.newCard={name:"",number:"",barcode:"",logo:"",notes:"",color:"#9fa8da"},this.showAddDialog=!0}handleSaveNewCard(t){t.preventDefault();const e=new FormData(t.target),i={id:Date.now().toString(),name:e.get("name"),number:e.get("number"),barcode:e.get("barcode")||this.generateBarcode(e.get("number")),logo:e.get("logo")||"",notes:e.get("notes")||"",color:e.get("color")||"#9fa8da"};this.cards=[...this.cards,i],this.saveCards(),this.showAddDialog=!1}handleEditCard(t){this.editingCard={...t},this.showEditDialog=!0}handleSaveEditCard(t){t.preventDefault();const e=new FormData(t.target),i={...this.editingCard,name:e.get("name"),number:e.get("number"),barcode:e.get("barcode")||this.generateBarcode(e.get("number")),logo:e.get("logo")||"",notes:e.get("notes")||"",color:e.get("color")};this.cards=this.cards.map(t=>t.id===i.id?i:t),this.saveCards(),this.showEditDialog=!1,this.editingCard=null}handleDeleteCard(t){confirm("Delete this loyalty card?")&&(this.cards=this.cards.filter(e=>e.id!==t),this.saveCards(),this.showEditDialog=!1,this.editingCard=null)}handleDuplicateCard(t){const e={...t,id:Date.now().toString(),name:`${t.name} (Copy)`};this.cards=[...this.cards,e],this.saveCards()}handleCardClick(t){this.fullscreenCard=t,this.showFullscreenCard=!0}generateBarcode(t){return t.replace(/\D/g,"")}render(){return F`
+  `}customElements.define("slm-lists-view",vt);class xt extends nt{static properties={api:{type:Object},cards:{type:Array},showAddDialog:{type:Boolean},showEditDialog:{type:Boolean},showFullscreenCard:{type:Boolean},editingCard:{type:Object},fullscreenCard:{type:Object},newCard:{type:Object}};constructor(){super(),this.cards=[],this.showAddDialog=!1,this.showEditDialog=!1,this.showFullscreenCard=!1,this.editingCard=null,this.fullscreenCard=null,this.newCard={name:"",number:"",barcode:"",logo:"",notes:"",color:"#9fa8da"},this.loadCards()}loadCards(){const t=localStorage.getItem("slm_loyalty_cards");this.cards=t?JSON.parse(t):[]}saveCards(){localStorage.setItem("slm_loyalty_cards",JSON.stringify(this.cards))}handleAddCard(){this.newCard={name:"",number:"",barcode:"",logo:"",notes:"",color:"#9fa8da"},this.showAddDialog=!0}handleSaveNewCard(t){t.preventDefault();const e=new FormData(t.target),i={id:Date.now().toString(),name:e.get("name"),number:e.get("number"),barcode:e.get("barcode")||this.generateBarcode(e.get("number")),logo:e.get("logo")||"",notes:e.get("notes")||"",color:e.get("color")||"#9fa8da"};this.cards=[...this.cards,i],this.saveCards(),this.showAddDialog=!1}handleEditCard(t){this.editingCard={...t},this.showEditDialog=!0}handleSaveEditCard(t){t.preventDefault();const e=new FormData(t.target),i={...this.editingCard,name:e.get("name"),number:e.get("number"),barcode:e.get("barcode")||this.generateBarcode(e.get("number")),logo:e.get("logo")||"",notes:e.get("notes")||"",color:e.get("color")};this.cards=this.cards.map(t=>t.id===i.id?i:t),this.saveCards(),this.showEditDialog=!1,this.editingCard=null}handleDeleteCard(t){confirm("Delete this loyalty card?")&&(this.cards=this.cards.filter(e=>e.id!==t),this.saveCards(),this.showEditDialog=!1,this.editingCard=null)}handleDuplicateCard(t){const e={...t,id:Date.now().toString(),name:`${t.name} (Copy)`};this.cards=[...this.cards,e],this.saveCards()}handleCardClick(t){this.fullscreenCard=t,this.showFullscreenCard=!0}generateBarcode(t){return t.replace(/\D/g,"")}render(){return q`
       <div class="loyalty-view">
         <div class="header">
           <h2>Loyalty Cards</h2>
@@ -1526,27 +1526,27 @@ const $=globalThis,k=t=>t,_=$.trustedTypes,C=_?_.createPolicy("lit-html",{create
           </button>
         </div>
 
-        ${0===this.cards.length?F`
+        ${0===this.cards.length?q`
           <div class="empty">
             <div class="empty-emoji">💳</div>
             <p>No loyalty cards yet</p>
             <p class="hint">Add your store loyalty cards for quick access</p>
           </div>
-        `:F`
+        `:q`
           <div class="cards-grid">
-            ${this.cards.map(t=>F`
+            ${this.cards.map(t=>q`
               <div class="loyalty-card" style="background: ${t.color}">
                 <button class="menu-btn" @click=${e=>{e.stopPropagation(),this.handleEditCard(t)}}>
                   <ha-icon icon="mdi:dots-vertical"></ha-icon>
                 </button>
                 
                 <div class="card-body" @click=${()=>this.handleCardClick(t)}>
-                  ${t.logo?F`
+                  ${t.logo?q`
                     <img src="${t.logo}" alt="${t.name}" class="card-logo">
                   `:""}
                   <h3>${t.name}</h3>
                   <div class="card-number">${t.number}</div>
-                  ${t.barcode?F`
+                  ${t.barcode?q`
                     <div class="barcode-preview">
                       <ha-icon icon="mdi:barcode"></ha-icon>
                       <span>${t.barcode}</span>
@@ -1562,7 +1562,7 @@ const $=globalThis,k=t=>t,_=$.trustedTypes,C=_?_.createPolicy("lit-html",{create
         ${this.showEditDialog?this.renderDialog(!0):""}
         ${this.showFullscreenCard?this.renderFullscreen():""}
       </div>
-    `}renderDialog(t){const e=t?this.editingCard:this.newCard;return F`
+    `}renderDialog(t){const e=t?this.editingCard:this.newCard;return q`
       <div class="overlay" @click=${()=>t?this.showEditDialog=!1:this.showAddDialog=!1}>
         <form class="dialog" @click=${t=>t.stopPropagation()} @submit=${t?this.handleSaveEditCard:this.handleSaveNewCard}>
           <div class="dialog-header">
@@ -1598,7 +1598,7 @@ const $=globalThis,k=t=>t,_=$.trustedTypes,C=_?_.createPolicy("lit-html",{create
             </label>
           </div>
           <div class="dialog-footer">
-            ${t?F`
+            ${t?q`
               <button type="button" class="action-btn secondary" @click=${()=>this.handleDuplicateCard(e)}>
                 Duplicate
               </button>
@@ -1612,12 +1612,12 @@ const $=globalThis,k=t=>t,_=$.trustedTypes,C=_?_.createPolicy("lit-html",{create
           </div>
         </form>
       </div>
-    `}renderFullscreen(){const t=this.fullscreenCard;return F`
+    `}renderFullscreen(){const t=this.fullscreenCard;return q`
       <div class="fullscreen-overlay" @click=${()=>this.showFullscreenCard=!1}>
         <div class="fullscreen-card">
           <h2>${t.name}</h2>
           <div class="fullscreen-number">${t.number}</div>
-          ${t.barcode?F`
+          ${t.barcode?q`
             <div class="fullscreen-barcode">
               <div class="barcode-display">
                 ${this.renderBarcodeImage(t.barcode)}
@@ -1628,9 +1628,9 @@ const $=globalThis,k=t=>t,_=$.trustedTypes,C=_?_.createPolicy("lit-html",{create
           <p class="tap-hint">Tap anywhere to close</p>
         </div>
       </div>
-    `}renderBarcodeImage(t){return F`
+    `}renderBarcodeImage(t){return q`
       <svg class="barcode-svg" viewBox="0 0 200 80">
-        ${t.split("").map((t,e)=>F`
+        ${t.split("").map((t,e)=>q`
           <rect x="${15*e}" y="0" width="${parseInt(t)+3}" height="80" fill="black"></rect>
         `)}
       </svg>
@@ -1906,7 +1906,7 @@ const $=globalThis,k=t=>t,_=$.trustedTypes,C=_?_.createPolicy("lit-html",{create
       opacity: 0.7;
       font-size: 14px;
     }
-  `}customElements.define("slm-loyalty-cards-view",yt);class xt extends nt{static properties={hass:{type:Object}};render(){return F`
+  `}customElements.define("slm-loyalty-cards-view",xt);class yt extends nt{static properties={hass:{type:Object}};render(){return q`
       <div class="slm-profile-settings">
         <div class="header">
           <button class="back-btn" @click=${()=>this.dispatchEvent(new Event("back"))}>
@@ -2014,7 +2014,7 @@ const $=globalThis,k=t=>t,_=$.trustedTypes,C=_?_.createPolicy("lit-html",{create
       font-size: 14px;
       text-align: center;
     }
-  `}customElements.define("slm-profile-settings",xt);class ft extends nt{static properties={currentMode:{type:String}};handleSelect(t){this.dispatchEvent(new CustomEvent("mode-selected",{detail:{mode:t},bubbles:!0,composed:!0}))}render(){return F`
+  `}customElements.define("slm-profile-settings",yt);class ft extends nt{static properties={currentMode:{type:String}};handleSelect(t){this.dispatchEvent(new CustomEvent("mode-selected",{detail:{mode:t},bubbles:!0,composed:!0}))}render(){return q`
       <div class="overlay" @click=${()=>this.dispatchEvent(new Event("close"))}>
         <div class="popup" @click=${t=>t.stopPropagation()}>
           <div class="popup-header">
@@ -2028,7 +2028,7 @@ const $=globalThis,k=t=>t,_=$.trustedTypes,C=_?_.createPolicy("lit-html",{create
             >
               <ha-icon icon="mdi:weather-night"></ha-icon>
               <span>On</span>
-              ${"on"===this.currentMode?F`
+              ${"on"===this.currentMode?q`
                 <ha-icon class="check" icon="mdi:check"></ha-icon>
               `:""}
             </button>
@@ -2039,7 +2039,7 @@ const $=globalThis,k=t=>t,_=$.trustedTypes,C=_?_.createPolicy("lit-html",{create
             >
               <ha-icon icon="mdi:weather-sunny"></ha-icon>
               <span>Off</span>
-              ${"off"===this.currentMode?F`
+              ${"off"===this.currentMode?q`
                 <ha-icon class="check" icon="mdi:check"></ha-icon>
               `:""}
             </button>
@@ -2050,7 +2050,7 @@ const $=globalThis,k=t=>t,_=$.trustedTypes,C=_?_.createPolicy("lit-html",{create
             >
               <ha-icon icon="mdi:cellphone"></ha-icon>
               <span>As on Device</span>
-              ${"system"===this.currentMode?F`
+              ${"system"===this.currentMode?q`
                 <ha-icon class="check" icon="mdi:check"></ha-icon>
               `:""}
             </button>
@@ -2122,7 +2122,7 @@ const $=globalThis,k=t=>t,_=$.trustedTypes,C=_?_.createPolicy("lit-html",{create
     .mode-option .check {
       color: white;
     }
-  `}customElements.define("slm-dark-mode-popup",ft);class wt extends nt{static properties={currentFont:{type:String}};fonts=[{name:"System Default",value:"system"},{name:"Roboto",value:"Roboto, sans-serif"},{name:"Open Sans",value:'"Open Sans", sans-serif'},{name:"Lato",value:"Lato, sans-serif"},{name:"Montserrat",value:"Montserrat, sans-serif"},{name:"Inter",value:"Inter, sans-serif"}];handleSelect(t){this.dispatchEvent(new CustomEvent("font-selected",{detail:{font:t},bubbles:!0,composed:!0}))}render(){return F`
+  `}customElements.define("slm-dark-mode-popup",ft);class wt extends nt{static properties={currentFont:{type:String}};fonts=[{name:"System Default",value:"system"},{name:"Roboto",value:"Roboto, sans-serif"},{name:"Open Sans",value:'"Open Sans", sans-serif'},{name:"Lato",value:"Lato, sans-serif"},{name:"Montserrat",value:"Montserrat, sans-serif"},{name:"Inter",value:"Inter, sans-serif"}];handleSelect(t){this.dispatchEvent(new CustomEvent("font-selected",{detail:{font:t},bubbles:!0,composed:!0}))}render(){return q`
       <div class="overlay" @click=${()=>this.dispatchEvent(new Event("close"))}>
         <div class="popup" @click=${t=>t.stopPropagation()}>
           <div class="popup-header">
@@ -2130,14 +2130,14 @@ const $=globalThis,k=t=>t,_=$.trustedTypes,C=_?_.createPolicy("lit-html",{create
           </div>
 
           <div class="popup-content">
-            ${this.fonts.map(t=>F`
+            ${this.fonts.map(t=>q`
               <button 
                 class="font-option ${this.currentFont===t.value?"selected":""}"
                 style="font-family: ${t.value}"
                 @click=${()=>this.handleSelect(t.value)}
               >
                 <span>${t.name}</span>
-                ${this.currentFont===t.value?F`
+                ${this.currentFont===t.value?q`
                   <ha-icon class="check" icon="mdi:check"></ha-icon>
                 `:""}
               </button>
@@ -2205,7 +2205,7 @@ const $=globalThis,k=t=>t,_=$.trustedTypes,C=_?_.createPolicy("lit-html",{create
     .font-option span {
       font-weight: 600;
     }
-  `}customElements.define("font-settings",wt);class $t extends nt{static properties={settings:{type:Object},showDarkModePopup:{type:Boolean},showFontSettings:{type:Boolean}};constructor(){super(),this.showDarkModePopup=!1,this.showFontSettings=!1}handleSettingChange(t,e){this.dispatchEvent(new CustomEvent("settings-changed",{detail:{[t]:e},bubbles:!0,composed:!0}))}render(){return F`
+  `}customElements.define("font-settings",wt);class $t extends nt{static properties={settings:{type:Object},showDarkModePopup:{type:Boolean},showFontSettings:{type:Boolean}};constructor(){super(),this.showDarkModePopup=!1,this.showFontSettings=!1}handleSettingChange(t,e){this.dispatchEvent(new CustomEvent("settings-changed",{detail:{[t]:e},bubbles:!0,composed:!0}))}render(){return q`
       <div class="appearance-settings">
         <div class="header">
           <button class="back-btn" @click=${()=>this.dispatchEvent(new Event("back"))}>
@@ -2267,7 +2267,7 @@ const $=globalThis,k=t=>t,_=$.trustedTypes,C=_?_.createPolicy("lit-html",{create
             <div class="item-content full-width">
               <div class="item-title">Tiles Per Row</div>
               <div class="tile-options">
-                ${[2,3,4,5].map(t=>F`
+                ${[2,3,4,5].map(t=>q`
                   <button 
                     class="tile-option ${this.settings.tilesPerRow===t?"selected":""}"
                     @click=${()=>this.handleSettingChange("tilesPerRow",t)}
@@ -2313,7 +2313,7 @@ const $=globalThis,k=t=>t,_=$.trustedTypes,C=_?_.createPolicy("lit-html",{create
             </label>
           </div>
 
-          ${this.settings.useSystemTextSize?"":F`
+          ${this.settings.useSystemTextSize?"":q`
             <div class="settings-item">
               <div class="item-content full-width">
                 <div class="item-title">Font Size</div>
@@ -2339,7 +2339,7 @@ const $=globalThis,k=t=>t,_=$.trustedTypes,C=_?_.createPolicy("lit-html",{create
           </button>
         </div>
 
-        ${this.showDarkModePopup?F`
+        ${this.showDarkModePopup?q`
           <slm-dark-mode-popup
             .currentMode=${this.settings.darkMode}
             @mode-selected=${t=>{this.handleSettingChange("darkMode",t.detail.mode),this.showDarkModePopup=!1}}
@@ -2347,7 +2347,7 @@ const $=globalThis,k=t=>t,_=$.trustedTypes,C=_?_.createPolicy("lit-html",{create
           ></slm-dark-mode-popup>
         `:""}
 
-        ${this.showFontSettings?F`
+        ${this.showFontSettings?q`
           <slm-font-settings
             .currentFont=${this.settings.fontFamily}
             @font-selected=${t=>{this.handleSettingChange("fontFamily",t.detail.font),this.showFontSettings=!1}}
@@ -2496,7 +2496,7 @@ const $=globalThis,k=t=>t,_=$.trustedTypes,C=_?_.createPolicy("lit-html",{create
     input:checked + .slider:before {
       transform: translateX(22px);
     }
-  `}customElements.define("slm-appearance-settings",$t);class kt extends nt{static properties={settings:{type:Object}};handleSettingChange(t,e){const i={...this.settings.notifications,[t]:e};this.dispatchEvent(new CustomEvent("settings-changed",{detail:{notifications:i},bubbles:!0,composed:!0}))}render(){return F`
+  `}customElements.define("slm-appearance-settings",$t);class kt extends nt{static properties={settings:{type:Object}};handleSettingChange(t,e){const i={...this.settings.notifications,[t]:e};this.dispatchEvent(new CustomEvent("settings-changed",{detail:{notifications:i},bubbles:!0,composed:!0}))}render(){return q`
       <div class="slm-notification-settings">
         <div class="header">
           <button class="back-btn" @click=${()=>this.dispatchEvent(new Event("back"))}>
@@ -2626,7 +2626,7 @@ const $=globalThis,k=t=>t,_=$.trustedTypes,C=_?_.createPolicy("lit-html",{create
     input:checked + .slider:before {
       transform: translateX(22px);
     }
-  `}customElements.define("slm-notification-settings",kt);class _t extends nt{static properties={api:{type:Object},categories:{type:Array},showAddDialog:{type:Boolean},newCategory:{type:Object}};constructor(){super(),this.showAddDialog=!1,this.newCategory={name:"",icon:"mdi:shape",color:"#4CAF50"}}handleAddCategory(){this.showAddDialog=!0}async handleSaveCategory(){this.newCategory.name.trim()&&(alert("Category management coming soon!"),this.showAddDialog=!1,this.newCategory={name:"",icon:"mdi:shape",color:"#4CAF50"})}render(){return F`
+  `}customElements.define("slm-notification-settings",kt);class _t extends nt{static properties={api:{type:Object},categories:{type:Array},showAddDialog:{type:Boolean},newCategory:{type:Object}};constructor(){super(),this.showAddDialog=!1,this.newCategory={name:"",icon:"mdi:shape",color:"#4CAF50"}}handleAddCategory(){this.showAddDialog=!0}async handleSaveCategory(){this.newCategory.name.trim()&&(alert("Category management coming soon!"),this.showAddDialog=!1,this.newCategory={name:"",icon:"mdi:shape",color:"#4CAF50"})}render(){return q`
       <div class="slm-category-settings">
         <div class="header">
           <button class="back-btn" @click=${()=>this.dispatchEvent(new Event("back"))}>
@@ -2647,7 +2647,7 @@ const $=globalThis,k=t=>t,_=$.trustedTypes,C=_?_.createPolicy("lit-html",{create
         </div>
 
         <div class="categories-list">
-          ${this.categories.map(t=>F`
+          ${this.categories.map(t=>q`
             <div class="category-item">
               <div class="category-icon" style="background: ${t.color}">
                 <ha-icon icon="${t.icon}"></ha-icon>
@@ -2662,7 +2662,7 @@ const $=globalThis,k=t=>t,_=$.trustedTypes,C=_?_.createPolicy("lit-html",{create
           `)}
         </div>
 
-        ${this.showAddDialog?F`
+        ${this.showAddDialog?q`
           <div class="overlay" @click=${()=>this.showAddDialog=!1}>
             <div class="dialog" @click=${t=>t.stopPropagation()}>
               <div class="dialog-header">
@@ -2860,7 +2860,7 @@ const $=globalThis,k=t=>t,_=$.trustedTypes,C=_?_.createPolicy("lit-html",{create
       background: var(--primary-color);
       color: white;
     }
-  `}customElements.define("slm-category-settings",_t);class Ct extends nt{render(){return F`
+  `}customElements.define("slm-category-settings",_t);class Ct extends nt{render(){return q`
       <div class="slm-support-settings">
         <div class="header">
           <button class="back-btn" @click=${()=>this.dispatchEvent(new Event("back"))}>
@@ -2993,7 +2993,7 @@ const $=globalThis,k=t=>t,_=$.trustedTypes,C=_?_.createPolicy("lit-html",{create
       font-size: 14px;
       color: var(--secondary-text-color);
     }
-  `}customElements.define("slm-support-settings",Ct);class St extends nt{static properties={hass:{type:Object},api:{type:Object},settings:{type:Object},categories:{type:Array},currentSection:{type:String}};constructor(){super(),this.currentSection="main"}handleSettingChange(t,e){this.dispatchEvent(new CustomEvent("settings-changed",{detail:{[t]:e},bubbles:!0,composed:!0}))}handleNavigation(t){this.currentSection=t}renderMainSettings(){return F`
+  `}customElements.define("slm-support-settings",Ct);class St extends nt{static properties={hass:{type:Object},api:{type:Object},settings:{type:Object},categories:{type:Array},currentSection:{type:String}};constructor(){super(),this.currentSection="main"}handleSettingChange(t,e){this.dispatchEvent(new CustomEvent("settings-changed",{detail:{[t]:e},bubbles:!0,composed:!0}))}handleNavigation(t){this.currentSection=t}renderMainSettings(){return q`
       <div class="settings-main">
         <div class="settings-header">
           <h2>Settings</h2>
@@ -3107,30 +3107,30 @@ const $=globalThis,k=t=>t,_=$.trustedTypes,C=_?_.createPolicy("lit-html",{create
           </div>
         </div>
       </div>
-    `}render(){switch(this.currentSection){case"profile":return F`
+    `}render(){switch(this.currentSection){case"profile":return q`
           <slm-profile-settings
             .hass=${this.hass}
             @back=${()=>this.currentSection="main"}
           ></slm-profile-settings>
-        `;case"appearance":return F`
+        `;case"appearance":return q`
           <slm-appearance-settings
             .settings=${this.settings}
             @settings-changed=${t=>this.dispatchEvent(t)}
             @back=${()=>this.currentSection="main"}
           ></slm-appearance-settings>
-        `;case"notifications":return F`
+        `;case"notifications":return q`
           <slm-notification-settings
             .settings=${this.settings}
             @settings-changed=${t=>this.dispatchEvent(t)}
             @back=${()=>this.currentSection="main"}
           ></slm-notification-settings>
-        `;case"categories":return F`
+        `;case"categories":return q`
           <slm-category-settings
             .api=${this.api}
             .categories=${this.categories}
             @back=${()=>this.currentSection="main"}
           ></slm-category-settings>
-        `;case"support":return F`
+        `;case"support":return q`
           <slm-support-settings
             @back=${()=>this.currentSection="main"}
           ></slm-support-settings>
@@ -3241,7 +3241,7 @@ const $=globalThis,k=t=>t,_=$.trustedTypes,C=_?_.createPolicy("lit-html",{create
     input:checked + .slider:before {
       transform: translateX(22px);
     }
-  `}customElements.define("slm-settings-view",St);class At extends nt{static properties={hass:{type:Object},config:{type:Object},currentView:{type:String},lists:{type:Array},activeList:{type:Object},items:{type:Array},categories:{type:Array},total:{type:Object},loading:{type:Boolean},showAddDialog:{type:Boolean},showEditDialog:{type:Boolean},editingItem:{type:Object},settings:{type:Object},cardId:{type:String}};constructor(){super(),this.currentView="shopping",this.lists=[],this.activeList=null,this.items=[],this.categories=[],this.total={total:0,currency:"NZD",item_count:0},this.loading=!0,this.showAddDialog=!1,this.showEditDialog=!1,this.editingItem=null,this.cardId=this.generateCardId(),this.settings=this.loadSettings()}generateCardId(){return`card_${Date.now()}_${Math.random().toString(36).substring(2,9)}`}loadSettings(){const t={theme:"auto",darkMode:"system",fontSize:16,fontFamily:"system",useSystemTextSize:!0,openLastUsedList:!0,keepScreenOn:!1,notifications:{listSharing:!0,emails:!0},recentProductsCount:8,tilesPerRow:3,useEmojis:!0,colorScheme:"pastel"},e=`slm_settings_${this.cardId}`,i=localStorage.getItem(e);return i?{...t,...JSON.parse(i)}:t}saveSettings(){const t=`slm_settings_${this.cardId}`;localStorage.setItem(t,JSON.stringify(this.settings))}async firstUpdated(){this.api=new lt(this.hass),await this.loadData(),this.subscribeToUpdates(),this.applyColorScheme()}applyColorScheme(){const t=this.settings.darkMode;"on"===t?this.setAttribute("data-theme","dark"):"off"===t?this.setAttribute("data-theme","light"):this.removeAttribute("data-theme")}async loadData(){try{this.loading=!0;const t=await this.api.getLists();this.lists=t.lists||[];const e=`slm_last_list_${this.cardId}`;if(this.settings.openLastUsedList){const t=localStorage.getItem(e);this.activeList=this.lists.find(e=>e.id===t)||this.lists.find(t=>t.active)||this.lists[0]}else this.activeList=this.lists.find(t=>t.active)||this.lists[0];const i=await this.api.getCategories();this.categories=i.categories,this.activeList&&await this.loadActiveListData()}catch(t){console.error("Failed to load data:",t)}finally{this.loading=!1}}async loadActiveListData(){if(!this.activeList)return;const t=await this.api.getItems(this.activeList.id);this.items=t.items;const e=await this.api.getListTotal(this.activeList.id);this.total=e;const i=`slm_last_list_${this.cardId}`;localStorage.setItem(i,this.activeList.id)}async handleListChange(t){const e=t.detail.listId;await this.api.setActiveList(e),this.activeList=this.lists.find(t=>t.id===e),await this.loadActiveListData(),this.currentView="shopping"}async handleItemClick(t){const{itemId:e}=t.detail,i=this.items.find(t=>t.id===e);i&&!i.checked&&(await this.api.updateItem(e,{quantity:i.quantity+1}),await this.loadActiveListData())}async handleItemDecrease(t){const{itemId:e}=t.detail,i=this.items.find(t=>t.id===e);i&&(i.quantity>1?await this.api.updateItem(e,{quantity:i.quantity-1}):await this.api.deleteItem(e),await this.loadActiveListData())}async handleItemCheck(t){const{itemId:e,checked:i}=t.detail;await this.api.checkItem(e,i),await this.loadActiveListData()}async handleItemLongPress(t){this.editingItem=t.detail.item,this.showEditDialog=!0}async handleItemSwipeDelete(t){const{itemId:e}=t.detail;await this.api.deleteItem(e),await this.loadActiveListData()}async handleAddItem(t){const e=t.detail,i=this.items.find(t=>t.product_id===e.product_id&&!t.checked);i?await this.api.updateItem(i.id,{quantity:i.quantity+1}):await this.api.addItem(this.activeList.id,e),this.trackRecentlyUsed(e.product_id),await this.loadActiveListData(),this.showAddDialog=!1}trackRecentlyUsed(t){if(!t)return;const e="slm_recent_products",i=localStorage.getItem(e),s=(i?JSON.parse(i):[]).filter(e=>e!==t);s.unshift(t);const a=s.slice(0,50);localStorage.setItem(e,JSON.stringify(a))}async handleEditItem(t){const{itemId:e,data:i}=t.detail;await this.api.updateItem(e,i),await this.loadActiveListData(),this.showEditDialog=!1,this.editingItem=null}handleNavChange(t){this.currentView=t.detail.view}handleSettingsChange(t){this.settings={...this.settings,...t.detail},this.saveSettings(),this.applyColorScheme(),this.requestUpdate()}handleBackToLists(){this.currentView="lists"}async handleShareList(){const t=this.activeList?.name||"Shopping List",e=this.items.filter(t=>!t.checked).map(t=>`${t.quantity} ${t.unit} ${t.name}`).join("\n"),i=`${t}\n\n${e}`;if(navigator.share)try{await navigator.share({title:t,text:i})}catch(t){"AbortError"!==t.name&&console.error("Share failed:",t)}else navigator.clipboard.writeText(i),alert("List copied to clipboard!")}subscribeToUpdates(){["shopping_list_manager_item_added","shopping_list_manager_item_updated","shopping_list_manager_item_checked","shopping_list_manager_item_deleted"].forEach(t=>{this.hass.connection.subscribeEvents(()=>{this.loadActiveListData()},t)})}renderCurrentView(){switch(this.currentView){case"shopping":return F`
+  `}customElements.define("slm-settings-view",St);class At extends nt{static properties={hass:{type:Object},config:{type:Object},currentView:{type:String},lists:{type:Array},activeList:{type:Object},items:{type:Array},categories:{type:Array},total:{type:Object},loading:{type:Boolean},showAddDialog:{type:Boolean},showEditDialog:{type:Boolean},editingItem:{type:Object},settings:{type:Object},cardId:{type:String}};constructor(){super(),this.currentView="shopping",this.lists=[],this.activeList=null,this.items=[],this.categories=[],this.total={total:0,currency:"NZD",item_count:0},this.loading=!0,this.showAddDialog=!1,this.showEditDialog=!1,this.editingItem=null,this.cardId=this.generateCardId(),this.settings=this.loadSettings()}generateCardId(){return`card_${Date.now()}_${Math.random().toString(36).substring(2,9)}`}loadSettings(){const t={theme:"auto",darkMode:"system",fontSize:16,fontFamily:"system",useSystemTextSize:!0,openLastUsedList:!0,keepScreenOn:!1,notifications:{listSharing:!0,emails:!0},recentProductsCount:8,tilesPerRow:3,useEmojis:!0,colorScheme:"pastel"},e=`slm_settings_${this.cardId}`,i=localStorage.getItem(e);return i?{...t,...JSON.parse(i)}:t}saveSettings(){const t=`slm_settings_${this.cardId}`;localStorage.setItem(t,JSON.stringify(this.settings))}async firstUpdated(){this.api=new lt(this.hass),await this.loadData(),this.subscribeToUpdates(),this.applyColorScheme()}applyColorScheme(){const t=this.settings.darkMode;"on"===t?this.setAttribute("data-theme","dark"):"off"===t?this.setAttribute("data-theme","light"):this.removeAttribute("data-theme")}async loadData(){try{this.loading=!0;const t=await this.api.getLists();this.lists=t.lists||[];const e=`slm_last_list_${this.cardId}`;if(this.settings.openLastUsedList){const t=localStorage.getItem(e);this.activeList=this.lists.find(e=>e.id===t)||this.lists.find(t=>t.active)||this.lists[0]}else this.activeList=this.lists.find(t=>t.active)||this.lists[0];const i=await this.api.getCategories();this.categories=i.categories,this.activeList&&await this.loadActiveListData()}catch(t){console.error("Failed to load data:",t)}finally{this.loading=!1}}async loadActiveListData(){if(!this.activeList)return;const t=await this.api.getItems(this.activeList.id);this.items=t.items;const e=await this.api.getListTotal(this.activeList.id);this.total=e;const i=`slm_last_list_${this.cardId}`;localStorage.setItem(i,this.activeList.id)}async handleListChange(t){const e=t.detail.listId;await this.api.setActiveList(e),this.activeList=this.lists.find(t=>t.id===e),await this.loadActiveListData(),this.currentView="shopping"}async handleItemClick(t){const{itemId:e}=t.detail,i=this.items.find(t=>t.id===e);i&&!i.checked&&(await this.api.incrementItem(e,1),await this.loadActiveListData())}async handleItemDecrease(t){const{itemId:e}=t.detail,i=this.items.find(t=>t.id===e);i&&(i.quantity>1?await this.api.incrementItem(e,-1):await this.api.deleteItem(e),await this.loadActiveListData())}async handleItemCheck(t){const{itemId:e,checked:i}=t.detail;await this.api.checkItem(e,i),await this.loadActiveListData()}async handleItemLongPress(t){this.editingItem=t.detail.item,this.showEditDialog=!0}async handleItemSwipeDelete(t){const{itemId:e}=t.detail;await this.api.deleteItem(e),await this.loadActiveListData()}async handleAddItem(t){const e=t.detail,i=this.items.find(t=>t.product_id===e.product_id&&!t.checked);i?await this.api.updateItem(i.id,{quantity:i.quantity+1}):await this.api.addItem(this.activeList.id,e),this.trackRecentlyUsed(e.product_id),await this.loadActiveListData(),this.showAddDialog=!1}trackRecentlyUsed(t){if(!t)return;const e="slm_recent_products",i=localStorage.getItem(e),s=(i?JSON.parse(i):[]).filter(e=>e!==t);s.unshift(t);const a=s.slice(0,50);localStorage.setItem(e,JSON.stringify(a))}async handleEditItem(t){const{itemId:e,data:i}=t.detail;await this.api.updateItem(e,i),await this.loadActiveListData(),this.showEditDialog=!1,this.editingItem=null}handleNavChange(t){this.currentView=t.detail.view}handleSettingsChange(t){this.settings={...this.settings,...t.detail},this.saveSettings(),this.applyColorScheme(),this.requestUpdate()}handleBackToLists(){this.currentView="lists"}async handleShareList(){const t=this.activeList?.name||"Shopping List",e=this.items.filter(t=>!t.checked).map(t=>`${t.quantity} ${t.unit} ${t.name}`).join("\n"),i=`${t}\n\n${e}`;if(navigator.share)try{await navigator.share({title:t,text:i})}catch(t){"AbortError"!==t.name&&console.error("Share failed:",t)}else navigator.clipboard.writeText(i),alert("List copied to clipboard!")}subscribeToUpdates(){["shopping_list_manager_item_added","shopping_list_manager_item_updated","shopping_list_manager_item_checked","shopping_list_manager_item_deleted"].forEach(t=>{this.hass.connection.subscribeEvents(()=>{this.loadActiveListData()},t)})}renderCurrentView(){switch(this.currentView){case"shopping":return q`
           <slm-list-header
             .activeList=${this.activeList}
             .itemCount=${this.items.filter(t=>!t.checked).length}
@@ -3277,7 +3277,7 @@ const $=globalThis,k=t=>t,_=$.trustedTypes,C=_?_.createPolicy("lit-html",{create
             </div>
             <div class="total-count">${this.total.item_count} items</div>
           </div>
-        `;case"lists":return F`
+        `;case"lists":return q`
           <slm-lists-view
             .api=${this.api}
             .lists=${this.lists}
@@ -3287,11 +3287,11 @@ const $=globalThis,k=t=>t,_=$.trustedTypes,C=_?_.createPolicy("lit-html",{create
             @list-selected=${this.handleListChange}
             @lists-updated=${()=>this.loadData()}
           ></slm-lists-view>
-        `;case"loyalty":return F`
+        `;case"loyalty":return q`
           <slm-loyalty-cards-view
             .api=${this.api}
           ></slm-loyalty-cards-view>
-        `;case"settings":return F`
+        `;case"settings":return q`
           <slm-settings-view
             .hass=${this.hass}
             .api=${this.api}
@@ -3299,14 +3299,14 @@ const $=globalThis,k=t=>t,_=$.trustedTypes,C=_?_.createPolicy("lit-html",{create
             .categories=${this.categories}
             @settings-changed=${this.handleSettingsChange}
           ></slm-settings-view>
-        `;default:return F`<div>Unknown view</div>`}}render(){return this.loading?F`
+        `;default:return q`<div>Unknown view</div>`}}render(){return this.loading?q`
         <ha-card>
           <div class="loading">
             <div class="spinner"></div>
             <p>Loading...</p>
           </div>
         </ha-card>
-      `:F`
+      `:q`
       <ha-card>
         <div class="card-container">
           ${this.renderCurrentView()}
@@ -3317,7 +3317,7 @@ const $=globalThis,k=t=>t,_=$.trustedTypes,C=_?_.createPolicy("lit-html",{create
           @nav-changed=${this.handleNavChange}
         ></slm-bottom-nav>
 
-        ${this.showEditDialog?F`
+        ${this.showEditDialog?q`
           <slm-edit-item-dialog
             .api=${this.api}
             .item=${this.editingItem}
