@@ -162,6 +162,8 @@ class ShoppingListManagerCard extends LitElement {
   }
 
   async handleItemClick(e) {
+    console.log("HANDLE ITEM CLICK", e.detail);
+
     const { itemId } = e.detail;
     const item = this.items.find(i => i.id === itemId);
 
