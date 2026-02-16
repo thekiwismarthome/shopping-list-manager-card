@@ -86,7 +86,7 @@ class ShoppingListManagerCard extends LitElement {
   async firstUpdated() {
     this.api = new ShoppingListAPI(this.hass);
     await this.loadData();
-    this.subscribeToUpdates();
+    //this.subscribeToUpdates();
     this.applyColorScheme();
   }
 
@@ -167,7 +167,7 @@ class ShoppingListManagerCard extends LitElement {
 
     if (item && !item.checked) {
       await this.api.incrementItem(itemId, 1);
-      await this.loadActiveListData();
+      this.loadActiveListData();
     }
   }
 
@@ -183,7 +183,7 @@ class ShoppingListManagerCard extends LitElement {
       await this.api.deleteItem(itemId);
     }
 
-    await this.loadActiveListData();
+    this.loadActiveListData();
   }
 
 
