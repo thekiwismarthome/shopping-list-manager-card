@@ -2,11 +2,17 @@ import { LitElement, html, css } from 'lit';
 import './slm-item-tile.js';
 
 class SLMItemGrid extends LitElement {
+  constructor() {
+    super();
+    console.log("GRID CONSTRUCTOR");
+  }
+
   static properties = {
     items: { type: Array },
     categories: { type: Array },
     settings: { type: Object },
-    api: { type: Object }
+    api: { type: Object },
+    recentItems: { type: Array }
   };
 
   groupItemsByCategory() {
@@ -149,6 +155,7 @@ class SLMItemGrid extends LitElement {
   }
 
   handleItemClick(e) {
+    console.log("GRID RECEIVED ITEM CLICK");
     this.dispatchEvent(new CustomEvent('item-click', {
       detail: e.detail,
       bubbles: true,

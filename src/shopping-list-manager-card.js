@@ -33,6 +33,7 @@ class ShoppingListManagerCard extends LitElement {
     this.currentView = 'shopping';
     this.lists = [];
     this.activeList = null;
+    this.recentItems = [];
     this.items = [];
     this.categories = [];
     this.total = { total: 0, currency: 'NZD', item_count: 0 };
@@ -107,6 +108,11 @@ class ShoppingListManagerCard extends LitElement {
     }
   }
 
+  async updated(changedProps) {
+    if (changedProps.has('items')) {
+      this.recentItems = await this.getRecentlyUsedItems();
+    }
+  }
 
 
   async loadData() {
