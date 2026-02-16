@@ -8,6 +8,7 @@ class SLMListsView extends LitElement {
     activeList: { type: Object },
     items: { type: Array },
     total: { type: Object },
+    listTotals: { type: Object }, 
     showCreateDialog: { type: Boolean },
     newListName: { type: String },
     newListIcon: { type: String }
@@ -17,12 +18,32 @@ class SLMListsView extends LitElement {
     super();
     this.lists = [];
     this.showCreateDialog = false;
+    this.listTotals = {};
     this.newListName = '';
     this.newListIcon = 'mdi:cart';
   }
 
   handleCreateList() {
     this.showCreateDialog = true;
+  }
+
+  async loadTotals() {
+    if (!this.api || !this.lists?.length) return;
+
+    const totals = {};
+
+    await Promise.all(
+      this.lists.map(async (list) => {
+        try {
+          const result = await this.api.getListTotal(list.id);
+          totals[list.id] = result;
+        } catch (err) {
+          console.error("Failed to load total for list", list.id, err);
+        }
+      })
+    );
+
+    this.listTotals = totals;
   }
 
   async handleSaveNewList() {
@@ -93,6 +114,12 @@ class SLMListsView extends LitElement {
     return emojiMap[icon] || '🛒';
   }
 
+  updated(changedProps) {
+    if (changedProps.has('lists')) {
+      this.loadTotals();
+    }
+  }
+
   render() {
     return html`
       <div class="lists-view">
@@ -120,9 +147,16 @@ class SLMListsView extends LitElement {
               <slm-list-card
                 .list=${list}
                 .isActive=${list.id === this.activeList?.id}
-                .itemCount=${list.id === this.activeList?.id ? this.items.filter(i => !i.checked).length : 0}
-                .totalCost=${list.id === this.activeList?.id ? this.total.total : 0}
-                .currency=${this.total.currency}
+                .itemCount=${list.id === this.activeList?.id
+                  ? this.items.filter(i => !i.checked).length
+                  : this.listTotals[list.id]?.item_count || 0}
+
+                .totalCost=${list.id === this.activeList?.id
+                  ? this.total.total
+                  : this.listTotals[list.id]?.total || 0}
+
+                .currency=${this.listTotals[list.id]?.currency || this.total?.currency || 'NZD'}
+
                 .emoji=${this.getListEmoji(list.icon)}
                 @list-select=${this.handleListSelect}
                 @list-action=${this.handleListAction}
