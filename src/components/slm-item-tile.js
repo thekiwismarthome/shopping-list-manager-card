@@ -28,14 +28,20 @@ class SLMItemTile extends LitElement {
       return;
     }
 
-    if (!e.target.closest('.decrease-btn') && !e.target.closest('.quantity-badge')) {
-      this.dispatchEvent(new CustomEvent('item-check', {
-        detail: { itemId: this.item.id, checked: !this.item.checked },
-        bubbles: true,
-        composed: true
-      }));
+    if (
+      e.target.closest('.decrease-btn') ||
+      e.target.closest('.quantity-badge')
+    ) {
+      return;
     }
+
+    this.dispatchEvent(new CustomEvent('item-check', {
+      detail: { itemId: this.item.id, checked: !this.item.checked },
+      bubbles: true,
+      composed: true
+    }));
   }
+
 
   handleDecrease(e) {
     e.stopPropagation();
