@@ -23,21 +23,11 @@ class SLMListCard extends LitElement {
     this.menuY = 0;
   }
 
-  getCardColor() {
-    const colors = [
-      '#7986cb', // Blue
-      '#81c784', // Green  
-      '#ffb74d', // Orange
-      '#ba68c8', // Purple
-      '#4dd0e1', // Cyan
-      '#f06292'  // Pink
-    ];
-    
-    const index = parseInt(this.list.id.slice(-1), 16) % colors.length;
-    const baseColor = colors[index];
-    
-    return this.isActive ? baseColor : this.dimColor(baseColor);
+  getColorClass() {
+    const index = parseInt(this.list.id.slice(-1), 16) % 6;
+    return `color-${index}`;
   }
+
 
   dimColor(hex) {
     const r = parseInt(hex.slice(1, 3), 16);
@@ -80,10 +70,10 @@ class SLMListCard extends LitElement {
   render() {
     return html`
       <div 
-        class="list-card ${this.isActive ? 'active' : ''}" 
-        style="background: ${this.getCardColor()}"
+        class="list-card ${this.isActive ? 'active' : 'inactive'} ${this.getColorClass()}"
         @click=${this.handleCardClick}
       >
+
         ${this.isActive ? html`
           <div class="active-badge">Active</div>
         ` : ''}
@@ -93,13 +83,12 @@ class SLMListCard extends LitElement {
           <h3>${this.list.name}</h3>
         </div>
 
-        ${this.isActive ? html`
-          <div class="card-stats">
-            <span>${this.itemCount}</span>
-            <span class="separator">·</span>
-            <span>${this.currency} $${this.totalCost.toFixed(2)}</span>
-          </div>
-        ` : ''}
+        <div class="card-stats">
+          <span>${this.itemCount}</span>
+          <span class="separator">·</span>
+          <span>${this.currency} $${this.totalCost.toFixed(2)}</span>
+        </div>
+
 
         <button class="menu-btn" @click=${this.handleMenuClick}>
           <ha-icon icon="mdi:dots-vertical"></ha-icon>
@@ -134,30 +123,62 @@ class SLMListCard extends LitElement {
   static styles = css`
     .list-card {
       position: relative;
-      border-radius: 12px;
+      border-radius: 14px;
       padding: 16px;
       cursor: pointer;
-      transition: all 0.2s;
-      -webkit-tap-highlight-color: transparent;
-      height: 100px;
+      transition: all 0.25s ease;
+      height: 110px;
       display: flex;
       flex-direction: column;
       justify-content: center;
       color: white;
+      overflow: hidden;
     }
+
+    .list-card.active {
+      box-shadow: var(--slm-shadow-medium);
+      transform: scale(1);
+    }
+
+    .list-card.inactive {
+      opacity: 0.65;
+      filter: saturate(0.6);
+      box-shadow: none;
+    }
+
     .list-card:active {
-      transform: scale(0.98);
+      transform: scale(0.97);
     }
+
+    /* ===============================
+      Color Gradients
+    ================================ */
+
+    .color-0 { background: linear-gradient(135deg, #7986cb, #9fa8da); }
+    .color-1 { background: linear-gradient(135deg, #81c784, #a5d6a7); }
+    .color-2 { background: linear-gradient(135deg, #ffb74d, #ffcc80); }
+    .color-3 { background: linear-gradient(135deg, #ba68c8, #ce93d8); }
+    .color-4 { background: linear-gradient(135deg, #4dd0e1, #80deea); }
+    .color-5 { background: linear-gradient(135deg, #f06292, #f48fb1); }
+
+    /* Dark Mode Adjustments */
+
+    :host([data-theme="dark"]) .color-0 { background: linear-gradient(135deg, #5c6bc0, #7986cb); }
+    :host([data-theme="dark"]) .color-1 { background: linear-gradient(135deg, #43a047, #66bb6a); }
+    :host([data-theme="dark"]) .color-2 { background: linear-gradient(135deg, #fb8c00, #ffb74d); }
+    :host([data-theme="dark"]) .color-3 { background: linear-gradient(135deg, #8e24aa, #ab47bc); }
+    :host([data-theme="dark"]) .color-4 { background: linear-gradient(135deg, #00838f, #26c6da); }
+    :host([data-theme="dark"]) .color-5 { background: linear-gradient(135deg, #c2185b, #ec407a); }
+
     .active-badge {
       position: absolute;
       top: 8px;
       left: 8px;
-      background: rgba(255,255,255,0.35);
+      background: rgba(255,255,255,0.25);
       padding: 4px 8px;
       border-radius: 6px;
       font-size: 10px;
       font-weight: 700;
-      pointer-events: none;
     }
     .card-header {
       display: flex;
@@ -190,7 +211,7 @@ class SLMListCard extends LitElement {
       position: absolute;
       top: 8px;
       right: 8px;
-      background: rgba(255,255,255,0.2);
+      background: rgba(255,255,255,0.15);
       border: none;
       padding: 6px;
       cursor: pointer;
@@ -215,9 +236,9 @@ class SLMListCard extends LitElement {
     }
     .menu-popup {
       position: fixed;
-      background: var(--card-background-color);
+      background: var(--slm-bg-elevated);
+      box-shadow: var(--slm-shadow-medium);
       border-radius: 10px;
-      box-shadow: 0 4px 20px rgba(--slm-shadow-medium);
       overflow: hidden;
       min-width: 160px;
       z-index: 10000;
@@ -230,17 +251,17 @@ class SLMListCard extends LitElement {
       padding: 14px 16px;
       border: none;
       background: transparent;
-      color: var(--primary-text-color);
+      color: var(--slm-text-primary);
       cursor: pointer;
       font-size: 14px;
       text-align: left;
       -webkit-tap-highlight-color: transparent;
     }
     .menu-popup button:active {
-      background: var(--secondary-background-color);
+      background:  var(--slm-bg-surface);
     }
     .menu-popup button.danger {
-      color: #ef5350;
+      color: var(--slm-accent-danger);
     }
     .menu-popup button.danger:active {
       background: #ef5350;

@@ -47,7 +47,7 @@ class SLMSettingsView extends LitElement {
               <div class="item-title">Profile</div>
               <div class="item-subtitle">${this.hass.user?.name || 'User'}</div>
             </div>
-            <span class="chevron">▶️</span>
+            <span class="chevron">></span>
           </button>
 
           <button class="settings-item" @click=${() => this.handleNavigation('appearance')}>
@@ -58,7 +58,7 @@ class SLMSettingsView extends LitElement {
               <div class="item-title">Appearance</div>
               <div class="item-subtitle">Theme, tiles, fonts</div>
             </div>
-            <span class="chevron">▶️</span>
+            <span class="chevron">></span>
           </button>
 
           <button class="settings-item" @click=${() => this.handleNavigation('notifications')}>
@@ -69,7 +69,7 @@ class SLMSettingsView extends LitElement {
               <div class="item-title">Notifications</div>
               <div class="item-subtitle">List sharing, emails</div>
             </div>
-            <span class="chevron">▶️</span>
+            <span class="chevron">></span>
           </button>
 
           <div class="section-header">Preferences</div>
@@ -112,7 +112,7 @@ class SLMSettingsView extends LitElement {
               <div class="item-title">Manage Categories</div>
               <div class="item-subtitle">${this.categories.length} categories</div>
             </div>
-            <span class="chevron">▶️</span>
+            <span class="chevron">></span>
           </button>
 
           <div class="section-header">Support</div>
@@ -124,7 +124,7 @@ class SLMSettingsView extends LitElement {
             <div class="item-content">
               <div class="item-title">FAQ & Support</div>
             </div>
-            <span class="chevron">▶️</span>
+            <span class="chevron">></span>
           </button>
 
           <button class="settings-item" @click=${() => window.location.reload()}>

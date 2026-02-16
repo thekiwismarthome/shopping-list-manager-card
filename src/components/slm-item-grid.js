@@ -5,7 +5,8 @@ class SLMItemGrid extends LitElement {
   static properties = {
     items: { type: Array },
     categories: { type: Array },
-    settings: { type: Object }
+    settings: { type: Object },
+    api: { type: Object }
   };
 
   groupItemsByCategory() {
@@ -21,22 +22,28 @@ class SLMItemGrid extends LitElement {
     return Object.values(grouped).filter(g => g.items.length > 0);
   }
 
-  getRecentlyUsedItems() {
+  async getRecentlyUsedItems() {
+    if (!this.api) return [];
+
     const recentKey = 'slm_recent_products';
     const saved = localStorage.getItem(recentKey);
     const recentIds = saved ? JSON.parse(saved) : [];
-    
+
     const limit = this.settings?.recentProductsCount || 8;
+
     const currentProductIds = this.items.map(i => i.product_id);
-    
-    // Filter out products already in list
-    const recentProducts = recentIds
+
+    const filteredIds = recentIds
       .filter(id => !currentProductIds.includes(id))
       .slice(0, limit);
-    
-    // TODO: Fetch actual product data from catalog
-    // For now, return empty array
-    return [];
+
+    if (filteredIds.length === 0) return [];
+
+    const products = await Promise.all(
+      filteredIds.map(id => this.api.getProductSuggestions(1))
+    );
+
+    return products.flatMap(p => p.products || []);
   }
 
   render() {
