@@ -3,6 +3,26 @@ export class ShoppingListAPI {
     this.hass = hass;
   }
 
+  // Subscribe to events for real-time updates
+  subscribeToUpdates(callback) {
+    const events = [
+      'shopping_list_manager_item_added',
+      'shopping_list_manager_item_updated',
+      'shopping_list_manager_item_checked',
+      'shopping_list_manager_item_deleted',
+      'shopping_list_manager_list_updated'
+    ];
+
+    const unsubscribers = events.map(event => 
+      this.hass.connection.subscribeEvents(callback, event)
+    );
+
+    // Return function to unsubscribe from all
+    return () => {
+      unsubscribers.forEach(unsub => unsub());
+    };
+  }
+
   // Lists
   async getLists() {
     return await this.hass.callWS({ type: 'shopping_list_manager/lists/get_all' });

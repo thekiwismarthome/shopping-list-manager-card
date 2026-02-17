@@ -87,7 +87,7 @@ class ShoppingListManagerCard extends LitElement {
   async firstUpdated() {
     this.api = new ShoppingListAPI(this.hass);
     await this.loadData();
-    //this.subscribeToUpdates();
+    this.subscribeToUpdates();
     this.applyColorScheme();
   }
 
@@ -300,14 +300,48 @@ class ShoppingListManagerCard extends LitElement {
       'shopping_list_manager_item_added',
       'shopping_list_manager_item_updated',
       'shopping_list_manager_item_checked',
-      'shopping_list_manager_item_deleted'
+      'shopping_list_manager_item_deleted',
+      'shopping_list_manager_list_updated',
+      'shopping_list_manager_list_deleted'
     ];
 
+    // Store unsubscribers for cleanup
+    this._unsubscribers = [];
+
     events.forEach(event => {
-      this.hass.connection.subscribeEvents(() => {
-        this.loadActiveListData();
-      }, event);
+      try {
+        const unsubscribe = this.hass.connection.subscribeEvents((eventData) => {
+          console.log(`[SLM] ✅ Received event: ${event}`, eventData);
+          
+          // Reload data when any change occurs
+          this.loadActiveListData();
+        }, event);
+        
+        this._unsubscribers.push(unsubscribe);
+        console.log(`[SLM] ✅ Subscribed to: ${event}`);
+      } catch (err) {
+        console.error(`[SLM] ❌ Failed to subscribe to ${event}:`, err);
+      }
     });
+    
+    console.log(`[SLM] Total subscriptions: ${this._unsubscribers.length}`);
+  }
+
+  disconnectedCallback() {
+    super.disconnectedCallback();
+    
+    // Clean up event subscriptions when card is removed
+    if (this._unsubscribers) {
+      console.log('[SLM] Cleaning up event subscriptions');
+      this._unsubscribers.forEach(unsub => {
+        try {
+          unsub();
+        } catch (err) {
+          console.error('[SLM] Error unsubscribing:', err);
+        }
+      });
+      this._unsubscribers = [];
+    }
   }
 
   renderCurrentView() {

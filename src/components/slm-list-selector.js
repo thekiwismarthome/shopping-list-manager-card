@@ -1,6 +1,6 @@
 import { LitElement, html, css } from 'lit';
 
-class ListSelector extends LitElement {
+class SLMListSelector extends LitElement {
   static properties = {
     lists: { type: Array },
     activeList: { type: Object }
@@ -36,6 +36,7 @@ class ListSelector extends LitElement {
       overflow-x: auto;
       border-bottom: 2px solid var(--divider-color);
       background: var(--card-background-color);
+      -webkit-tap-highlight-color: transparent;
     }
     .list-tab {
       flex: 0 0 auto;
@@ -49,10 +50,10 @@ class ListSelector extends LitElement {
       cursor: pointer;
       border-bottom: 3px solid transparent;
       transition: all 0.2s;
+      -webkit-tap-highlight-color: transparent;
     }
-    .list-tab:hover {
-      background: var(--primary-color);
-      color: var(--text-primary-color);
+    .list-tab:active {
+      background: var(--secondary-background-color);
     }
     .list-tab.active {
       color: var(--primary-color);
@@ -65,4 +66,4 @@ class ListSelector extends LitElement {
   `;
 }
 
-customElements.define('list-selector', ListSelector);
+customElements.define('slm-list-selector', SLMListSelector);
