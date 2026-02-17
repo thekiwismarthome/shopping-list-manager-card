@@ -27,6 +27,20 @@ class ShoppingListManagerCard extends LitElement {
     settings: { type: Object },
     cardId: { type: String }
   };
+  set hass(hass) {
+    this._hass = hass;
+    if (this.api) {
+      this.api.hass = hass;
+    }
+    if (!this._subscribed && hass?.connection) {
+      this._subscribed = true;
+      this.subscribeToUpdates();
+    }
+  }
+
+  get hass() {
+    return this._hass;
+  }
 
   constructor() {
     super();
@@ -43,6 +57,7 @@ class ShoppingListManagerCard extends LitElement {
     this.editingItem = null;
     this.cardId = this.generateCardId();
     this.settings = this.loadSettings();
+    this._subscribed = false;
   }
 
   generateCardId() {
@@ -87,7 +102,7 @@ class ShoppingListManagerCard extends LitElement {
   async firstUpdated() {
     this.api = new ShoppingListAPI(this.hass);
     await this.loadData();
-    this.subscribeToUpdates();
+    //this.subscribeToUpdates();
     this.applyColorScheme();
   }
 
