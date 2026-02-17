@@ -155,6 +155,7 @@ class SLMItemGrid extends LitElement {
   }
 
   handleItemClick(e) {
+    e.stopPropagation();
     console.log("GRID RECEIVED ITEM CLICK");
     this.dispatchEvent(new CustomEvent('item-click', {
       detail: e.detail,
@@ -164,6 +165,7 @@ class SLMItemGrid extends LitElement {
   }
 
   handleItemDecrease(e) {
+    e.stopPropagation();
     this.dispatchEvent(new CustomEvent('item-decrease', {
       detail: e.detail,
       bubbles: true,
@@ -172,6 +174,7 @@ class SLMItemGrid extends LitElement {
   }
 
   handleItemCheck(e) {
+    e.stopPropagation();
     this.dispatchEvent(new CustomEvent('item-check', {
       detail: e.detail,
       bubbles: true,
@@ -180,6 +183,7 @@ class SLMItemGrid extends LitElement {
   }
 
   handleItemLongPress(e) {
+    e.stopPropagation();
     this.dispatchEvent(new CustomEvent('item-long-press', {
       detail: e.detail,
       bubbles: true,
@@ -188,6 +192,7 @@ class SLMItemGrid extends LitElement {
   }
 
   handleItemSwipeDelete(e) {
+    e.stopPropagation();
     this.dispatchEvent(new CustomEvent('item-swipe-delete', {
       detail: e.detail,
       bubbles: true,
