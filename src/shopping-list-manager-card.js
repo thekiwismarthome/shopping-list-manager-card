@@ -295,36 +295,26 @@ class ShoppingListManagerCard extends LitElement {
     }
   }
 
-  subscribeToUpdates() {
-    const events = [
-      'shopping_list_manager_item_added',
-      'shopping_list_manager_item_updated',
-      'shopping_list_manager_item_checked',
-      'shopping_list_manager_item_deleted',
-      'shopping_list_manager_list_updated',
-      'shopping_list_manager_list_deleted'
-    ];
-
-    // Store unsubscribers for cleanup
-    this._unsubscribers = [];
-
-    events.forEach(event => {
-      try {
-        const unsubscribe = this.hass.connection.subscribeEvents((eventData) => {
-          console.log(`[SLM] ✅ Received event: ${event}`, eventData);
-          
-          // Reload data when any change occurs
-          this.loadActiveListData();
-        }, event);
-        
-        this._unsubscribers.push(unsubscribe);
-        console.log(`[SLM] ✅ Subscribed to: ${event}`);
-      } catch (err) {
-        console.error(`[SLM] ❌ Failed to subscribe to ${event}:`, err);
-      }
-    });
+  async subscribeToUpdates() {
+    if (!this.hass?.connection) return;
     
-    console.log(`[SLM] Total subscriptions: ${this._unsubscribers.length}`);
+    try {
+      // Use our custom WebSocket subscription instead of direct HA event subscription
+      // This bypasses HA's non-admin restriction on custom events
+      const unsubscribe = await this.hass.connection.subscribeMessage(
+        (message) => {
+          console.log('[SLM] ✅ Received update:', message.event_type);
+          this.loadActiveListData();
+        },
+        { type: 'shopping_list_manager/subscribe' }
+      );
+      
+      this._unsubscribers = [unsubscribe];
+      console.log('[SLM] ✅ Subscribed to shopping list updates');
+      
+    } catch (err) {
+      console.error('[SLM] ❌ Failed to subscribe:', err);
+    }
   }
 
   disconnectedCallback() {
