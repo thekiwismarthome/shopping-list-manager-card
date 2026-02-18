@@ -368,10 +368,10 @@ const _=globalThis,$=t=>t,k=_.trustedTypes,E=k?k.createPolicy("lit-html",{create
     .tile {
       position: relative;
       border-radius: 8px;
-      padding: 8px;
+      padding: 0;
       display: flex;
       flex-direction: column;
-      gap: 6px;
+      gap: 0;
       cursor: pointer;
       transition: all 0.15s;
       user-select: none;
@@ -428,7 +428,6 @@ const _=globalThis,$=t=>t,k=_.trustedTypes,E=k?k.createPolicy("lit-html",{create
       width: 100%;
       flex: 1;
       min-height: 0;
-      border-radius: 6px;
       object-fit: cover;
     }
     .no-image {
@@ -442,6 +441,7 @@ const _=globalThis,$=t=>t,k=_.trustedTypes,E=k?k.createPolicy("lit-html",{create
     }
     .info {
       flex-shrink: 0;
+      padding: 5px 8px 7px;
     }
     .name {
       font-weight: 600;
