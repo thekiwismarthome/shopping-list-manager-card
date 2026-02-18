@@ -188,7 +188,7 @@ class SLMItemTile extends LitElement {
         @mouseleave=${this.handleMouseLeave}
       >
         ${!this.item.checked ? html`
-          <button class="decrease-btn" @click=${this.handleDecrease}>
+          <button class="decrease-btn" style="background: ${this.categoryColor}" @click=${this.handleDecrease}>
             <span>−</span>
           </button>
         ` : ''}
@@ -255,21 +255,16 @@ class SLMItemTile extends LitElement {
       position: absolute;
       top: 0;
       left: 0;
-      background: #8b4545;
       color: white;
       border: none;
-      border-radius: 50%;
-      width: 38px;
-      height: 38px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
+      border-radius: 14px 0 14px 0;
+      padding: 5px 12px;
+      font-size: 20px;
+      font-weight: 700;
+      line-height: 1;
       cursor: pointer;
-      box-shadow: 2px 2px 6px rgba(0,0,0,0.3);
+      box-shadow: 2px 2px 6px rgba(0,0,0,0.25);
       z-index: 2;
-      padding: 0;
-      font-size: 26px;
-      font-weight: 300;
     }
     .quantity-badge {
       position: absolute;

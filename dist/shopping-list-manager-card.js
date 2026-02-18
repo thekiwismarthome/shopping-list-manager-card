@@ -328,7 +328,7 @@ const _=globalThis,$=t=>t,k=_.trustedTypes,E=k?k.createPolicy("lit-html",{create
         @mouseleave=${this.handleMouseLeave}
       >
         ${this.item.checked?"":H`
-          <button class="decrease-btn" @click=${this.handleDecrease}>
+          <button class="decrease-btn" style="background: ${this.categoryColor}" @click=${this.handleDecrease}>
             <span>−</span>
           </button>
         `}
@@ -392,21 +392,16 @@ const _=globalThis,$=t=>t,k=_.trustedTypes,E=k?k.createPolicy("lit-html",{create
       position: absolute;
       top: 0;
       left: 0;
-      background: #8b4545;
       color: white;
       border: none;
-      border-radius: 50%;
-      width: 38px;
-      height: 38px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
+      border-radius: 14px 0 14px 0;
+      padding: 5px 12px;
+      font-size: 20px;
+      font-weight: 700;
+      line-height: 1;
       cursor: pointer;
-      box-shadow: 2px 2px 6px rgba(0,0,0,0.3);
+      box-shadow: 2px 2px 6px rgba(0,0,0,0.25);
       z-index: 2;
-      padding: 0;
-      font-size: 26px;
-      font-weight: 300;
     }
     .quantity-badge {
       position: absolute;
@@ -476,7 +471,7 @@ const _=globalThis,$=t=>t,k=_.trustedTypes,E=k?k.createPolicy("lit-html",{create
       font-size: 40px;
       color: white;
     }
-  `}customElements.define("slm-item-tile",pt);class ht extends at{constructor(){super(),console.log("GRID CONSTRUCTOR")}static properties={items:{type:Array},categories:{type:Array},settings:{type:Object},api:{type:Object},recentItems:{type:Array}};groupItemsByCategory(){const t={};return this.categories.forEach(e=>{t[e.id]={category:e,items:this.items.filter(t=>t.category_id===e.id&&!t.checked)}}),Object.values(t).filter(t=>t.items.length>0)}async getRecentlyUsedItems(){if(!this.api)return[];const t=localStorage.getItem("slm_recent_products"),e=t?JSON.parse(t):[],i=this.settings?.recentProductsCount||8,n=this.items.map(t=>t.product_id),o=e.filter(t=>!n.includes(t)).slice(0,i);if(0===o.length)return[];return(await Promise.all(o.map(t=>this.api.getProductSuggestions(1)))).flatMap(t=>t.products||[])}hexToRgb(t){const e=/^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(t);return e?{r:parseInt(e[1],16),g:parseInt(e[2],16),b:parseInt(e[3],16)}:{r:159,g:168,b:218}}getCategoryHeaderStyle(t){const{r:e,g:i,b:n}=this.hexToRgb(t);return`border-left: 4px solid ${t}; background: linear-gradient(to right, rgba(${e},${i},${n},0.22), rgba(${e},${i},${n},0.165)); border-radius: 0 8px 8px 0;`}render(){const t=this.groupItemsByCategory(),e=this.getRecentlyUsedItems(),i=this.settings?.tilesPerRow||3,n="#9e9e9e";return H`
+  `}customElements.define("slm-item-tile",pt);class ht extends at{constructor(){super(),console.log("GRID CONSTRUCTOR")}static properties={items:{type:Array},categories:{type:Array},settings:{type:Object},api:{type:Object},recentItems:{type:Array}};groupItemsByCategory(){const t={};return this.categories.forEach(e=>{t[e.id]={category:e,items:this.items.filter(t=>t.category_id===e.id&&!t.checked)}}),Object.values(t).filter(t=>t.items.length>0)}async getRecentlyUsedItems(){if(!this.api)return[];const t=localStorage.getItem("slm_recent_products"),e=t?JSON.parse(t):[],i=this.settings?.recentProductsCount||8,n=this.items.map(t=>t.product_id),o=e.filter(t=>!n.includes(t)).slice(0,i);if(0===o.length)return[];return(await Promise.all(o.map(t=>this.api.getProductSuggestions(1)))).flatMap(t=>t.products||[])}hexToRgb(t){const e=/^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(t);return e?{r:parseInt(e[1],16),g:parseInt(e[2],16),b:parseInt(e[3],16)}:{r:159,g:168,b:218}}getCategoryHeaderStyle(t){const{r:e,g:i,b:n}=this.hexToRgb(t);return`border-left: 4px solid ${t}; background: linear-gradient(to right, rgba(${e},${i},${n},0.22), rgba(${e},${i},${n},0.066)); border-radius: 0 8px 8px 0;`}render(){const t=this.groupItemsByCategory(),e=this.getRecentlyUsedItems(),i=this.settings?.tilesPerRow||3,n="#9e9e9e";return H`
       <style>
         .items-grid {
           grid-template-columns: repeat(${i}, 1fr);
