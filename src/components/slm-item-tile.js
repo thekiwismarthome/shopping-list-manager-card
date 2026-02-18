@@ -177,10 +177,6 @@ class SLMItemTile extends LitElement {
     const tileBg = this.isRecentlyUsed
       ? `rgba(${r},${g},${b},0.12)`
       : `rgba(${r},${g},${b},0.25)`;
-    // No-image placeholder: slightly more prominent than the tile bg
-    const noImageBg = this.isRecentlyUsed
-      ? `rgba(${r},${g},${b},0.08)`
-      : `rgba(${r},${g},${b},0.18)`;
 
     return html`
       <div
@@ -210,7 +206,7 @@ class SLMItemTile extends LitElement {
         ${this.item.image_url ? html`
           <img src="${this.item.image_url}" alt="${this.item.name}">
         ` : html`
-          <div class="no-image" style="background: ${noImageBg}">
+          <div class="no-image">
             <div class="emoji">${this.getCategoryEmoji(this.item.category_id)}</div>
           </div>
         `}
@@ -294,6 +290,7 @@ class SLMItemTile extends LitElement {
     img, .no-image {
       width: 100%;
       flex: 1;
+      min-height: 0;
       border-radius: 6px;
       object-fit: cover;
     }
@@ -301,6 +298,7 @@ class SLMItemTile extends LitElement {
       display: flex;
       align-items: center;
       justify-content: center;
+      background: transparent;
     }
     .emoji {
       font-size: 40px;
