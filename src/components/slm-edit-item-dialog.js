@@ -5,12 +5,14 @@ class SLMEditItemDialog extends LitElement {
     api: { type: Object },
     item: { type: Object },
     categories: { type: Array },
-    editedItem: { type: Object }
+    editedItem: { type: Object },
+    imagePreview: { type: String }
   };
 
   constructor() {
     super();
     this.editedItem = {};
+    this.imagePreview = null;
   }
 
   updated(changedProperties) {
@@ -19,8 +21,10 @@ class SLMEditItemDialog extends LitElement {
         name: this.item.name,
         quantity: this.item.quantity,
         unit: this.item.unit,
-        notes: this.item.notes || ''
+        notes: this.item.notes || '',
+        image_url: this.item.image_url || ''
       };
+      this.imagePreview = this.item.image_url || null;
     }
   }
 
@@ -57,6 +61,38 @@ class SLMEditItemDialog extends LitElement {
     }));
   }
 
+  handleImageUrlInput(e) {
+    const url = e.target.value;
+    this.editedItem = { ...this.editedItem, image_url: url };
+    this.imagePreview = url || null;
+  }
+
+  handleFilePick() {
+    const input = this.shadowRoot.querySelector('#file-input');
+    if (input) input.click();
+  }
+
+  handleFileChange(e) {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      const dataUrl = ev.target.result;
+      this.editedItem = { ...this.editedItem, image_url: dataUrl };
+      this.imagePreview = dataUrl;
+    };
+    reader.readAsDataURL(file);
+  }
+
+  handleClearImage() {
+    this.editedItem = { ...this.editedItem, image_url: '' };
+    this.imagePreview = null;
+    const input = this.shadowRoot.querySelector('#file-input');
+    if (input) input.value = '';
+    const urlInput = this.shadowRoot.querySelector('#image-url-input');
+    if (urlInput) urlInput.value = '';
+  }
+
   render() {
     if (!this.item) return html``;
 
@@ -65,9 +101,7 @@ class SLMEditItemDialog extends LitElement {
         <div class="dialog" @click=${(e) => e.stopPropagation()}>
           <div class="dialog-header">
             <h3>Edit Item</h3>
-            <button class="close-btn" @click=${this.handleClose}>
-              <span class="emoji">✖️</span>
-            </button>
+            <button class="close-btn" @click=${this.handleClose}>✕</button>
           </div>
 
           <div class="dialog-content">
@@ -117,6 +151,37 @@ class SLMEditItemDialog extends LitElement {
                 rows="3"
               ></textarea>
             </div>
+
+            <div class="form-group image-section">
+              <label>Product Image</label>
+
+              ${this.imagePreview ? html`
+                <div class="image-preview-wrap">
+                  <img class="image-preview" src="${this.imagePreview}" alt="Product image" />
+                  <button class="clear-image-btn" @click=${this.handleClearImage} title="Remove image">✕</button>
+                </div>
+              ` : ''}
+
+              <div class="image-url-row">
+                <input
+                  id="image-url-input"
+                  type="url"
+                  placeholder="Paste image URL..."
+                  .value=${this.editedItem.image_url && !this.editedItem.image_url.startsWith('data:') ? this.editedItem.image_url : ''}
+                  @input=${this.handleImageUrlInput}
+                />
+                <button class="browse-btn" @click=${this.handleFilePick} title="Browse local file">
+                  📁
+                </button>
+              </div>
+              <input
+                id="file-input"
+                type="file"
+                accept="image/*"
+                style="display:none"
+                @change=${this.handleFileChange}
+              />
+            </div>
           </div>
 
           <div class="dialog-footer">
@@ -142,17 +207,22 @@ class SLMEditItemDialog extends LitElement {
       left: 0;
       right: 0;
       bottom: 0;
-      background: rgba(--slm-shadow-medium);
+      background: rgba(0, 0, 0, 0.55);
       display: flex;
       align-items: flex-end;
       z-index: 1000;
       animation: fadeIn 0.2s;
     }
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
     .dialog {
       width: 95%;
       max-width: 500px;
       margin: 0 auto;
-      background: white;
+      background: var(--slm-bg-surface, #ffffff);
+      color: var(--slm-text-primary, #424242);
       border-radius: 16px 16px 0 0;
       display: flex;
       flex-direction: column;
@@ -168,21 +238,26 @@ class SLMEditItemDialog extends LitElement {
       align-items: center;
       justify-content: space-between;
       padding: 16px;
-      border-bottom: 1px solid var(--slm-border-subtle);
+      border-bottom: 1px solid var(--slm-border-subtle, #e8eaf6);
     }
     .dialog-header h3 {
       margin: 0;
       font-size: 18px;
       font-weight: 600;
-      color: var(var(--slm-text-primary)
-);
+      color: var(--slm-text-primary, #424242);
     }
     .close-btn {
       background: none;
       border: none;
-      padding: 4px;
+      padding: 4px 8px;
       cursor: pointer;
       font-size: 18px;
+      color: var(--slm-text-secondary, #757575);
+      line-height: 1;
+      border-radius: 6px;
+    }
+    .close-btn:hover {
+      background: var(--slm-border-subtle, #e8eaf6);
     }
     .dialog-content {
       flex: 1;
@@ -204,24 +279,25 @@ class SLMEditItemDialog extends LitElement {
       margin-bottom: 6px;
       font-weight: 600;
       font-size: 13px;
-      color: var(--slm-text-secondary);
+      color: var(--slm-text-secondary, #757575);
     }
     .form-group input,
     .form-group textarea {
+      box-sizing: border-box;
       width: 100%;
-      padding: 10px;
-      border: 2px solid var(--slm-border-subtle);
+      padding: 10px 12px;
+      border: 2px solid var(--slm-border-subtle, #e8eaf6);
       border-radius: 8px;
       font-size: 15px;
       font-family: inherit;
-      color: var(var(--slm-text-primary)
-);
-      background: white;
+      color: var(--slm-text-primary, #424242);
+      background: var(--slm-bg-elevated, #ffffff);
+      transition: border-color 0.15s;
     }
     .form-group input:focus,
     .form-group textarea:focus {
       outline: none;
-      border-color: var(--primary-pastel, #9fa8da);
+      border-color: var(--slm-accent-primary, #9fa8da);
     }
     .form-group textarea {
       resize: vertical;
@@ -230,20 +306,79 @@ class SLMEditItemDialog extends LitElement {
       display: flex;
       justify-content: space-between;
       padding: 12px;
-      background: var(--surface-pastel, #fafbfc);
+      background: var(--slm-bg-main, #fafbfc);
       border-radius: 8px;
       margin-bottom: 16px;
       font-size: 15px;
+      color: var(--slm-text-primary, #424242);
     }
     .price-value {
       font-weight: 700;
-      color: var(--primary-pastel, #9fa8da);
+      color: var(--slm-accent-primary, #9fa8da);
     }
+
+    /* Image section */
+    .image-section {}
+    .image-preview-wrap {
+      position: relative;
+      display: inline-block;
+      margin-bottom: 10px;
+    }
+    .image-preview {
+      display: block;
+      width: 100%;
+      max-height: 180px;
+      object-fit: contain;
+      border-radius: 8px;
+      border: 2px solid var(--slm-border-subtle, #e8eaf6);
+      background: var(--slm-bg-main, #fafbfc);
+    }
+    .clear-image-btn {
+      position: absolute;
+      top: 6px;
+      right: 6px;
+      background: rgba(0,0,0,0.55);
+      color: white;
+      border: none;
+      border-radius: 50%;
+      width: 24px;
+      height: 24px;
+      cursor: pointer;
+      font-size: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0;
+      line-height: 1;
+    }
+    .image-url-row {
+      display: flex;
+      gap: 8px;
+      align-items: stretch;
+    }
+    .image-url-row input {
+      flex: 1;
+    }
+    .browse-btn {
+      flex-shrink: 0;
+      padding: 0 12px;
+      border: 2px solid var(--slm-border-subtle, #e8eaf6);
+      border-radius: 8px;
+      background: var(--slm-bg-elevated, #ffffff);
+      color: var(--slm-text-primary, #424242);
+      font-size: 18px;
+      cursor: pointer;
+      transition: border-color 0.15s;
+    }
+    .browse-btn:hover {
+      border-color: var(--slm-accent-primary, #9fa8da);
+    }
+
     .dialog-footer {
       display: flex;
       gap: 8px;
       padding: 16px;
-      border-top: 1px solid var(--slm-border-subtle);
+      border-top: 1px solid var(--slm-border-subtle, #e8eaf6);
     }
     .action-btn {
       flex: 1;
@@ -260,12 +395,12 @@ class SLMEditItemDialog extends LitElement {
       color: white;
     }
     .action-btn.secondary {
-      background: var(--surface-pastel, #fafbfc);
-      color: var(var(--slm-text-primary)
-);
+      background: var(--slm-bg-main, #fafbfc);
+      color: var(--slm-text-primary, #424242);
+      border: 1px solid var(--slm-border-subtle, #e8eaf6);
     }
     .action-btn.danger {
-      background: #ef9a9a;
+      background: var(--slm-accent-danger, #ef9a9a);
       color: white;
     }
     .action-btn:active {
