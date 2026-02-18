@@ -251,35 +251,33 @@ class SLMItemTile extends LitElement {
     .tile.checked {
       opacity: var(--slm-tile-checked-opacity);
     }
-    .decrease-btn {
-      position: absolute;
-      top: 0;
-      left: 0;
-      color: white;
-      border: none;
-      border-radius: 14px 0 14px 0;
-      padding: 5px 12px;
-      font-size: 14px;
-      font-weight: 700;
-      cursor: pointer;
-      box-shadow: 2px 2px 6px rgba(0,0,0,0.25);
-      z-index: 2;
-    }
+    .decrease-btn,
     .quantity-badge {
       position: absolute;
       top: 0;
-      right: 0;
+      width: 44px;
+      height: 32px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0;
+      box-sizing: border-box;
       color: white;
-      padding: 5px 12px;
-      border-radius: 0 14px 0 14px;
+      border: none;
       font-size: 14px;
       font-weight: 700;
-      z-index: 2;
-      box-shadow: -2px 2px 6px rgba(0,0,0,0.25);
       cursor: pointer;
+      z-index: 2;
     }
-    .quantity-badge:hover {
-      transform: scale(1.05);
+    .decrease-btn {
+      left: 0;
+      border-radius: 14px 0 14px 0;
+      box-shadow: 2px 2px 6px rgba(0,0,0,0.25);
+    }
+    .quantity-badge {
+      right: 0;
+      border-radius: 0 14px 0 14px;
+      box-shadow: -2px 2px 6px rgba(0,0,0,0.25);
     }
     img, .no-image {
       width: 100%;
