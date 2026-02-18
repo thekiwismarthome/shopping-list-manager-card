@@ -253,35 +253,35 @@ class SLMItemTile extends LitElement {
     }
     .decrease-btn {
       position: absolute;
-      top: 7px;
-      left: 7px;
+      top: 0;
+      left: 0;
       background: #8b4545;
       color: white;
       border: none;
       border-radius: 50%;
-      width: 30px;
-      height: 30px;
+      width: 38px;
+      height: 38px;
       display: flex;
       align-items: center;
       justify-content: center;
       cursor: pointer;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+      box-shadow: 2px 2px 6px rgba(0,0,0,0.3);
       z-index: 2;
       padding: 0;
-      font-size: 22px;
+      font-size: 26px;
       font-weight: 300;
     }
     .quantity-badge {
       position: absolute;
-      top: 7px;
-      right: 7px;
+      top: 0;
+      right: 0;
       color: white;
-      padding: 4px 10px;
-      border-radius: 14px;
-      font-size: 13px;
+      padding: 5px 12px;
+      border-radius: 0 14px 0 14px;
+      font-size: 14px;
       font-weight: 700;
       z-index: 2;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+      box-shadow: -2px 2px 6px rgba(0,0,0,0.25);
       cursor: pointer;
     }
     .quantity-badge:hover {

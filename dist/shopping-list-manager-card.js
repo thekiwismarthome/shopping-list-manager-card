@@ -390,35 +390,35 @@ const _=globalThis,$=t=>t,k=_.trustedTypes,E=k?k.createPolicy("lit-html",{create
     }
     .decrease-btn {
       position: absolute;
-      top: 7px;
-      left: 7px;
+      top: 0;
+      left: 0;
       background: #8b4545;
       color: white;
       border: none;
       border-radius: 50%;
-      width: 30px;
-      height: 30px;
+      width: 38px;
+      height: 38px;
       display: flex;
       align-items: center;
       justify-content: center;
       cursor: pointer;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+      box-shadow: 2px 2px 6px rgba(0,0,0,0.3);
       z-index: 2;
       padding: 0;
-      font-size: 22px;
+      font-size: 26px;
       font-weight: 300;
     }
     .quantity-badge {
       position: absolute;
-      top: 7px;
-      right: 7px;
+      top: 0;
+      right: 0;
       color: white;
-      padding: 4px 10px;
-      border-radius: 14px;
-      font-size: 13px;
+      padding: 5px 12px;
+      border-radius: 0 14px 0 14px;
+      font-size: 14px;
       font-weight: 700;
       z-index: 2;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+      box-shadow: -2px 2px 6px rgba(0,0,0,0.25);
       cursor: pointer;
     }
     .quantity-badge:hover {
@@ -476,7 +476,7 @@ const _=globalThis,$=t=>t,k=_.trustedTypes,E=k?k.createPolicy("lit-html",{create
       font-size: 40px;
       color: white;
     }
-  `}customElements.define("slm-item-tile",pt);class ht extends at{constructor(){super(),console.log("GRID CONSTRUCTOR")}static properties={items:{type:Array},categories:{type:Array},settings:{type:Object},api:{type:Object},recentItems:{type:Array}};groupItemsByCategory(){const t={};return this.categories.forEach(e=>{t[e.id]={category:e,items:this.items.filter(t=>t.category_id===e.id&&!t.checked)}}),Object.values(t).filter(t=>t.items.length>0)}async getRecentlyUsedItems(){if(!this.api)return[];const t=localStorage.getItem("slm_recent_products"),e=t?JSON.parse(t):[],i=this.settings?.recentProductsCount||8,n=this.items.map(t=>t.product_id),o=e.filter(t=>!n.includes(t)).slice(0,i);if(0===o.length)return[];return(await Promise.all(o.map(t=>this.api.getProductSuggestions(1)))).flatMap(t=>t.products||[])}hexToRgb(t){const e=/^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(t);return e?{r:parseInt(e[1],16),g:parseInt(e[2],16),b:parseInt(e[3],16)}:{r:159,g:168,b:218}}getCategoryHeaderStyle(t){const{r:e,g:i,b:n}=this.hexToRgb(t);return`border-left: 4px solid ${t}; background: linear-gradient(to right, rgba(${e},${i},${n},0.22), rgba(${e},${i},${n},0.06)); border-radius: 0 8px 8px 0;`}render(){const t=this.groupItemsByCategory(),e=this.getRecentlyUsedItems(),i=this.settings?.tilesPerRow||3,n="#9e9e9e";return H`
+  `}customElements.define("slm-item-tile",pt);class ht extends at{constructor(){super(),console.log("GRID CONSTRUCTOR")}static properties={items:{type:Array},categories:{type:Array},settings:{type:Object},api:{type:Object},recentItems:{type:Array}};groupItemsByCategory(){const t={};return this.categories.forEach(e=>{t[e.id]={category:e,items:this.items.filter(t=>t.category_id===e.id&&!t.checked)}}),Object.values(t).filter(t=>t.items.length>0)}async getRecentlyUsedItems(){if(!this.api)return[];const t=localStorage.getItem("slm_recent_products"),e=t?JSON.parse(t):[],i=this.settings?.recentProductsCount||8,n=this.items.map(t=>t.product_id),o=e.filter(t=>!n.includes(t)).slice(0,i);if(0===o.length)return[];return(await Promise.all(o.map(t=>this.api.getProductSuggestions(1)))).flatMap(t=>t.products||[])}hexToRgb(t){const e=/^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(t);return e?{r:parseInt(e[1],16),g:parseInt(e[2],16),b:parseInt(e[3],16)}:{r:159,g:168,b:218}}getCategoryHeaderStyle(t){const{r:e,g:i,b:n}=this.hexToRgb(t);return`border-left: 4px solid ${t}; background: linear-gradient(to right, rgba(${e},${i},${n},0.22), rgba(${e},${i},${n},0.165)); border-radius: 0 8px 8px 0;`}render(){const t=this.groupItemsByCategory(),e=this.getRecentlyUsedItems(),i=this.settings?.tilesPerRow||3,n="#9e9e9e";return H`
       <style>
         .items-grid {
           grid-template-columns: repeat(${i}, 1fr);

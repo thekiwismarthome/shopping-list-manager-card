@@ -61,7 +61,7 @@ class SLMItemGrid extends LitElement {
 
   getCategoryHeaderStyle(color) {
     const { r, g, b } = this.hexToRgb(color);
-    return `border-left: 4px solid ${color}; background: linear-gradient(to right, rgba(${r},${g},${b},0.22), rgba(${r},${g},${b},0.06)); border-radius: 0 8px 8px 0;`;
+    return `border-left: 4px solid ${color}; background: linear-gradient(to right, rgba(${r},${g},${b},0.22), rgba(${r},${g},${b},0.165)); border-radius: 0 8px 8px 0;`;
   }
 
   render() {
