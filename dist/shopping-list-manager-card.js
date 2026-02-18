@@ -367,7 +367,7 @@ const _=globalThis,$=t=>t,k=_.trustedTypes,E=k?k.createPolicy("lit-html",{create
     `}static styles=r`
     .tile {
       position: relative;
-      border-radius: 8px;
+      border-radius: 14px;
       padding: 0;
       display: flex;
       flex-direction: column;
@@ -390,14 +390,14 @@ const _=globalThis,$=t=>t,k=_.trustedTypes,E=k?k.createPolicy("lit-html",{create
     }
     .decrease-btn {
       position: absolute;
-      top: 6px;
-      left: 6px;
+      top: 7px;
+      left: 7px;
       background: #8b4545;
       color: white;
       border: none;
       border-radius: 50%;
-      width: 24px;
-      height: 24px;
+      width: 30px;
+      height: 30px;
       display: flex;
       align-items: center;
       justify-content: center;
@@ -405,17 +405,17 @@ const _=globalThis,$=t=>t,k=_.trustedTypes,E=k?k.createPolicy("lit-html",{create
       box-shadow: 0 2px 4px rgba(0,0,0,0.3);
       z-index: 2;
       padding: 0;
-      font-size: 18px;
+      font-size: 22px;
       font-weight: 300;
     }
     .quantity-badge {
       position: absolute;
-      top: 6px;
-      right: 6px;
+      top: 7px;
+      right: 7px;
       color: white;
-      padding: 3px 8px;
-      border-radius: 10px;
-      font-size: 12px;
+      padding: 4px 10px;
+      border-radius: 14px;
+      font-size: 13px;
       font-weight: 700;
       z-index: 2;
       box-shadow: 0 2px 4px rgba(0,0,0,0.3);
@@ -467,7 +467,7 @@ const _=globalThis,$=t=>t,k=_.trustedTypes,E=k?k.createPolicy("lit-html",{create
       right: 0;
       bottom: 0;
       background: rgba(159, 168, 218, 0.9);
-      border-radius: 6px;
+      border-radius: 14px;
       display: flex;
       align-items: center;
       justify-content: center;
@@ -476,7 +476,7 @@ const _=globalThis,$=t=>t,k=_.trustedTypes,E=k?k.createPolicy("lit-html",{create
       font-size: 40px;
       color: white;
     }
-  `}customElements.define("slm-item-tile",pt);class ht extends at{constructor(){super(),console.log("GRID CONSTRUCTOR")}static properties={items:{type:Array},categories:{type:Array},settings:{type:Object},api:{type:Object},recentItems:{type:Array}};groupItemsByCategory(){const t={};return this.categories.forEach(e=>{t[e.id]={category:e,items:this.items.filter(t=>t.category_id===e.id&&!t.checked)}}),Object.values(t).filter(t=>t.items.length>0)}async getRecentlyUsedItems(){if(!this.api)return[];const t=localStorage.getItem("slm_recent_products"),e=t?JSON.parse(t):[],i=this.settings?.recentProductsCount||8,n=this.items.map(t=>t.product_id),o=e.filter(t=>!n.includes(t)).slice(0,i);if(0===o.length)return[];return(await Promise.all(o.map(t=>this.api.getProductSuggestions(1)))).flatMap(t=>t.products||[])}hexToRgb(t){const e=/^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(t);return e?{r:parseInt(e[1],16),g:parseInt(e[2],16),b:parseInt(e[3],16)}:{r:159,g:168,b:218}}getCategoryHeaderStyle(t){const{r:e,g:i,b:n}=this.hexToRgb(t);return`border-left: 4px solid ${t}; background: rgba(${e},${i},${n},0.13); border-radius: 0 6px 6px 0;`}render(){const t=this.groupItemsByCategory(),e=this.getRecentlyUsedItems(),i=this.settings?.tilesPerRow||3,n="#9e9e9e";return H`
+  `}customElements.define("slm-item-tile",pt);class ht extends at{constructor(){super(),console.log("GRID CONSTRUCTOR")}static properties={items:{type:Array},categories:{type:Array},settings:{type:Object},api:{type:Object},recentItems:{type:Array}};groupItemsByCategory(){const t={};return this.categories.forEach(e=>{t[e.id]={category:e,items:this.items.filter(t=>t.category_id===e.id&&!t.checked)}}),Object.values(t).filter(t=>t.items.length>0)}async getRecentlyUsedItems(){if(!this.api)return[];const t=localStorage.getItem("slm_recent_products"),e=t?JSON.parse(t):[],i=this.settings?.recentProductsCount||8,n=this.items.map(t=>t.product_id),o=e.filter(t=>!n.includes(t)).slice(0,i);if(0===o.length)return[];return(await Promise.all(o.map(t=>this.api.getProductSuggestions(1)))).flatMap(t=>t.products||[])}hexToRgb(t){const e=/^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(t);return e?{r:parseInt(e[1],16),g:parseInt(e[2],16),b:parseInt(e[3],16)}:{r:159,g:168,b:218}}getCategoryHeaderStyle(t){const{r:e,g:i,b:n}=this.hexToRgb(t);return`border-left: 4px solid ${t}; background: linear-gradient(to right, rgba(${e},${i},${n},0.22), rgba(${e},${i},${n},0.06)); border-radius: 0 8px 8px 0;`}render(){const t=this.groupItemsByCategory(),e=this.getRecentlyUsedItems(),i=this.settings?.tilesPerRow||3,n="#9e9e9e";return H`
       <style>
         .items-grid {
           grid-template-columns: repeat(${i}, 1fr);

@@ -230,7 +230,7 @@ class SLMItemTile extends LitElement {
   static styles = css`
     .tile {
       position: relative;
-      border-radius: 8px;
+      border-radius: 14px;
       padding: 0;
       display: flex;
       flex-direction: column;
@@ -253,14 +253,14 @@ class SLMItemTile extends LitElement {
     }
     .decrease-btn {
       position: absolute;
-      top: 6px;
-      left: 6px;
+      top: 7px;
+      left: 7px;
       background: #8b4545;
       color: white;
       border: none;
       border-radius: 50%;
-      width: 24px;
-      height: 24px;
+      width: 30px;
+      height: 30px;
       display: flex;
       align-items: center;
       justify-content: center;
@@ -268,17 +268,17 @@ class SLMItemTile extends LitElement {
       box-shadow: 0 2px 4px rgba(0,0,0,0.3);
       z-index: 2;
       padding: 0;
-      font-size: 18px;
+      font-size: 22px;
       font-weight: 300;
     }
     .quantity-badge {
       position: absolute;
-      top: 6px;
-      right: 6px;
+      top: 7px;
+      right: 7px;
       color: white;
-      padding: 3px 8px;
-      border-radius: 10px;
-      font-size: 12px;
+      padding: 4px 10px;
+      border-radius: 14px;
+      font-size: 13px;
       font-weight: 700;
       z-index: 2;
       box-shadow: 0 2px 4px rgba(0,0,0,0.3);
@@ -330,7 +330,7 @@ class SLMItemTile extends LitElement {
       right: 0;
       bottom: 0;
       background: rgba(159, 168, 218, 0.9);
-      border-radius: 6px;
+      border-radius: 14px;
       display: flex;
       align-items: center;
       justify-content: center;
