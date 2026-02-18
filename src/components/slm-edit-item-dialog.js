@@ -21,7 +21,7 @@ class SLMEditItemDialog extends LitElement {
         name: this.item.name,
         quantity: this.item.quantity,
         unit: this.item.unit,
-        notes: this.item.notes || '',
+        note: this.item.note || '',
         image_url: this.item.image_url || ''
       };
       this.imagePreview = this.item.image_url || null;
@@ -146,8 +146,8 @@ class SLMEditItemDialog extends LitElement {
               <label>Notes</label>
               <textarea
                 placeholder="Add notes (optional)..."
-                .value=${this.editedItem.notes || ''}
-                @input=${(e) => this.editedItem = { ...this.editedItem, notes: e.target.value }}
+                .value=${this.editedItem.note || ''}
+                @input=${(e) => this.editedItem = { ...this.editedItem, note: e.target.value }}
                 rows="3"
               ></textarea>
             </div>
@@ -165,7 +165,7 @@ class SLMEditItemDialog extends LitElement {
               <div class="image-url-row">
                 <input
                   id="image-url-input"
-                  type="url"
+                  type="text"
                   placeholder="Paste image URL..."
                   .value=${this.editedItem.image_url && !this.editedItem.image_url.startsWith('data:') ? this.editedItem.image_url : ''}
                   @input=${this.handleImageUrlInput}
