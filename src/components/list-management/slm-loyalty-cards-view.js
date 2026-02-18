@@ -276,8 +276,7 @@ class SLMLoyaltyCardsView extends LitElement {
       margin: 0;
       font-size: 22px;
       font-weight: 700;
-      color: var(var(--slm-text-primary)
-);
+      color: var(--slm-text-primary);
     }
     .add-btn {
       display: flex;
@@ -291,7 +290,7 @@ class SLMLoyaltyCardsView extends LitElement {
       width: 40px;
       height: 40px;
       cursor: pointer;
-      box-shadow: 0 2px 6px rgba(--slm-shadow-soft);
+      box-shadow: var(--slm-shadow-soft);
       -webkit-tap-highlight-color: transparent;
     }
     .add-btn ha-icon {
@@ -339,7 +338,7 @@ class SLMLoyaltyCardsView extends LitElement {
       min-height: 180px;
       display: flex;
       flex-direction: column;
-      box-shadow: 0 4px 12px rgba(--slm-shadow-soft);
+      box-shadow: var(--slm-shadow-soft);
     }
     .menu-btn {
       position: absolute;
@@ -398,7 +397,7 @@ class SLMLoyaltyCardsView extends LitElement {
       left: 0;
       right: 0;
       bottom: 0;
-      background: rgba(--slm-shadow-medium);
+      background: rgba(0, 0, 0, 0.5);
       display: flex;
       align-items: center;
       justify-content: center;
@@ -407,8 +406,10 @@ class SLMLoyaltyCardsView extends LitElement {
     .dialog {
       width: 90%;
       max-width: 400px;
-      background: white;
+      background: var(--slm-bg-surface, #ffffff);
+      color: var(--slm-text-primary);
       border-radius: 16px;
+      box-shadow: var(--slm-shadow-medium);
     }
     .dialog-header {
       display: flex;
@@ -420,12 +421,14 @@ class SLMLoyaltyCardsView extends LitElement {
     .dialog-header h3 {
       margin: 0;
       font-size: 18px;
+      color: var(--slm-text-primary);
     }
     .dialog-header button {
       background: none;
       border: none;
       cursor: pointer;
       font-size: 18px;
+      color: var(--slm-text-secondary);
     }
     .dialog-content {
       padding: 20px;
@@ -443,14 +446,20 @@ class SLMLoyaltyCardsView extends LitElement {
     .dialog-content textarea {
       display: block;
       width: 100%;
+      box-sizing: border-box;
       padding: 10px;
       margin-top: 6px;
       border: 2px solid var(--slm-border-subtle);
       border-radius: 8px;
       font-size: 15px;
       font-family: inherit;
-      color: var(var(--slm-text-primary)
-);
+      color: var(--slm-text-primary);
+      background: var(--slm-bg-main, #fafbfc);
+    }
+    .dialog-content input[type="color"] {
+      padding: 4px;
+      height: 40px;
+      cursor: pointer;
     }
     .dialog-footer {
       display: flex;
@@ -467,16 +476,16 @@ class SLMLoyaltyCardsView extends LitElement {
       border: none;
     }
     .action-btn.primary {
-      background: linear-gradient(135deg, #9fa8da 0%, #c5cae9 100%);
+      background: var(--slm-accent-primary, #9fa8da);
       color: white;
     }
     .action-btn.secondary {
-      background: var(--surface-pastel, #fafbfc);
-      color: var(var(--slm-text-primary)
-);
+      background: var(--slm-bg-main, #fafbfc);
+      color: var(--slm-text-primary);
+      border: 1px solid var(--slm-border-subtle);
     }
     .action-btn.danger {
-      background: #ef9a9a;
+      background: var(--slm-accent-danger, #ef9a9a);
       color: white;
     }
     .fullscreen-overlay {
