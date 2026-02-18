@@ -22,6 +22,13 @@ class SLMItemTile extends LitElement {
     this.longPressTriggered = false;
   }
 
+  hexToRgb(hex) {
+    const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+    return result
+      ? { r: parseInt(result[1], 16), g: parseInt(result[2], 16), b: parseInt(result[3], 16) }
+      : { r: 159, g: 168, b: 218 };
+  }
+
   handleTileClick(e) {
     if (this.longPressTriggered) {
       this.longPressTriggered = false;
@@ -165,9 +172,20 @@ class SLMItemTile extends LitElement {
   }
 
   render() {
+    const { r, g, b } = this.hexToRgb(this.categoryColor);
+    // Tile background: muted colour, even more muted when recently used
+    const tileBg = this.isRecentlyUsed
+      ? `rgba(${r},${g},${b},0.12)`
+      : `rgba(${r},${g},${b},0.25)`;
+    // No-image placeholder: slightly more prominent than the tile bg
+    const noImageBg = this.isRecentlyUsed
+      ? `rgba(${r},${g},${b},0.08)`
+      : `rgba(${r},${g},${b},0.18)`;
+
     return html`
-      <div 
+      <div
         class="tile ${this.item.checked ? 'checked' : ''} ${this.isRecentlyUsed ? 'recently-used' : ''}"
+        style="background: ${tileBg}"
         @click=${this.handleTileClick}
         @mousedown=${this.handleMouseDown}
         @mouseup=${this.handleMouseUp}
@@ -180,8 +198,8 @@ class SLMItemTile extends LitElement {
         ` : ''}
 
         ${!this.item.checked ? html`
-          <div 
-            class="quantity-badge" 
+          <div
+            class="quantity-badge"
             style="background: ${this.categoryColor}"
             @click=${this.handleQuantityClick}
           >
@@ -192,7 +210,7 @@ class SLMItemTile extends LitElement {
         ${this.item.image_url ? html`
           <img src="${this.item.image_url}" alt="${this.item.name}">
         ` : html`
-          <div class="no-image" style="background: ${this.categoryColor}15">
+          <div class="no-image" style="background: ${noImageBg}">
             <div class="emoji">${this.getCategoryEmoji(this.item.category_id)}</div>
           </div>
         `}
@@ -216,7 +234,6 @@ class SLMItemTile extends LitElement {
   static styles = css`
     .tile {
       position: relative;
-      background: var(--slm-tile-bg);
       border-radius: 8px;
       padding: 8px;
       display: flex;
@@ -227,13 +244,13 @@ class SLMItemTile extends LitElement {
       user-select: none;
       aspect-ratio: 1;
       overflow: hidden;
-      box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+      box-shadow: 0 1px 3px rgba(0,0,0,0.2);
     }
     .tile:active {
       transform: scale(0.97);
     }
     .tile.recently-used {
-      opacity: 0.6;
+      opacity: 0.8;
     }
     .tile.checked {
       opacity: var(--slm-tile-checked-opacity);
@@ -296,7 +313,7 @@ class SLMItemTile extends LitElement {
       font-size: 12px;
       line-height: 1.2;
       margin-bottom: 2px;
-      color: #e0e0e0;
+      color: var(--slm-text-primary, #e0e0e0);
       overflow: hidden;
       text-overflow: ellipsis;
       display: -webkit-box;
@@ -305,7 +322,7 @@ class SLMItemTile extends LitElement {
     }
     .price {
       font-size: 11px;
-      color: #9fa8da;
+      color: var(--slm-accent-primary, #9fa8da);
       font-weight: 700;
     }
     .checked-overlay {
