@@ -1,4 +1,5 @@
 import { LitElement, html, css } from 'lit';
+import JsBarcode from 'jsbarcode';
 
 class SLMLoyaltyCardsView extends LitElement {
   static properties = {
@@ -118,6 +119,28 @@ class SLMLoyaltyCardsView extends LitElement {
     this.showFullscreenCard = true;
   }
 
+  updated(changedProperties) {
+    super.updated(changedProperties);
+    if (this.showFullscreenCard && this.fullscreenCard?.barcode) {
+      const svg = this.shadowRoot.getElementById('barcode-svg');
+      if (svg) {
+        try {
+          JsBarcode(svg, this.fullscreenCard.barcode, {
+            format: "CODE128",
+            width: 2,
+            height: 80,
+            displayValue: true,
+            fontSize: 20,
+            background: "#ffffff",
+            lineColor: "#000000"
+          });
+        } catch (e) {
+          console.warn('Barcode generation failed:', e);
+        }
+      }
+    }
+  }
+
   generateBarcode(number) {
     // Auto-generate barcode from number
     return number.replace(/\D/g, '');
@@ -142,12 +165,12 @@ class SLMLoyaltyCardsView extends LitElement {
         ` : html`
           <div class="cards-grid">
             ${this.cards.map(card => html`
-              <div class="loyalty-card" style="background: ${card.color}">
+              <div class="loyalty-card" style="background: ${card.color}" @click=${() => this.handleCardClick(card)}>
                 <button class="menu-btn" @click=${(e) => { e.stopPropagation(); this.handleEditCard(card); }}>
                   <ha-icon icon="mdi:dots-vertical"></ha-icon>
                 </button>
                 
-                <div class="card-body" @click=${() => this.handleCardClick(card)}>
+                <div class="card-body">
                   ${card.logo ? html`
                     <img src="${card.logo}" alt="${card.name}" class="card-logo">
                   ` : ''}
@@ -174,7 +197,7 @@ class SLMLoyaltyCardsView extends LitElement {
 
   renderDialog(isEdit) {
     const card = isEdit ? this.editingCard : this.newCard;
-    
+
     return html`
       <div class="overlay" @click=${() => isEdit ? (this.showEditDialog = false) : (this.showAddDialog = false)}>
         <form class="dialog" @click=${(e) => e.stopPropagation()} @submit=${isEdit ? this.handleSaveEditCard : this.handleSaveNewCard}>
@@ -230,7 +253,7 @@ class SLMLoyaltyCardsView extends LitElement {
 
   renderFullscreen() {
     const card = this.fullscreenCard;
-    
+
     return html`
       <div class="fullscreen-overlay" @click=${() => this.showFullscreenCard = false}>
         <div class="fullscreen-card">
@@ -239,25 +262,13 @@ class SLMLoyaltyCardsView extends LitElement {
           ${card.barcode ? html`
             <div class="fullscreen-barcode">
               <div class="barcode-display">
-                ${this.renderBarcodeImage(card.barcode)}
+                <svg id="barcode-svg"></svg>
               </div>
-              <div class="barcode-number">${card.barcode}</div>
             </div>
           ` : ''}
           <p class="tap-hint">Tap anywhere to close</p>
         </div>
       </div>
-    `;
-  }
-
-  renderBarcodeImage(barcode) {
-    // Simple barcode representation using bars
-    return html`
-      <svg class="barcode-svg" viewBox="0 0 200 80">
-        ${barcode.split('').map((digit, i) => html`
-          <rect x="${i * 15}" y="0" width="${parseInt(digit) + 3}" height="80" fill="black"></rect>
-        `)}
-      </svg>
     `;
   }
 
