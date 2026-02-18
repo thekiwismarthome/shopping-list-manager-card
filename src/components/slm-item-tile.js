@@ -188,7 +188,7 @@ class SLMItemTile extends LitElement {
         @mouseleave=${this.handleMouseLeave}
       >
         ${!this.item.checked ? html`
-          <button class="decrease-btn" style="background: ${this.categoryColor}" @click=${this.handleDecrease}>
+          <button class="decrease-btn" style="background: rgba(${r},${g},${b},0.7)" @click=${this.handleDecrease}>
             <span>−</span>
           </button>
         ` : ''}
@@ -259,9 +259,8 @@ class SLMItemTile extends LitElement {
       border: none;
       border-radius: 14px 0 14px 0;
       padding: 5px 12px;
-      font-size: 20px;
+      font-size: 14px;
       font-weight: 700;
-      line-height: 1;
       cursor: pointer;
       box-shadow: 2px 2px 6px rgba(0,0,0,0.25);
       z-index: 2;
