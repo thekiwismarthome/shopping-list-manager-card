@@ -17,7 +17,7 @@ class SLMItemGrid extends LitElement {
 
   groupItemsByCategory() {
     const grouped = {};
-    
+
     this.categories.forEach(cat => {
       grouped[cat.id] = {
         category: cat,
@@ -52,10 +52,23 @@ class SLMItemGrid extends LitElement {
     return products.flatMap(p => p.products || []);
   }
 
+  hexToRgb(hex) {
+    const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+    return result
+      ? { r: parseInt(result[1], 16), g: parseInt(result[2], 16), b: parseInt(result[3], 16) }
+      : { r: 159, g: 168, b: 218 };
+  }
+
+  getCategoryHeaderStyle(color) {
+    const { r, g, b } = this.hexToRgb(color);
+    return `border-left: 4px solid ${color}; background: linear-gradient(to right, rgba(${r},${g},${b},0.22), rgba(${r},${g},${b},0.066)); border-radius: 0 8px 8px 0;`;
+  }
+
   render() {
     const groupedItems = this.groupItemsByCategory();
     const recentItems = this.getRecentlyUsedItems();
     const tilesPerRow = this.settings?.tilesPerRow || 3;
+    const recentColor = '#9e9e9e';
 
     return html`
       <style>
@@ -67,15 +80,15 @@ class SLMItemGrid extends LitElement {
       <div class="grid-container">
         ${recentItems.length > 0 ? html`
           <div class="category-section">
-            <div class="category-header">
+            <div class="category-header" style="${this.getCategoryHeaderStyle(recentColor)}">
               <span class="emoji">⏱️</span>
-              <span class="category-name">Recently Used</span>
+              <span class="category-name" style="color: ${recentColor}">Recently Used</span>
             </div>
             <div class="items-grid">
               ${recentItems.map(item => html`
                 <slm-item-tile
                   .item=${item}
-                  .categoryColor=${'#b0bec5'}
+                  .categoryColor=${recentColor}
                   .isRecentlyUsed=${true}
                   @item-click=${this.handleItemClick}
                   @item-decrease=${this.handleItemDecrease}
@@ -96,27 +109,30 @@ class SLMItemGrid extends LitElement {
           </div>
         ` : ''}
 
-        ${groupedItems.map(group => html`
-          <div class="category-section">
-            <div class="category-header">
-              <span class="emoji">${this.getCategoryEmoji(group.category.id)}</span>
-              <span class="category-name">${group.category.name}</span>
+        ${groupedItems.map(group => {
+          const color = group.category.color || '#9fa8da';
+          return html`
+            <div class="category-section">
+              <div class="category-header" style="${this.getCategoryHeaderStyle(color)}">
+                <span class="emoji">${this.getCategoryEmoji(group.category.id)}</span>
+                <span class="category-name" style="color: ${color}">${group.category.name}</span>
+              </div>
+              <div class="items-grid">
+                ${group.items.map(item => html`
+                  <slm-item-tile
+                    .item=${item}
+                    .categoryColor=${color}
+                    @item-click=${this.handleItemClick}
+                    @item-decrease=${this.handleItemDecrease}
+                    @item-check=${this.handleItemCheck}
+                    @item-long-press=${this.handleItemLongPress}
+                    @item-swipe-delete=${this.handleItemSwipeDelete}
+                  ></slm-item-tile>
+                `)}
+              </div>
             </div>
-            <div class="items-grid">
-              ${group.items.map(item => html`
-                <slm-item-tile
-                  .item=${item}
-                  .categoryColor=${this.getPastelColor(group.category.color)}
-                  @item-click=${this.handleItemClick}
-                  @item-decrease=${this.handleItemDecrease}
-                  @item-check=${this.handleItemCheck}
-                  @item-long-press=${this.handleItemLongPress}
-                  @item-swipe-delete=${this.handleItemSwipeDelete}
-                ></slm-item-tile>
-              `)}
-            </div>
-          </div>
-        `)}
+          `;
+        })}
       </div>
     `;
   }
@@ -138,20 +154,6 @@ class SLMItemGrid extends LitElement {
       'other': '📦'
     };
     return emojiMap[categoryId] || '📦';
-  }
-
-  getPastelColor(color) {
-    // Convert to pastel
-    const pastelMap = {
-      '#4CAF50': '#a5d6a7',
-      '#2196F3': '#90caf9',
-      '#F44336': '#ef9a9a',
-      '#FF9800': '#ffcc80',
-      '#9C27B0': '#ce93d8',
-      '#795548': '#bcaaa4',
-      '#607D8B': '#b0bec5'
-    };
-    return pastelMap[color] || color;
   }
 
   handleItemClick(e) {
@@ -211,16 +213,17 @@ class SLMItemGrid extends LitElement {
       display: flex;
       align-items: center;
       gap: 8px;
-      padding: 8px 4px;
-      font-weight: 600;
-      font-size: 14px;
-      color: var(--slm-text-secondary);
+      padding: 8px 12px;
+      margin-bottom: 6px;
+      font-weight: 700;
+      font-size: 16px;
     }
     .emoji {
       font-size: 20px;
     }
     .category-name {
       flex: 1;
+      font-weight: 700;
     }
     .items-grid {
       display: grid;

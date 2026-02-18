@@ -22,6 +22,13 @@ class SLMItemTile extends LitElement {
     this.longPressTriggered = false;
   }
 
+  hexToRgb(hex) {
+    const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+    return result
+      ? { r: parseInt(result[1], 16), g: parseInt(result[2], 16), b: parseInt(result[3], 16) }
+      : { r: 159, g: 168, b: 218 };
+  }
+
   handleTileClick(e) {
     if (this.longPressTriggered) {
       this.longPressTriggered = false;
@@ -165,23 +172,30 @@ class SLMItemTile extends LitElement {
   }
 
   render() {
+    const { r, g, b } = this.hexToRgb(this.categoryColor);
+    // Tile background: muted colour, even more muted when recently used
+    const tileBg = this.isRecentlyUsed
+      ? `rgba(${r},${g},${b},0.12)`
+      : `rgba(${r},${g},${b},0.25)`;
+
     return html`
-      <div 
+      <div
         class="tile ${this.item.checked ? 'checked' : ''} ${this.isRecentlyUsed ? 'recently-used' : ''}"
+        style="background: ${tileBg}"
         @click=${this.handleTileClick}
         @mousedown=${this.handleMouseDown}
         @mouseup=${this.handleMouseUp}
         @mouseleave=${this.handleMouseLeave}
       >
         ${!this.item.checked ? html`
-          <button class="decrease-btn" @click=${this.handleDecrease}>
+          <button class="decrease-btn" style="background: rgba(${r},${g},${b},0.7)" @click=${this.handleDecrease}>
             <span>−</span>
           </button>
         ` : ''}
 
         ${!this.item.checked ? html`
-          <div 
-            class="quantity-badge" 
+          <div
+            class="quantity-badge"
             style="background: ${this.categoryColor}"
             @click=${this.handleQuantityClick}
           >
@@ -192,7 +206,7 @@ class SLMItemTile extends LitElement {
         ${this.item.image_url ? html`
           <img src="${this.item.image_url}" alt="${this.item.name}">
         ` : html`
-          <div class="no-image" style="background: ${this.categoryColor}15">
+          <div class="no-image">
             <div class="emoji">${this.getCategoryEmoji(this.item.category_id)}</div>
           </div>
         `}
@@ -216,87 +230,80 @@ class SLMItemTile extends LitElement {
   static styles = css`
     .tile {
       position: relative;
-      background: var(--slm-tile-bg);
-      border-radius: 8px;
-      padding: 8px;
+      border-radius: 14px;
+      padding: 0;
       display: flex;
       flex-direction: column;
-      gap: 6px;
+      gap: 0;
       cursor: pointer;
       transition: all 0.15s;
       user-select: none;
       aspect-ratio: 1;
       overflow: hidden;
-      box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+      box-shadow: 0 1px 3px rgba(0,0,0,0.2);
     }
     .tile:active {
       transform: scale(0.97);
     }
     .tile.recently-used {
-      opacity: 0.6;
+      opacity: 0.8;
     }
     .tile.checked {
       opacity: var(--slm-tile-checked-opacity);
     }
-    .decrease-btn {
+    .decrease-btn,
+    .quantity-badge {
       position: absolute;
-      top: 6px;
-      left: 6px;
-      background: #8b4545;
-      color: white;
-      border: none;
-      border-radius: 50%;
-      width: 24px;
-      height: 24px;
+      top: 0;
+      width: 44px;
+      height: 32px;
       display: flex;
       align-items: center;
       justify-content: center;
-      cursor: pointer;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.3);
-      z-index: 2;
       padding: 0;
-      font-size: 18px;
-      font-weight: 300;
+      box-sizing: border-box;
+      color: white;
+      border: none;
+      font-size: 14px;
+      font-weight: 700;
+      cursor: pointer;
+      z-index: 2;
+    }
+    .decrease-btn {
+      left: 0;
+      border-radius: 14px 0 14px 0;
+      box-shadow: 2px 2px 6px rgba(0,0,0,0.25);
     }
     .quantity-badge {
-      position: absolute;
-      top: 6px;
-      right: 6px;
-      color: white;
-      padding: 3px 8px;
-      border-radius: 10px;
-      font-size: 12px;
-      font-weight: 700;
-      z-index: 2;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.3);
-      cursor: pointer;
-    }
-    .quantity-badge:hover {
-      transform: scale(1.05);
+      right: 0;
+      border-radius: 0 14px 0 14px;
+      box-shadow: -2px 2px 6px rgba(0,0,0,0.25);
     }
     img, .no-image {
       width: 100%;
       flex: 1;
-      border-radius: 6px;
+      min-height: 0;
       object-fit: cover;
     }
     .no-image {
       display: flex;
       align-items: center;
       justify-content: center;
+      background: transparent;
     }
     .emoji {
       font-size: 40px;
     }
     .info {
       flex-shrink: 0;
+      padding: 5px 8px 7px;
     }
     .name {
       font-weight: 600;
       font-size: 12px;
       line-height: 1.2;
       margin-bottom: 2px;
-      color: #e0e0e0;
+      color: var(--slm-text-primary, #e0e0e0);
       overflow: hidden;
       text-overflow: ellipsis;
       display: -webkit-box;
@@ -305,7 +312,7 @@ class SLMItemTile extends LitElement {
     }
     .price {
       font-size: 11px;
-      color: #9fa8da;
+      color: var(--slm-accent-primary, #9fa8da);
       font-weight: 700;
     }
     .checked-overlay {
@@ -315,7 +322,7 @@ class SLMItemTile extends LitElement {
       right: 0;
       bottom: 0;
       background: rgba(159, 168, 218, 0.9);
-      border-radius: 6px;
+      border-radius: 14px;
       display: flex;
       align-items: center;
       justify-content: center;

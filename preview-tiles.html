@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tile Preview</title>
+<style>
+  body {
+    background: #14161a;
+    color: #e4e7ec;
+    font-family: sans-serif;
+    padding: 16px;
+    margin: 0;
+  }
+
+  .grid-container { padding: 4px; }
+  .category-section { margin-bottom: 16px; }
+
+  .category-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px;
+    margin-bottom: 6px;
+    font-weight: 700;
+    font-size: 16px;
+  }
+  .category-header .emoji { font-size: 20px; }
+  .category-header .category-name { flex: 1; font-weight: 700; }
+
+  .items-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 4px;
+    max-width: 520px;
+  }
+
+  .tile {
+    position: relative;
+    border-radius: 14px;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    cursor: pointer;
+    aspect-ratio: 1;
+    overflow: hidden;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+    transition: all 0.15s;
+  }
+
+  /* Both buttons: identical fixed dimensions, centred content */
+  .decrease-btn,
+  .quantity-badge {
+    position: absolute;
+    top: 0;
+    width: 44px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    font-weight: 700;
+    color: white;
+    border: none;
+    cursor: pointer;
+    z-index: 2;
+    padding: 0;
+    box-sizing: border-box;
+  }
+  .decrease-btn {
+    left: 0;
+    border-radius: 14px 0 14px 0;
+    box-shadow: 2px 2px 6px rgba(0,0,0,0.25);
+  }
+  .quantity-badge {
+    right: 0;
+    border-radius: 0 14px 0 14px;
+    box-shadow: -2px 2px 6px rgba(0,0,0,0.25);
+  }
+
+  .no-image {
+    width: 100%;
+    flex: 1;
+    min-height: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: transparent;
+  }
+  .no-image .emoji { font-size: 40px; }
+  img.product-img {
+    width: 100%;
+    flex: 1;
+    min-height: 0;
+    object-fit: cover;
+  }
+  .info {
+    flex-shrink: 0;
+    padding: 5px 8px 7px;
+  }
+  .name {
+    font-weight: 600;
+    font-size: 12px;
+    line-height: 1.2;
+    margin-bottom: 2px;
+    color: #e4e7ec;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+  }
+  .price {
+    font-size: 11px;
+    color: #9fa8da;
+    font-weight: 700;
+  }
+
+  /* Category colour vars */
+  .cat-produce   { --r:76;  --g:175; --b:80;  }
+  .cat-dairy     { --r:255; --g:193; --b:7;   }
+  .cat-meat      { --r:244; --g:67;  --b:54;  }
+  .cat-beverages { --r:0;   --g:188; --b:212; }
+  .cat-frozen    { --r:33;  --g:150; --b:243; }
+
+  .tile         { background: rgba(var(--r),var(--g),var(--b),0.25); }
+  .decrease-btn { background: rgba(var(--r),var(--g),var(--b),0.7);  }
+  .quantity-badge { background: rgb(var(--r),var(--g),var(--b));     }
+
+  .h-produce   { border-left:4px solid rgb(76,175,80);  background:linear-gradient(to right,rgba(76,175,80,0.22),rgba(76,175,80,0.066));  border-radius:0 8px 8px 0; color:rgb(76,175,80);  }
+  .h-dairy     { border-left:4px solid rgb(255,193,7);  background:linear-gradient(to right,rgba(255,193,7,0.22),rgba(255,193,7,0.066));  border-radius:0 8px 8px 0; color:rgb(255,193,7);  }
+  .h-meat      { border-left:4px solid rgb(244,67,54);  background:linear-gradient(to right,rgba(244,67,54,0.22),rgba(244,67,54,0.066));  border-radius:0 8px 8px 0; color:rgb(244,67,54);  }
+  .h-beverages { border-left:4px solid rgb(0,188,212);  background:linear-gradient(to right,rgba(0,188,212,0.22),rgba(0,188,212,0.066));  border-radius:0 8px 8px 0; color:rgb(0,188,212);  }
+  .h-frozen    { border-left:4px solid rgb(33,150,243); background:linear-gradient(to right,rgba(33,150,243,0.22),rgba(33,150,243,0.066)); border-radius:0 8px 8px 0; color:rgb(33,150,243); }
+</style>
+</head>
+<body>
+<div class="grid-container">
+
+  <div class="category-section">
+    <div class="category-header h-produce">
+      <span class="emoji">🥬</span><span class="category-name">Fruit &amp; Veg</span>
+    </div>
+    <div class="items-grid">
+      <div class="tile cat-produce">
+        <button class="decrease-btn">−</button>
+        <div class="quantity-badge">1</div>
+        <div class="no-image"><span class="emoji">🥬</span></div>
+        <div class="info"><div class="name">Spinach</div></div>
+      </div>
+      <div class="tile cat-produce">
+        <button class="decrease-btn">−</button>
+        <div class="quantity-badge">12</div>
+        <div class="no-image"><span class="emoji">🥬</span></div>
+        <div class="info"><div class="name">Baby Tomatoes</div><div class="price">$3.50</div></div>
+      </div>
+      <div class="tile cat-produce">
+        <button class="decrease-btn">−</button>
+        <div class="quantity-badge">2</div>
+        <img class="product-img" src="https://upload.wikimedia.org/wikipedia/commons/thumb/1/15/Red_Apple.jpg/200px-Red_Apple.jpg" alt="Apple">
+        <div class="info"><div class="name">Apple</div><div class="price">$1.20</div></div>
+      </div>
+      <div class="tile cat-produce">
+        <button class="decrease-btn">−</button>
+        <div class="quantity-badge">3</div>
+        <div class="no-image"><span class="emoji">🥬</span></div>
+        <div class="info"><div class="name">Organic Free Range Eggs</div></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="category-section">
+    <div class="category-header h-dairy">
+      <span class="emoji">🥛</span><span class="category-name">Dairy &amp; Eggs</span>
+    </div>
+    <div class="items-grid">
+      <div class="tile cat-dairy">
+        <button class="decrease-btn">−</button>
+        <div class="quantity-badge">1</div>
+        <div class="no-image"><span class="emoji">🥛</span></div>
+        <div class="info"><div class="name">Full Cream Milk</div></div>
+      </div>
+      <div class="tile cat-dairy">
+        <button class="decrease-btn">−</button>
+        <div class="quantity-badge">2</div>
+        <div class="no-image"><span class="emoji">🥛</span></div>
+        <div class="info"><div class="name">Cheddar</div><div class="price">$5.99</div></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="category-section">
+    <div class="category-header h-meat">
+      <span class="emoji">🥩</span><span class="category-name">Meat &amp; Seafood</span>
+    </div>
+    <div class="items-grid">
+      <div class="tile cat-meat">
+        <button class="decrease-btn">−</button>
+        <div class="quantity-badge">1</div>
+        <div class="no-image"><span class="emoji">🥩</span></div>
+        <div class="info"><div class="name">Chicken Breast</div><div class="price">$9.50</div></div>
+      </div>
+      <div class="tile cat-meat">
+        <button class="decrease-btn">−</button>
+        <div class="quantity-badge">1</div>
+        <div class="no-image"><span class="emoji">🥩</span></div>
+        <div class="info"><div class="name">Mince 500g</div></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="category-section">
+    <div class="category-header h-beverages">
+      <span class="emoji">🥤</span><span class="category-name">Drinks</span>
+    </div>
+    <div class="items-grid">
+      <div class="tile cat-beverages">
+        <button class="decrease-btn">−</button>
+        <div class="quantity-badge">6</div>
+        <div class="no-image"><span class="emoji">🥤</span></div>
+        <div class="info"><div class="name">Sparkling Water</div></div>
+      </div>
+      <div class="tile cat-beverages">
+        <button class="decrease-btn">−</button>
+        <div class="quantity-badge">1</div>
+        <div class="no-image"><span class="emoji">🥤</span></div>
+        <div class="info"><div class="name">OJ</div><div class="price">$4.50</div></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="category-section">
+    <div class="category-header h-frozen">
+      <span class="emoji">🧊</span><span class="category-name">Frozen Foods</span>
+    </div>
+    <div class="items-grid">
+      <div class="tile cat-frozen">
+        <button class="decrease-btn">−</button>
+        <div class="quantity-badge">1</div>
+        <div class="no-image"><span class="emoji">🧊</span></div>
+        <div class="info"><div class="name">Peas 1kg</div></div>
+      </div>
+      <div class="tile cat-frozen">
+        <button class="decrease-btn">−</button>
+        <div class="quantity-badge">2</div>
+        <div class="no-image"><span class="emoji">🧊</span></div>
+        <div class="info"><div class="name">Hash Browns</div><div class="price">$3.99</div></div>
+      </div>
+    </div>
+  </div>
+
+</div>
+</body>
+</html>

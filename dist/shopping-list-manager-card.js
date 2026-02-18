@@ -318,23 +318,24 @@ const _=globalThis,$=t=>t,k=_.trustedTypes,E=k?k.createPolicy("lit-html",{create
       font-size: 20px;
       color: var(--primary-color);
     }
-  `}customElements.define("slm-search-bar",ut);class pt extends at{static properties={item:{type:Object},categoryColor:{type:String},isRecentlyUsed:{type:Boolean},touchStartX:{type:Number},touchStartY:{type:Number},touchStartTime:{type:Number},longPressTimer:{type:Number},longPressTriggered:{type:Boolean}};constructor(){super(),this.isRecentlyUsed=!1,this.touchStartX=0,this.touchStartY=0,this.touchStartTime=0,this.longPressTimer=null,this.longPressTriggered=!1}handleTileClick(t){this.longPressTriggered?this.longPressTriggered=!1:t.target.closest(".decrease-btn")||t.target.closest(".quantity-badge")||this.dispatchEvent(new CustomEvent("item-check",{detail:{itemId:this.item.id,checked:!this.item.checked},bubbles:!0,composed:!0}))}handleDecrease(t){t.stopPropagation(),this.dispatchEvent(new CustomEvent("item-decrease",{detail:{itemId:this.item.id},bubbles:!0,composed:!0}))}handleQuantityClick(t){t.stopPropagation(),this.dispatchEvent(new CustomEvent("item-click",{detail:{itemId:this.item.id},bubbles:!0,composed:!0}))}handleContextMenu(t){return t.preventDefault(),t.stopPropagation(),!1}handleTouchStart(t){this.touchStartX=t.touches[0].clientX,this.touchStartY=t.touches[0].clientY,this.touchStartTime=Date.now(),this.longPressTriggered=!1,this.longPressTimer=setTimeout(()=>{this.longPressTriggered=!0,this.dispatchEvent(new CustomEvent("item-long-press",{detail:{item:this.item},bubbles:!0,composed:!0}))},500)}handleTouchMove(t){if(this.longPressTimer){const e=t.touches[0].clientX,i=t.touches[0].clientY,n=Math.abs(e-this.touchStartX),o=Math.abs(i-this.touchStartY);(n>10||o>10)&&(clearTimeout(this.longPressTimer),this.longPressTimer=null)}}handleTouchEnd(t){this.longPressTimer&&(clearTimeout(this.longPressTimer),this.longPressTimer=null)}handleMouseDown(t){if(2===t.button)return t.preventDefault(),!1;this.longPressTriggered=!1,this.longPressTimer=setTimeout(()=>{this.longPressTriggered=!0,this.dispatchEvent(new CustomEvent("item-long-press",{detail:{item:this.item},bubbles:!0,composed:!0}))},500)}handleMouseUp(t){this.longPressTimer&&(clearTimeout(this.longPressTimer),this.longPressTimer=null)}handleMouseLeave(t){this.longPressTimer&&(clearTimeout(this.longPressTimer),this.longPressTimer=null)}firstUpdated(){const t=this.shadowRoot.querySelector(".tile");t&&(t.addEventListener("touchstart",this.handleTouchStart.bind(this),{passive:!0}),t.addEventListener("touchmove",this.handleTouchMove.bind(this),{passive:!0}),t.addEventListener("touchend",this.handleTouchEnd.bind(this),{passive:!0}),t.addEventListener("contextmenu",this.handleContextMenu.bind(this)))}getCategoryEmoji(t){return{produce:"🥬",dairy:"🥛",meat:"🥩",bakery:"🍞",pantry:"🥫",frozen:"🧊",beverages:"🥤",snacks:"🍿",household:"🧹",health:"💊",pet:"🐾",baby:"👶",other:"📦"}[t]||"📦"}render(){return H`
-      <div 
+  `}customElements.define("slm-search-bar",ut);class pt extends at{static properties={item:{type:Object},categoryColor:{type:String},isRecentlyUsed:{type:Boolean},touchStartX:{type:Number},touchStartY:{type:Number},touchStartTime:{type:Number},longPressTimer:{type:Number},longPressTriggered:{type:Boolean}};constructor(){super(),this.isRecentlyUsed=!1,this.touchStartX=0,this.touchStartY=0,this.touchStartTime=0,this.longPressTimer=null,this.longPressTriggered=!1}hexToRgb(t){const e=/^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(t);return e?{r:parseInt(e[1],16),g:parseInt(e[2],16),b:parseInt(e[3],16)}:{r:159,g:168,b:218}}handleTileClick(t){this.longPressTriggered?this.longPressTriggered=!1:t.target.closest(".decrease-btn")||t.target.closest(".quantity-badge")||this.dispatchEvent(new CustomEvent("item-check",{detail:{itemId:this.item.id,checked:!this.item.checked},bubbles:!0,composed:!0}))}handleDecrease(t){t.stopPropagation(),this.dispatchEvent(new CustomEvent("item-decrease",{detail:{itemId:this.item.id},bubbles:!0,composed:!0}))}handleQuantityClick(t){t.stopPropagation(),this.dispatchEvent(new CustomEvent("item-click",{detail:{itemId:this.item.id},bubbles:!0,composed:!0}))}handleContextMenu(t){return t.preventDefault(),t.stopPropagation(),!1}handleTouchStart(t){this.touchStartX=t.touches[0].clientX,this.touchStartY=t.touches[0].clientY,this.touchStartTime=Date.now(),this.longPressTriggered=!1,this.longPressTimer=setTimeout(()=>{this.longPressTriggered=!0,this.dispatchEvent(new CustomEvent("item-long-press",{detail:{item:this.item},bubbles:!0,composed:!0}))},500)}handleTouchMove(t){if(this.longPressTimer){const e=t.touches[0].clientX,i=t.touches[0].clientY,n=Math.abs(e-this.touchStartX),o=Math.abs(i-this.touchStartY);(n>10||o>10)&&(clearTimeout(this.longPressTimer),this.longPressTimer=null)}}handleTouchEnd(t){this.longPressTimer&&(clearTimeout(this.longPressTimer),this.longPressTimer=null)}handleMouseDown(t){if(2===t.button)return t.preventDefault(),!1;this.longPressTriggered=!1,this.longPressTimer=setTimeout(()=>{this.longPressTriggered=!0,this.dispatchEvent(new CustomEvent("item-long-press",{detail:{item:this.item},bubbles:!0,composed:!0}))},500)}handleMouseUp(t){this.longPressTimer&&(clearTimeout(this.longPressTimer),this.longPressTimer=null)}handleMouseLeave(t){this.longPressTimer&&(clearTimeout(this.longPressTimer),this.longPressTimer=null)}firstUpdated(){const t=this.shadowRoot.querySelector(".tile");t&&(t.addEventListener("touchstart",this.handleTouchStart.bind(this),{passive:!0}),t.addEventListener("touchmove",this.handleTouchMove.bind(this),{passive:!0}),t.addEventListener("touchend",this.handleTouchEnd.bind(this),{passive:!0}),t.addEventListener("contextmenu",this.handleContextMenu.bind(this)))}getCategoryEmoji(t){return{produce:"🥬",dairy:"🥛",meat:"🥩",bakery:"🍞",pantry:"🥫",frozen:"🧊",beverages:"🥤",snacks:"🍿",household:"🧹",health:"💊",pet:"🐾",baby:"👶",other:"📦"}[t]||"📦"}render(){const{r:t,g:e,b:i}=this.hexToRgb(this.categoryColor),n=this.isRecentlyUsed?`rgba(${t},${e},${i},0.12)`:`rgba(${t},${e},${i},0.25)`;return H`
+      <div
         class="tile ${this.item.checked?"checked":""} ${this.isRecentlyUsed?"recently-used":""}"
+        style="background: ${n}"
         @click=${this.handleTileClick}
         @mousedown=${this.handleMouseDown}
         @mouseup=${this.handleMouseUp}
         @mouseleave=${this.handleMouseLeave}
       >
         ${this.item.checked?"":H`
-          <button class="decrease-btn" @click=${this.handleDecrease}>
+          <button class="decrease-btn" style="background: rgba(${t},${e},${i},0.7)" @click=${this.handleDecrease}>
             <span>−</span>
           </button>
         `}
 
         ${this.item.checked?"":H`
-          <div 
-            class="quantity-badge" 
+          <div
+            class="quantity-badge"
             style="background: ${this.categoryColor}"
             @click=${this.handleQuantityClick}
           >
@@ -345,7 +346,7 @@ const _=globalThis,$=t=>t,k=_.trustedTypes,E=k?k.createPolicy("lit-html",{create
         ${this.item.image_url?H`
           <img src="${this.item.image_url}" alt="${this.item.name}">
         `:H`
-          <div class="no-image" style="background: ${this.categoryColor}15">
+          <div class="no-image">
             <div class="emoji">${this.getCategoryEmoji(this.item.category_id)}</div>
           </div>
         `}
@@ -366,87 +367,80 @@ const _=globalThis,$=t=>t,k=_.trustedTypes,E=k?k.createPolicy("lit-html",{create
     `}static styles=r`
     .tile {
       position: relative;
-      background: var(--slm-tile-bg);
-      border-radius: 8px;
-      padding: 8px;
+      border-radius: 14px;
+      padding: 0;
       display: flex;
       flex-direction: column;
-      gap: 6px;
+      gap: 0;
       cursor: pointer;
       transition: all 0.15s;
       user-select: none;
       aspect-ratio: 1;
       overflow: hidden;
-      box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+      box-shadow: 0 1px 3px rgba(0,0,0,0.2);
     }
     .tile:active {
       transform: scale(0.97);
     }
     .tile.recently-used {
-      opacity: 0.6;
+      opacity: 0.8;
     }
     .tile.checked {
       opacity: var(--slm-tile-checked-opacity);
     }
-    .decrease-btn {
+    .decrease-btn,
+    .quantity-badge {
       position: absolute;
-      top: 6px;
-      left: 6px;
-      background: #8b4545;
-      color: white;
-      border: none;
-      border-radius: 50%;
-      width: 24px;
-      height: 24px;
+      top: 0;
+      width: 44px;
+      height: 32px;
       display: flex;
       align-items: center;
       justify-content: center;
-      cursor: pointer;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.3);
-      z-index: 2;
       padding: 0;
-      font-size: 18px;
-      font-weight: 300;
+      box-sizing: border-box;
+      color: white;
+      border: none;
+      font-size: 14px;
+      font-weight: 700;
+      cursor: pointer;
+      z-index: 2;
+    }
+    .decrease-btn {
+      left: 0;
+      border-radius: 14px 0 14px 0;
+      box-shadow: 2px 2px 6px rgba(0,0,0,0.25);
     }
     .quantity-badge {
-      position: absolute;
-      top: 6px;
-      right: 6px;
-      color: white;
-      padding: 3px 8px;
-      border-radius: 10px;
-      font-size: 12px;
-      font-weight: 700;
-      z-index: 2;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.3);
-      cursor: pointer;
-    }
-    .quantity-badge:hover {
-      transform: scale(1.05);
+      right: 0;
+      border-radius: 0 14px 0 14px;
+      box-shadow: -2px 2px 6px rgba(0,0,0,0.25);
     }
     img, .no-image {
       width: 100%;
       flex: 1;
-      border-radius: 6px;
+      min-height: 0;
       object-fit: cover;
     }
     .no-image {
       display: flex;
       align-items: center;
       justify-content: center;
+      background: transparent;
     }
     .emoji {
       font-size: 40px;
     }
     .info {
       flex-shrink: 0;
+      padding: 5px 8px 7px;
     }
     .name {
       font-weight: 600;
       font-size: 12px;
       line-height: 1.2;
       margin-bottom: 2px;
-      color: #e0e0e0;
+      color: var(--slm-text-primary, #e0e0e0);
       overflow: hidden;
       text-overflow: ellipsis;
       display: -webkit-box;
@@ -455,7 +449,7 @@ const _=globalThis,$=t=>t,k=_.trustedTypes,E=k?k.createPolicy("lit-html",{create
     }
     .price {
       font-size: 11px;
-      color: #9fa8da;
+      color: var(--slm-accent-primary, #9fa8da);
       font-weight: 700;
     }
     .checked-overlay {
@@ -465,7 +459,7 @@ const _=globalThis,$=t=>t,k=_.trustedTypes,E=k?k.createPolicy("lit-html",{create
       right: 0;
       bottom: 0;
       background: rgba(159, 168, 218, 0.9);
-      border-radius: 6px;
+      border-radius: 14px;
       display: flex;
       align-items: center;
       justify-content: center;
@@ -474,7 +468,7 @@ const _=globalThis,$=t=>t,k=_.trustedTypes,E=k?k.createPolicy("lit-html",{create
       font-size: 40px;
       color: white;
     }
-  `}customElements.define("slm-item-tile",pt);class ht extends at{constructor(){super(),console.log("GRID CONSTRUCTOR")}static properties={items:{type:Array},categories:{type:Array},settings:{type:Object},api:{type:Object},recentItems:{type:Array}};groupItemsByCategory(){const t={};return this.categories.forEach(e=>{t[e.id]={category:e,items:this.items.filter(t=>t.category_id===e.id&&!t.checked)}}),Object.values(t).filter(t=>t.items.length>0)}async getRecentlyUsedItems(){if(!this.api)return[];const t=localStorage.getItem("slm_recent_products"),e=t?JSON.parse(t):[],i=this.settings?.recentProductsCount||8,n=this.items.map(t=>t.product_id),o=e.filter(t=>!n.includes(t)).slice(0,i);if(0===o.length)return[];return(await Promise.all(o.map(t=>this.api.getProductSuggestions(1)))).flatMap(t=>t.products||[])}render(){const t=this.groupItemsByCategory(),e=this.getRecentlyUsedItems(),i=this.settings?.tilesPerRow||3;return H`
+  `}customElements.define("slm-item-tile",pt);class ht extends at{constructor(){super(),console.log("GRID CONSTRUCTOR")}static properties={items:{type:Array},categories:{type:Array},settings:{type:Object},api:{type:Object},recentItems:{type:Array}};groupItemsByCategory(){const t={};return this.categories.forEach(e=>{t[e.id]={category:e,items:this.items.filter(t=>t.category_id===e.id&&!t.checked)}}),Object.values(t).filter(t=>t.items.length>0)}async getRecentlyUsedItems(){if(!this.api)return[];const t=localStorage.getItem("slm_recent_products"),e=t?JSON.parse(t):[],i=this.settings?.recentProductsCount||8,n=this.items.map(t=>t.product_id),o=e.filter(t=>!n.includes(t)).slice(0,i);if(0===o.length)return[];return(await Promise.all(o.map(t=>this.api.getProductSuggestions(1)))).flatMap(t=>t.products||[])}hexToRgb(t){const e=/^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(t);return e?{r:parseInt(e[1],16),g:parseInt(e[2],16),b:parseInt(e[3],16)}:{r:159,g:168,b:218}}getCategoryHeaderStyle(t){const{r:e,g:i,b:n}=this.hexToRgb(t);return`border-left: 4px solid ${t}; background: linear-gradient(to right, rgba(${e},${i},${n},0.22), rgba(${e},${i},${n},0.066)); border-radius: 0 8px 8px 0;`}render(){const t=this.groupItemsByCategory(),e=this.getRecentlyUsedItems(),i=this.settings?.tilesPerRow||3,n="#9e9e9e";return H`
       <style>
         .items-grid {
           grid-template-columns: repeat(${i}, 1fr);
@@ -484,15 +478,15 @@ const _=globalThis,$=t=>t,k=_.trustedTypes,E=k?k.createPolicy("lit-html",{create
       <div class="grid-container">
         ${e.length>0?H`
           <div class="category-section">
-            <div class="category-header">
+            <div class="category-header" style="${this.getCategoryHeaderStyle(n)}">
               <span class="emoji">⏱️</span>
-              <span class="category-name">Recently Used</span>
+              <span class="category-name" style="color: ${n}">Recently Used</span>
             </div>
             <div class="items-grid">
               ${e.map(t=>H`
                 <slm-item-tile
                   .item=${t}
-                  .categoryColor=${"#b0bec5"}
+                  .categoryColor=${n}
                   .isRecentlyUsed=${!0}
                   @item-click=${this.handleItemClick}
                   @item-decrease=${this.handleItemDecrease}
@@ -513,29 +507,29 @@ const _=globalThis,$=t=>t,k=_.trustedTypes,E=k?k.createPolicy("lit-html",{create
           </div>
         `:""}
 
-        ${t.map(t=>H`
-          <div class="category-section">
-            <div class="category-header">
-              <span class="emoji">${this.getCategoryEmoji(t.category.id)}</span>
-              <span class="category-name">${t.category.name}</span>
+        ${t.map(t=>{const e=t.category.color||"#9fa8da";return H`
+            <div class="category-section">
+              <div class="category-header" style="${this.getCategoryHeaderStyle(e)}">
+                <span class="emoji">${this.getCategoryEmoji(t.category.id)}</span>
+                <span class="category-name" style="color: ${e}">${t.category.name}</span>
+              </div>
+              <div class="items-grid">
+                ${t.items.map(t=>H`
+                  <slm-item-tile
+                    .item=${t}
+                    .categoryColor=${e}
+                    @item-click=${this.handleItemClick}
+                    @item-decrease=${this.handleItemDecrease}
+                    @item-check=${this.handleItemCheck}
+                    @item-long-press=${this.handleItemLongPress}
+                    @item-swipe-delete=${this.handleItemSwipeDelete}
+                  ></slm-item-tile>
+                `)}
+              </div>
             </div>
-            <div class="items-grid">
-              ${t.items.map(e=>H`
-                <slm-item-tile
-                  .item=${e}
-                  .categoryColor=${this.getPastelColor(t.category.color)}
-                  @item-click=${this.handleItemClick}
-                  @item-decrease=${this.handleItemDecrease}
-                  @item-check=${this.handleItemCheck}
-                  @item-long-press=${this.handleItemLongPress}
-                  @item-swipe-delete=${this.handleItemSwipeDelete}
-                ></slm-item-tile>
-              `)}
-            </div>
-          </div>
-        `)}
+          `})}
       </div>
-    `}getCategoryEmoji(t){return{produce:"🥬",dairy:"🥛",meat:"🥩",bakery:"🍞",pantry:"🥫",frozen:"🧊",beverages:"🥤",snacks:"🍿",household:"🧹",health:"💊",pet:"🐾",baby:"👶",other:"📦"}[t]||"📦"}getPastelColor(t){return{"#4CAF50":"#a5d6a7","#2196F3":"#90caf9","#F44336":"#ef9a9a","#FF9800":"#ffcc80","#9C27B0":"#ce93d8","#795548":"#bcaaa4","#607D8B":"#b0bec5"}[t]||t}handleItemClick(t){t.stopPropagation(),console.log("GRID RECEIVED ITEM CLICK"),this.dispatchEvent(new CustomEvent("item-click",{detail:t.detail,bubbles:!0,composed:!0}))}handleItemDecrease(t){t.stopPropagation(),this.dispatchEvent(new CustomEvent("item-decrease",{detail:t.detail,bubbles:!0,composed:!0}))}handleItemCheck(t){t.stopPropagation(),this.dispatchEvent(new CustomEvent("item-check",{detail:t.detail,bubbles:!0,composed:!0}))}handleItemLongPress(t){t.stopPropagation(),this.dispatchEvent(new CustomEvent("item-long-press",{detail:t.detail,bubbles:!0,composed:!0}))}handleItemSwipeDelete(t){t.stopPropagation(),this.dispatchEvent(new CustomEvent("item-swipe-delete",{detail:t.detail,bubbles:!0,composed:!0}))}static styles=r`
+    `}getCategoryEmoji(t){return{produce:"🥬",dairy:"🥛",meat:"🥩",bakery:"🍞",pantry:"🥫",frozen:"🧊",beverages:"🥤",snacks:"🍿",household:"🧹",health:"💊",pet:"🐾",baby:"👶",other:"📦"}[t]||"📦"}handleItemClick(t){t.stopPropagation(),console.log("GRID RECEIVED ITEM CLICK"),this.dispatchEvent(new CustomEvent("item-click",{detail:t.detail,bubbles:!0,composed:!0}))}handleItemDecrease(t){t.stopPropagation(),this.dispatchEvent(new CustomEvent("item-decrease",{detail:t.detail,bubbles:!0,composed:!0}))}handleItemCheck(t){t.stopPropagation(),this.dispatchEvent(new CustomEvent("item-check",{detail:t.detail,bubbles:!0,composed:!0}))}handleItemLongPress(t){t.stopPropagation(),this.dispatchEvent(new CustomEvent("item-long-press",{detail:t.detail,bubbles:!0,composed:!0}))}handleItemSwipeDelete(t){t.stopPropagation(),this.dispatchEvent(new CustomEvent("item-swipe-delete",{detail:t.detail,bubbles:!0,composed:!0}))}static styles=r`
     .grid-container {
       padding: 4px;
     }
@@ -546,16 +540,17 @@ const _=globalThis,$=t=>t,k=_.trustedTypes,E=k?k.createPolicy("lit-html",{create
       display: flex;
       align-items: center;
       gap: 8px;
-      padding: 8px 4px;
-      font-weight: 600;
-      font-size: 14px;
-      color: var(--slm-text-secondary);
+      padding: 8px 12px;
+      margin-bottom: 6px;
+      font-weight: 700;
+      font-size: 16px;
     }
     .emoji {
       font-size: 20px;
     }
     .category-name {
       flex: 1;
+      font-weight: 700;
     }
     .items-grid {
       display: grid;
