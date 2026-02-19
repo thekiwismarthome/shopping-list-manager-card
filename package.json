@@ -6,7 +6,8 @@
   "type": "module",
   "scripts": {
     "build": "rollup -c",
-    "watch": "rollup -c -w"
+    "watch": "rollup -c -w",
+    "download-icons": "node scripts/download-icons8.js"
   },
   "dependencies": {
     "jsbarcode": "^3.12.3",

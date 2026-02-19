@@ -1,15 +1,19 @@
 import { LitElement, html, css } from 'lit';
+import { PRODUCT_ICON_MAP } from '../icons/product-icon-map.js';
+import { PRODUCT_ICONS } from '../icons/product-icons.js';
 
 class SLMItemTile extends LitElement {
   static properties = {
     item: { type: Object },
     categoryColor: { type: String },
     isRecentlyUsed: { type: Boolean },
+    settings: { type: Object },
     touchStartX: { type: Number },
     touchStartY: { type: Number },
     touchStartTime: { type: Number },
     longPressTimer: { type: Number },
-    longPressTriggered: { type: Boolean }
+    longPressTriggered: { type: Boolean },
+    _localImgError: { type: Boolean, state: true }
   };
 
   constructor() {
@@ -20,6 +24,7 @@ class SLMItemTile extends LitElement {
     this.touchStartTime = 0;
     this.longPressTimer = null;
     this.longPressTriggered = false;
+    this._localImgError = false;
   }
 
   hexToRgb(hex) {
@@ -34,21 +39,18 @@ class SLMItemTile extends LitElement {
       this.longPressTriggered = false;
       return;
     }
-
     if (
       e.target.closest('.decrease-btn') ||
       e.target.closest('.quantity-badge')
     ) {
       return;
     }
-
     this.dispatchEvent(new CustomEvent('item-check', {
       detail: { itemId: this.item.id, checked: !this.item.checked },
       bubbles: true,
       composed: true
     }));
   }
-
 
   handleDecrease(e) {
     e.stopPropagation();
@@ -96,7 +98,6 @@ class SLMItemTile extends LitElement {
       const touchY = e.touches[0].clientY;
       const deltaX = Math.abs(touchX - this.touchStartX);
       const deltaY = Math.abs(touchY - this.touchStartY);
-
       if (deltaX > 10 || deltaY > 10) {
         clearTimeout(this.longPressTimer);
         this.longPressTimer = null;
@@ -116,7 +117,6 @@ class SLMItemTile extends LitElement {
       e.preventDefault();
       return false;
     }
-
     this.longPressTriggered = false;
     this.longPressTimer = setTimeout(() => {
       this.longPressTriggered = true;
@@ -154,29 +154,118 @@ class SLMItemTile extends LitElement {
 
   getCategoryEmoji(categoryId) {
     const emojiMap = {
-      'produce': '🥬',
-      'dairy': '🥛',
-      'meat': '🥩',
-      'bakery': '🍞',
-      'pantry': '🥫',
-      'frozen': '🧊',
-      'beverages': '🥤',
-      'snacks': '🍿',
-      'household': '🧹',
-      'health': '💊',
-      'pet': '🐾',
-      'baby': '👶',
-      'other': '📦'
+      'produce': '🥬', 'dairy': '🥛', 'meat': '🥩', 'bakery': '🍞',
+      'pantry': '🥫', 'frozen': '🧊', 'beverages': '🥤', 'snacks': '🍿',
+      'household': '🧹', 'health': '💊', 'pet': '🐾', 'baby': '👶', 'other': '📦'
     };
     return emojiMap[categoryId] || '📦';
   }
 
+  getProductEmoji(name, categoryId) {
+    if (!name) return this.getCategoryEmoji(categoryId);
+    const lower = name.toLowerCase();
+    const productMap = {
+      'chicken': '🍗', 'turkey': '🦃', 'duck': '🦆',
+      'beef': '🥩', 'steak': '🥩', 'mince': '🥩', 'lamb': '🍖',
+      'pork': '🥓', 'bacon': '🥓', 'ham': '🍖', 'sausage': '🌭', 'salami': '🍖',
+      'fish': '🐟', 'salmon': '🐟', 'tuna': '🐟', 'prawn': '🦐', 'shrimp': '🦐',
+      'egg': '🥚', 'eggs': '🥚',
+      'milk': '🥛', 'cream': '🥛', 'yogurt': '🫙', 'yoghurt': '🫙',
+      'cheese': '🧀', 'cheddar': '🧀', 'feta': '🧀', 'mozzarella': '🧀',
+      'butter': '🧈',
+      'bread': '🍞', 'toast': '🍞', 'bun': '🥖', 'roll': '🥖', 'bagel': '🥯',
+      'loaf': '🍞', 'sourdough': '🍞', 'wrap': '🫓', 'croissant': '🥐',
+      'apple': '🍎', 'orange': '🍊', 'banana': '🍌', 'grape': '🍇',
+      'strawberry': '🍓', 'blueberry': '🫐', 'raspberry': '🍓',
+      'lemon': '🍋', 'lime': '🍋', 'pineapple': '🍍', 'mango': '🥭',
+      'watermelon': '🍉', 'melon': '🍈', 'peach': '🍑', 'pear': '🍐',
+      'cherry': '🍒', 'kiwi': '🥝', 'avocado': '🥑',
+      'tomato': '🍅', 'potato': '🥔', 'carrot': '🥕', 'broccoli': '🥦',
+      'lettuce': '🥬', 'spinach': '🥬', 'salad': '🥗', 'kale': '🥬',
+      'onion': '🧅', 'garlic': '🧄', 'corn': '🌽', 'pepper': '🫑',
+      'cucumber': '🥒', 'mushroom': '🍄', 'eggplant': '🍆',
+      'peas': '🫛', 'beans': '🫘', 'lentil': '🫘',
+      'coffee': '☕', 'espresso': '☕', 'latte': '☕',
+      'tea': '🍵', 'juice': '🧃',
+      'water': '💧', 'sparkling': '💧',
+      'beer': '🍺', 'wine': '🍷', 'cider': '🍺', 'spirits': '🥃', 'whisky': '🥃',
+      'soda': '🥤', 'cola': '🥤',
+      'pasta': '🍝', 'noodle': '🍜', 'rice': '🍚', 'oat': '🌾', 'cereal': '🥣',
+      'flour': '🌾', 'sugar': '🍬', 'salt': '🧂', 'oil': '🫙', 'vinegar': '🫙',
+      'sauce': '🫙', 'ketchup': '🫙', 'mustard': '🫙', 'mayonnaise': '🫙',
+      'honey': '🍯', 'jam': '🫙', 'peanut butter': '🥜',
+      'chocolate': '🍫', 'chips': '🥔', 'popcorn': '🍿', 'biscuit': '🍪',
+      'cookie': '🍪', 'cake': '🎂', 'muffin': '🧁', 'doughnut': '🍩',
+      'ice cream': '🍦',
+      'shampoo': '🧴', 'conditioner': '🧴', 'soap': '🧼', 'toothpaste': '🦷',
+      'toilet paper': '🧻', 'tissues': '🧻',
+      'nappy': '👶', 'diaper': '👶', 'formula': '👶',
+      'pet food': '🐾', 'dog food': '🐕', 'cat food': '🐈',
+    };
+    for (const [key, emoji] of Object.entries(productMap)) {
+      if (lower.includes(key)) return emoji;
+    }
+    return this.getCategoryEmoji(categoryId);
+  }
+
+  getBundledIcon(name) {
+    if (!name) return null;
+    const lower = name.toLowerCase();
+    for (const [keyword, slug] of Object.entries(PRODUCT_ICON_MAP)) {
+      if (lower.includes(keyword) && PRODUCT_ICONS[slug]) {
+        return PRODUCT_ICONS[slug];
+      }
+    }
+    return null;
+  }
+
+  getLocalImageUrl(name) {
+    const basePath = this.settings?.localImagePath;
+    if (!basePath || !name) return null;
+    const slug = name.toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/_+$/, '');
+    return `${basePath.replace(/\/$/, '')}/${slug}.jpg`;
+  }
+
+  renderImage() {
+    const name = this.item?.name;
+    const categoryId = this.item?.category_id;
+
+    if (this.item?.image_url) {
+      return html`<img src="${this.item.image_url}" alt="${name}">`;
+    }
+
+    const bundled = this.getBundledIcon(name);
+    if (bundled) {
+      return html`<div class="no-image"><img src="${bundled}" alt="${name}" class="product-icon"></div>`;
+    }
+
+    const localUrl = this.getLocalImageUrl(name);
+    if (localUrl && !this._localImgError) {
+      return html`
+        <div class="no-image">
+          <img
+            src="${localUrl}"
+            alt="${name}"
+            class="product-icon"
+            @error=${() => { this._localImgError = true; }}
+          >
+        </div>
+      `;
+    }
+
+    return html`
+      <div class="no-image">
+        <div class="emoji">${this.getProductEmoji(name, categoryId)}</div>
+      </div>
+    `;
+  }
+
   render() {
     const { r, g, b } = this.hexToRgb(this.categoryColor);
-    // Tile background: muted colour, even more muted when recently used
     const tileBg = this.isRecentlyUsed
       ? `rgba(${r},${g},${b},0.12)`
       : `rgba(${r},${g},${b},0.25)`;
+    const showPrice = this.settings?.showPriceOnTile !== false;
 
     return html`
       <div
@@ -203,17 +292,11 @@ class SLMItemTile extends LitElement {
           </div>
         ` : ''}
 
-        ${this.item.image_url ? html`
-          <img src="${this.item.image_url}" alt="${this.item.name}">
-        ` : html`
-          <div class="no-image">
-            <div class="emoji">${this.getCategoryEmoji(this.item.category_id)}</div>
-          </div>
-        `}
+        ${this.renderImage()}
 
         <div class="info">
           <div class="name">${this.item.name}</div>
-          ${this.item.price ? html`
+          ${showPrice && this.item.price ? html`
             <div class="price">$${(this.item.price * this.item.quantity).toFixed(2)}</div>
           ` : ''}
         </div>
@@ -290,6 +373,11 @@ class SLMItemTile extends LitElement {
       align-items: center;
       justify-content: center;
       background: transparent;
+    }
+    .product-icon {
+      width: 60%;
+      height: 60%;
+      object-fit: contain;
     }
     .emoji {
       font-size: 40px;

@@ -4,6 +4,7 @@ import './components/slm-bottom-nav.js';
 import './components/slm-list-header.js';
 import './components/slm-search-bar.js';
 import './components/slm-item-grid.js';
+import './components/slm-item-list.js';
 import './components/slm-add-item-dialog.js';
 import './components/slm-edit-item-dialog.js';
 import './components/list-management/slm-lists-view.js';
@@ -82,7 +83,12 @@ class ShoppingListManagerCard extends LitElement {
       recentProductsCount: 8,
       tilesPerRow: 3,
       useEmojis: true,
-      colorScheme: 'pastel'
+      colorScheme: 'pastel',
+      viewMode: 'tile',
+      sortMode: 'category',
+      showRecentlyUsed: true,
+      showPriceOnTile: true,
+      localImagePath: ''
     };
 
     const cardKey = `slm_settings_${this.cardId}`;
@@ -279,6 +285,36 @@ class ShoppingListManagerCard extends LitElement {
     this.requestUpdate();
   }
 
+  handleMenuSettingChange(e) {
+    const { key, value } = e.detail;
+    this.settings = { ...this.settings, [key]: value };
+    this.saveSettings();
+    this.requestUpdate();
+  }
+
+  async handleCreateAndAddProduct(e) {
+    const { name, category_id, price } = e.detail;
+    try {
+      const productData = { name, category_id, custom: true };
+      if (price) productData.price = parseFloat(price);
+      const result = await this.api.addProduct(productData);
+      const product = result.product || result;
+      const itemData = {
+        name,
+        category_id,
+        product_id: product.id,
+        quantity: 1,
+        unit: 'units'
+      };
+      if (price) itemData.price = parseFloat(price);
+      await this.api.addItem(this.activeList.id, itemData);
+      if (product.id) this.trackRecentlyUsed(product.id);
+      await this.loadActiveListData();
+    } catch (err) {
+      console.error('Failed to create product:', err);
+    }
+  }
+
   handleBackToLists() {
     this.currentView = 'lists';
   }
@@ -356,8 +392,10 @@ class ShoppingListManagerCard extends LitElement {
           <slm-list-header
             .activeList=${this.activeList}
             .itemCount=${this.items.filter(i => !i.checked).length}
+            .settings=${this.settings}
             @back=${this.handleBackToLists}
             @share=${this.handleShareList}
+            @menu-setting-change=${this.handleMenuSettingChange}
           ></slm-list-header>
 
           <div class="content-area">
@@ -367,19 +405,34 @@ class ShoppingListManagerCard extends LitElement {
               .categories=${this.categories}
               .activeListId=${this.activeList?.id}
               @add-item=${this.handleAddItem}
+              @create-and-add-product=${this.handleCreateAndAddProduct}
             ></slm-search-bar>
 
-            <slm-item-grid
-              .items=${this.items}
-              .categories=${this.categories}
-              .settings=${this.settings}
-              .api=${this.api}
-              @item-click=${this.handleItemClick}
-              @item-decrease=${this.handleItemDecrease}
-              @item-check=${this.handleItemCheck}
-              @item-long-press=${this.handleItemLongPress}
-              @item-swipe-delete=${this.handleItemSwipeDelete}
-            ></slm-item-grid>
+            ${this.settings.viewMode === 'list' ? html`
+              <slm-item-list
+                .items=${this.items}
+                .categories=${this.categories}
+                .settings=${this.settings}
+                .api=${this.api}
+                @item-click=${this.handleItemClick}
+                @item-decrease=${this.handleItemDecrease}
+                @item-check=${this.handleItemCheck}
+                @item-long-press=${this.handleItemLongPress}
+                @item-swipe-delete=${this.handleItemSwipeDelete}
+              ></slm-item-list>
+            ` : html`
+              <slm-item-grid
+                .items=${this.items}
+                .categories=${this.categories}
+                .settings=${this.settings}
+                .api=${this.api}
+                @item-click=${this.handleItemClick}
+                @item-decrease=${this.handleItemDecrease}
+                @item-check=${this.handleItemCheck}
+                @item-long-press=${this.handleItemLongPress}
+                @item-swipe-delete=${this.handleItemSwipeDelete}
+              ></slm-item-grid>
+            `}
           </div>
 
           <div class="total-bar">
