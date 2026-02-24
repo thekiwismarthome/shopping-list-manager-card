@@ -238,8 +238,13 @@ class ShoppingListManagerCard extends LitElement {
       if (existingItem) {
         await this.api.updateItem(existingItem.id, { quantity: 1 });
       } else {
-        const { fromRecentlyUsed: _removed, ...cleanData } = itemData;
-        await this.api.addItem(this.activeList.id, { ...cleanData, quantity: 1 });
+        // Strip internal flag and any null/undefined optional fields (backend schema rejects nulls)
+        const { fromRecentlyUsed: _flag, ...rest } = itemData;
+        const addData = { quantity: 1 };
+        for (const [k, v] of Object.entries(rest)) {
+          if (v !== null && v !== undefined) addData[k] = v;
+        }
+        await this.api.addItem(this.activeList.id, addData);
       }
     } else if (existingItem) {
       // Normal add: increment existing unchecked item
