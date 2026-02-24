@@ -22,40 +22,39 @@ class SLMItemGrid extends LitElement {
   }
 
   async _loadRecentItems() {
+    console.log('[SLM grid] _loadRecentItems', { api: !!this.api, showRecentlyUsed: this.settings?.showRecentlyUsed, items: this.items?.length });
     if (!this.api || this.settings?.showRecentlyUsed === false) {
       this._recentItems = [];
       return;
     }
 
     const limit = this.settings?.recentProductsCount || 8;
-
-    // Exclude products already unchecked in the current list
     const currentProductIds = new Set(
       (this.items || []).filter(i => !i.checked).map(i => i.product_id).filter(Boolean)
     );
+    console.log('[SLM grid] currentProductIds:', [...currentProductIds]);
 
     try {
-      // Primary: localStorage recent-adds (most-recent-first)
       const recentKey = 'slm_recent_products';
       const saved = localStorage.getItem(recentKey);
       const rawIds = saved ? JSON.parse(saved) : [];
-      const filteredIds = [...new Set(rawIds)]
-        .filter(id => !currentProductIds.has(id))
-        .slice(0, limit);
+      const filteredIds = [...new Set(rawIds)].filter(id => !currentProductIds.has(id)).slice(0, limit);
+      console.log('[SLM grid] localStorage ids:', rawIds.length, '→ filtered:', filteredIds.length);
 
       if (filteredIds.length > 0) {
         const result = await this.api.getProductsByIds(filteredIds);
         this._recentItems = result.products || [];
+        console.log('[SLM grid] from localStorage:', this._recentItems.length);
         return;
       }
 
-      // Fallback: backend suggestions by purchase frequency
+      console.log('[SLM grid] falling back to suggestions');
       const result = await this.api.getProductSuggestions(limit + currentProductIds.size);
-      this._recentItems = (result.products || [])
-        .filter(p => !currentProductIds.has(p.id))
-        .slice(0, limit);
+      console.log('[SLM grid] suggestions raw:', result);
+      this._recentItems = (result.products || []).filter(p => !currentProductIds.has(p.id)).slice(0, limit);
+      console.log('[SLM grid] suggestions after filter:', this._recentItems.length);
     } catch (err) {
-      console.error('Failed to load recent items:', err);
+      console.error('[SLM grid] Failed:', err);
       this._recentItems = [];
     }
   }
