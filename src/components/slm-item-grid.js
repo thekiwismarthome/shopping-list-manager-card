@@ -29,7 +29,9 @@ class SLMItemGrid extends LitElement {
 
     const recentKey = 'slm_recent_products';
     const saved = localStorage.getItem(recentKey);
-    const recentIds = saved ? JSON.parse(saved) : [];
+    const rawIds = saved ? JSON.parse(saved) : [];
+    // Deduplicate while preserving most-recent-first order
+    const recentIds = [...new Set(rawIds)];
 
     const limit = this.settings?.recentProductsCount || 8;
     const currentProductIds = (this.items || []).map(i => i.product_id).filter(Boolean);

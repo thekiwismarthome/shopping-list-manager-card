@@ -8,14 +8,54 @@ class SLMItemList extends LitElement {
     categories: { type: Array },
     settings: { type: Object },
     api: { type: Object },
+    _recentItems: { type: Array, state: true },
     _longPressTimer: { state: true },
     _longPressTriggered: { state: true }
   };
 
   constructor() {
     super();
+    this._recentItems = [];
     this._longPressTimer = null;
     this._longPressTriggered = false;
+  }
+
+  updated(changedProperties) {
+    if (changedProperties.has('items') || changedProperties.has('settings') || changedProperties.has('api')) {
+      this._loadRecentItems();
+    }
+  }
+
+  async _loadRecentItems() {
+    if (!this.api || !this.settings?.showRecentlyUsed) {
+      this._recentItems = [];
+      return;
+    }
+
+    const recentKey = 'slm_recent_products';
+    const saved = localStorage.getItem(recentKey);
+    const rawIds = saved ? JSON.parse(saved) : [];
+    const recentIds = [...new Set(rawIds)];
+
+    const limit = this.settings?.recentProductsCount || 8;
+    const currentProductIds = (this.items || []).map(i => i.product_id).filter(Boolean);
+
+    const filteredIds = recentIds
+      .filter(id => !currentProductIds.includes(id))
+      .slice(0, limit);
+
+    if (filteredIds.length === 0) {
+      this._recentItems = [];
+      return;
+    }
+
+    try {
+      const result = await this.api.getProductsByIds(filteredIds);
+      this._recentItems = result.products || [];
+    } catch (err) {
+      console.error('Failed to load recent items:', err);
+      this._recentItems = [];
+    }
   }
 
   hexToRgb(hex) {
@@ -57,7 +97,7 @@ class SLMItemList extends LitElement {
       'cheese': '🧀', 'cheddar': '🧀', 'feta': '🧀', 'mozzarella': '🧀',
       'butter': '🧈',
       'bread': '🍞', 'toast': '🍞', 'bun': '🥖', 'roll': '🥖', 'bagel': '🥯',
-      'loaf': '🍞', 'sourdough': '🍞', 'wrap': '🫓',
+      'loaf': '🍞', 'sourdough': '🍞', 'wrap': '🫓', 'croissant': '🥐',
       'apple': '🍎', 'orange': '🍊', 'banana': '🍌', 'grape': '🍇',
       'strawberry': '🍓', 'blueberry': '🫐', 'raspberry': '🍓',
       'lemon': '🍋', 'lime': '🍋', 'pineapple': '🍍', 'mango': '🥭',
@@ -66,26 +106,16 @@ class SLMItemList extends LitElement {
       'tomato': '🍅', 'potato': '🥔', 'carrot': '🥕', 'broccoli': '🥦',
       'lettuce': '🥬', 'spinach': '🥬', 'salad': '🥗', 'kale': '🥬',
       'onion': '🧅', 'garlic': '🧄', 'corn': '🌽', 'pepper': '🫑',
-      'cucumber': '🥒', 'mushroom': '🍄', 'eggplant': '🍆', 'zucchini': '🥒',
+      'cucumber': '🥒', 'mushroom': '🍄', 'eggplant': '🍆',
       'peas': '🫛', 'beans': '🫘', 'lentil': '🫘',
-      'coffee': '☕', 'espresso': '☕', 'latte': '☕',
-      'tea': '🍵', 'juice': '🧃', 'lemonade': '🍋',
-      'water': '💧', 'sparkling': '💧',
-      'beer': '🍺', 'wine': '🍷', 'cider': '🍺', 'spirits': '🥃', 'whisky': '🥃',
-      'soda': '🥤', 'cola': '🥤', 'energy drink': '🥤',
-      'milk alternative': '🥛', 'almond milk': '🥛', 'oat milk': '🥛',
+      'coffee': '☕', 'espresso': '☕', 'tea': '🍵', 'juice': '🧃',
+      'water': '💧', 'beer': '🍺', 'wine': '🍷', 'soda': '🥤', 'cola': '🥤',
       'pasta': '🍝', 'noodle': '🍜', 'rice': '🍚', 'oat': '🌾', 'cereal': '🥣',
-      'flour': '🌾', 'sugar': '🍬', 'salt': '🧂', 'oil': '🫙', 'vinegar': '🫙',
-      'sauce': '🫙', 'ketchup': '🫙', 'mustard': '🫙', 'mayonnaise': '🫙',
-      'honey': '🍯', 'jam': '🫙', 'peanut butter': '🥜',
+      'flour': '🌾', 'sugar': '🍬', 'salt': '🧂', 'honey': '🍯',
       'chocolate': '🍫', 'chips': '🥔', 'popcorn': '🍿', 'biscuit': '🍪',
-      'cookie': '🍪', 'cake': '🎂', 'muffin': '🧁', 'doughnut': '🍩',
-      'ice cream': '🍦', 'frozen': '🧊',
-      'shampoo': '🧴', 'conditioner': '🧴', 'soap': '🧼', 'toothpaste': '🦷',
-      'toilet paper': '🧻', 'tissues': '🧻', 'paper towel': '🧻',
-      'detergent': '🧺', 'bleach': '🧽', 'sponge': '🧽',
-      'nappy': '👶', 'diaper': '👶', 'formula': '👶',
-      'pet food': '🐾', 'dog food': '🐕', 'cat food': '🐈',
+      'cookie': '🍪', 'cake': '🎂', 'muffin': '🧁', 'ice cream': '🍦',
+      'shampoo': '🧴', 'soap': '🧼', 'toothpaste': '🦷', 'toilet paper': '🧻',
+      'nappy': '👶', 'diaper': '👶', 'pet food': '🐾',
     };
     for (const [key, emoji] of Object.entries(productMap)) {
       if (lower.includes(key)) return emoji;
@@ -93,7 +123,7 @@ class SLMItemList extends LitElement {
     return this.getCategoryEmoji(categoryId);
   }
 
-  getProductIcon(name, categoryId) {
+  getBundledIcon(name) {
     if (!name) return null;
     const lower = name.toLowerCase();
     for (const [keyword, slug] of Object.entries(PRODUCT_ICON_MAP)) {
@@ -104,19 +134,21 @@ class SLMItemList extends LitElement {
     return null;
   }
 
+  getLocalImageUrl(name) {
+    const basePath = this.settings?.localImagePath;
+    if (!basePath || !name) return null;
+    const slug = name.toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/_+$/, '');
+    return `${basePath.replace(/\/$/, '')}/${slug}.jpg`;
+  }
+
   groupItems() {
     const sortMode = this.settings?.sortMode || 'category';
+    // Only show unchecked items (same behaviour as tile view)
     const unchecked = (this.items || []).filter(i => !i.checked);
-    const checked = (this.items || []).filter(i => i.checked);
 
     if (sortMode === 'alphabetical') {
       unchecked.sort((a, b) => a.name.localeCompare(b.name));
-      checked.sort((a, b) => a.name.localeCompare(b.name));
-      return {
-        mode: 'alpha',
-        sections: [{ id: '_alpha', items: unchecked }],
-        checked
-      };
+      return { mode: 'alpha', sections: [{ id: '_alpha', items: unchecked }] };
     }
 
     const grouped = {};
@@ -127,11 +159,7 @@ class SLMItemList extends LitElement {
       }
     });
 
-    return {
-      mode: 'category',
-      sections: Object.values(grouped),
-      checked
-    };
+    return { mode: 'category', sections: Object.values(grouped) };
   }
 
   handleRowClick(e, item) {
@@ -139,9 +167,19 @@ class SLMItemList extends LitElement {
       this._longPressTriggered = false;
       return;
     }
+    // Ignore clicks on the qty badge or decrease button
     if (e.target.closest('.list-decrease-btn') || e.target.closest('.list-qty-badge')) return;
     this.dispatchEvent(new CustomEvent('item-check', {
       detail: { itemId: item.id, checked: !item.checked },
+      bubbles: true,
+      composed: true
+    }));
+  }
+
+  handleQtyClick(e, item) {
+    e.stopPropagation();
+    this.dispatchEvent(new CustomEvent('item-click', {
+      detail: { itemId: item.id },
       bubbles: true,
       composed: true
     }));
@@ -151,6 +189,23 @@ class SLMItemList extends LitElement {
     e.stopPropagation();
     this.dispatchEvent(new CustomEvent('item-decrease', {
       detail: { itemId: item.id },
+      bubbles: true,
+      composed: true
+    }));
+  }
+
+  handleRecentClick(product) {
+    this.dispatchEvent(new CustomEvent('add-item', {
+      detail: {
+        name: product.name,
+        category_id: product.category_id,
+        product_id: product.id,
+        quantity: 1,
+        unit: product.default_unit || 'units',
+        price: product.price || null,
+        image_url: product.image_url || null,
+        fromRecentlyUsed: true
+      },
       bubbles: true,
       composed: true
     }));
@@ -175,15 +230,36 @@ class SLMItemList extends LitElement {
     }
   }
 
+  renderRowIcon(name, categoryId, imageUrl) {
+    if (imageUrl) {
+      return html`<img src="${imageUrl}" alt="${name}" class="row-img" />`;
+    }
+    const bundled = this.getBundledIcon(name);
+    if (bundled) {
+      return html`<img src="${bundled}" alt="${name}" class="row-img icon-img" />`;
+    }
+    const localUrl = this.getLocalImageUrl(name);
+    if (localUrl) {
+      return html`
+        <img
+          src="${localUrl}"
+          alt="${name}"
+          class="row-img icon-img"
+          @error=${(e) => { e.target.style.display='none'; e.target.nextElementSibling?.style.removeProperty('display'); }}
+        /><span class="row-emoji" style="display:none">${this.getProductEmoji(name, categoryId)}</span>
+      `;
+    }
+    return html`<span class="row-emoji">${this.getProductEmoji(name, categoryId)}</span>`;
+  }
+
   renderRow(item) {
     const color = this.getCategoryColor(item.category_id);
     const { r, g, b } = this.hexToRgb(color);
-    const icon = this.getProductIcon(item.name, item.category_id);
     const showPrice = this.settings?.showPriceOnTile !== false;
 
     return html`
       <div
-        class="list-row ${item.checked ? 'checked' : ''}"
+        class="list-row"
         @click=${(e) => this.handleRowClick(e, item)}
         @mousedown=${() => this.handleMouseDown(item)}
         @mouseup=${this.handleMouseUp}
@@ -194,13 +270,7 @@ class SLMItemList extends LitElement {
         <div class="row-left">
           <div class="cat-dot" style="background: ${color}"></div>
           <div class="row-icon">
-            ${item.image_url ? html`
-              <img src="${item.image_url}" alt="${item.name}" class="row-img" />
-            ` : icon ? html`
-              <img src="${icon}" alt="${item.name}" class="row-img" />
-            ` : html`
-              <span class="row-emoji">${this.getProductEmoji(item.name, item.category_id)}</span>
-            `}
+            ${this.renderRowIcon(item.name, item.category_id, item.image_url)}
           </div>
         </div>
 
@@ -212,26 +282,56 @@ class SLMItemList extends LitElement {
         </div>
 
         <div class="row-right">
-          ${!item.checked ? html`
-            <button
-              class="list-decrease-btn"
-              style="background: rgba(${r},${g},${b},0.15); color: ${color};"
-              @click=${(e) => this.handleDecrease(e, item)}
-            >−</button>
-            <div class="list-qty-badge" style="background: ${color}">
-              ${item.quantity}
-            </div>
-          ` : html`
-            <span class="check-mark">✓</span>
-          `}
+          <button
+            class="list-decrease-btn"
+            style="background: rgba(${r},${g},${b},0.15); color: ${color};"
+            @click=${(e) => this.handleDecrease(e, item)}
+          >−</button>
+          <div
+            class="list-qty-badge"
+            style="background: ${color}"
+            @click=${(e) => this.handleQtyClick(e, item)}
+          >${item.quantity}</div>
+        </div>
+      </div>
+    `;
+  }
+
+  renderRecentRow(product) {
+    const recentColor = '#9e9e9e';
+    const showPrice = this.settings?.showPriceOnTile !== false;
+
+    return html`
+      <div
+        class="list-row recent-row"
+        @click=${() => this.handleRecentClick(product)}
+      >
+        <div class="row-left">
+          <div class="cat-dot" style="background: ${recentColor}"></div>
+          <div class="row-icon">
+            ${this.renderRowIcon(product.name, product.category_id, product.image_url)}
+          </div>
+        </div>
+
+        <div class="row-middle">
+          <div class="row-name">${product.name}</div>
+          ${showPrice && product.price ? html`
+            <div class="row-price">$${product.price.toFixed(2)}</div>
+          ` : ''}
+        </div>
+
+        <div class="row-right">
+          <div class="list-qty-badge recent-add" style="background: ${recentColor}">+</div>
         </div>
       </div>
     `;
   }
 
   render() {
-    const { mode, sections, checked } = this.groupItems();
-    const isEmpty = sections.every(s => s.items.length === 0) && checked.length === 0;
+    const { mode, sections } = this.groupItems();
+    const showRecent = this.settings?.showRecentlyUsed !== false;
+    const recentColor = '#9e9e9e';
+    const isEmpty = sections.every(s => s.items.length === 0) && (!showRecent || this._recentItems.length === 0);
 
     if (isEmpty) {
       return html`
@@ -245,6 +345,17 @@ class SLMItemList extends LitElement {
 
     return html`
       <div class="list-container">
+
+        ${showRecent && this._recentItems.length > 0 ? html`
+          <div class="list-section">
+            <div class="category-header" style="${this.getCategoryHeaderStyle(recentColor)}">
+              <span class="cat-emoji">⏱️</span>
+              <span class="cat-name" style="color: ${recentColor}">Recently Used</span>
+            </div>
+            ${this._recentItems.map(product => this.renderRecentRow(product))}
+          </div>
+        ` : ''}
+
         ${sections.map(section => html`
           <div class="list-section">
             ${mode === 'category' ? html`
@@ -257,12 +368,6 @@ class SLMItemList extends LitElement {
           </div>
         `)}
 
-        ${checked.length > 0 ? html`
-          <div class="list-section checked-section">
-            <div class="checked-header">Checked (${checked.length})</div>
-            ${checked.map(item => this.renderRow(item))}
-          </div>
-        ` : ''}
       </div>
     `;
   }
@@ -290,15 +395,6 @@ class SLMItemList extends LitElement {
       flex: 1;
       font-weight: 700;
     }
-    .checked-header {
-      font-size: 12px;
-      font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
-      color: var(--slm-text-secondary, #757575);
-      padding: 8px 12px 4px;
-      opacity: 0.7;
-    }
     .list-row {
       display: flex;
       align-items: center;
@@ -313,11 +409,8 @@ class SLMItemList extends LitElement {
     .list-row:active {
       background: var(--secondary-background-color, rgba(0,0,0,0.05));
     }
-    .list-row.checked {
-      opacity: 0.45;
-    }
-    .list-row.checked .row-name {
-      text-decoration: line-through;
+    .recent-row {
+      opacity: 0.75;
     }
     .row-left {
       display: flex;
@@ -346,6 +439,9 @@ class SLMItemList extends LitElement {
       width: 36px;
       height: 36px;
       object-fit: cover;
+    }
+    .icon-img {
+      object-fit: contain;
     }
     .row-emoji {
       font-size: 24px;
@@ -400,11 +496,12 @@ class SLMItemList extends LitElement {
       align-items: center;
       justify-content: center;
       padding: 0 6px;
+      cursor: pointer;
+      -webkit-tap-highlight-color: transparent;
     }
-    .check-mark {
+    .recent-add {
       font-size: 20px;
-      color: var(--slm-accent-primary, #9fa8da);
-      font-weight: 700;
+      cursor: default;
     }
     .empty {
       text-align: center;

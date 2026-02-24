@@ -228,24 +228,28 @@ class ShoppingListManagerCard extends LitElement {
 
   async handleAddItem(e) {
     const itemData = e.detail;
-    
-    // Check if item already exists
-    const existingItem = this.items.find(i => 
-      i.product_id === itemData.product_id && !i.checked
+
+    const existingItem = this.items.find(i =>
+      i.product_id && i.product_id === itemData.product_id && !i.checked
     );
 
-    if (existingItem) {
-      // Increase quantity instead of adding duplicate
-      await this.api.updateItem(existingItem.id, { 
+    if (itemData.fromRecentlyUsed) {
+      // Recently-used: always start fresh at qty=1
+      if (existingItem) {
+        await this.api.updateItem(existingItem.id, { quantity: 1 });
+      } else {
+        await this.api.addItem(this.activeList.id, { ...itemData, quantity: 1 });
+      }
+    } else if (existingItem) {
+      // Normal add: increment existing unchecked item
+      await this.api.updateItem(existingItem.id, {
         quantity: existingItem.quantity + 1
       });
     } else {
       await this.api.addItem(this.activeList.id, itemData);
     }
-    
-    // Track recently used
+
     this.trackRecentlyUsed(itemData.product_id);
-    
     await this.loadActiveListData();
     this.showAddDialog = false;
   }
@@ -414,6 +418,7 @@ class ShoppingListManagerCard extends LitElement {
                 .categories=${this.categories}
                 .settings=${this.settings}
                 .api=${this.api}
+                @add-item=${this.handleAddItem}
                 @item-click=${this.handleItemClick}
                 @item-decrease=${this.handleItemDecrease}
                 @item-check=${this.handleItemCheck}

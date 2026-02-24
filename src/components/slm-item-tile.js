@@ -55,7 +55,8 @@ class SLMItemTile extends LitElement {
           quantity: 1,
           unit: this.item.default_unit || 'units',
           price: this.item.price || null,
-          image_url: this.item.image_url || null
+          image_url: this.item.image_url || null,
+          fromRecentlyUsed: true
         },
         bubbles: true,
         composed: true
@@ -317,7 +318,7 @@ class SLMItemTile extends LitElement {
         <div class="info">
           <div class="name">${this.item.name}</div>
           ${showPrice && this.item.price ? html`
-            <div class="price">$${(this.item.price * this.item.quantity).toFixed(2)}</div>
+            <div class="price">$${(this.item.price * (this.item.quantity || 1)).toFixed(2)}</div>
           ` : ''}
         </div>
 
