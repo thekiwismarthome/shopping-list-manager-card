@@ -45,6 +45,23 @@ class SLMItemTile extends LitElement {
     ) {
       return;
     }
+    if (this.isRecentlyUsed) {
+      // Recently-used tiles hold Products, not list Items — dispatch add-item
+      this.dispatchEvent(new CustomEvent('add-item', {
+        detail: {
+          name: this.item.name,
+          category_id: this.item.category_id,
+          product_id: this.item.id,
+          quantity: 1,
+          unit: this.item.default_unit || 'units',
+          price: this.item.price || null,
+          image_url: this.item.image_url || null
+        },
+        bubbles: true,
+        composed: true
+      }));
+      return;
+    }
     this.dispatchEvent(new CustomEvent('item-check', {
       detail: { itemId: this.item.id, checked: !this.item.checked },
       bubbles: true,
@@ -276,21 +293,24 @@ class SLMItemTile extends LitElement {
         @mouseup=${this.handleMouseUp}
         @mouseleave=${this.handleMouseLeave}
       >
-        ${!this.item.checked ? html`
-          <button class="decrease-btn" style="background: rgba(${r},${g},${b},0.7)" @click=${this.handleDecrease}>
-            <span>−</span>
-          </button>
-        ` : ''}
-
-        ${!this.item.checked ? html`
-          <div
-            class="quantity-badge"
-            style="background: ${this.categoryColor}"
-            @click=${this.handleQuantityClick}
-          >
-            ${this.item.quantity}
-          </div>
-        ` : ''}
+        ${this.isRecentlyUsed ? html`
+          <div class="quantity-badge" style="background: ${this.categoryColor}">+</div>
+        ` : html`
+          ${!this.item.checked ? html`
+            <button class="decrease-btn" style="background: rgba(${r},${g},${b},0.7)" @click=${this.handleDecrease}>
+              <span>−</span>
+            </button>
+          ` : ''}
+          ${!this.item.checked ? html`
+            <div
+              class="quantity-badge"
+              style="background: ${this.categoryColor}"
+              @click=${this.handleQuantityClick}
+            >
+              ${this.item.quantity}
+            </div>
+          ` : ''}
+        `}
 
         ${this.renderImage()}
 

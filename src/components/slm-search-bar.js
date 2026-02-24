@@ -161,7 +161,56 @@ class SLMSearchBar extends LitElement {
 
         ${this.showResults ? html`
           <div class="results-dropdown">
-            ${this.searchResults.length > 0 ? html`
+
+            <!-- Always-visible add row pinned to the top -->
+            ${!this._showCreateForm ? html`
+              <button class="result-item add-quick" @click=${this.handleAddCustom}>
+                <div class="no-image add-plus">➕</div>
+                <div class="result-info">
+                  <div class="result-name">Add "${this.searchQuery}"</div>
+                  <div class="result-subtitle">quick add to list</div>
+                </div>
+              </button>
+            ` : ''}
+
+            ${this._showCreateForm ? html`
+              <!-- Inline create-product form -->
+              <div class="create-form">
+                <div class="create-form-title">Create new product</div>
+                <input
+                  class="create-input"
+                  type="text"
+                  placeholder="Product name"
+                  .value=${this._createName}
+                  @input=${(e) => this._createName = e.target.value}
+                />
+                <select
+                  class="create-select"
+                  .value=${this._createCategory}
+                  @change=${(e) => this._createCategory = e.target.value}
+                >
+                  ${cats.map(cat => html`
+                    <option value="${cat.id}" ?selected=${cat.id === this._createCategory}>
+                      ${this.getCategoryEmoji(cat.id)} ${cat.name}
+                    </option>
+                  `)}
+                </select>
+                <input
+                  class="create-input"
+                  type="text"
+                  inputmode="decimal"
+                  placeholder="Price (optional)"
+                  .value=${this._createPrice}
+                  @input=${(e) => this._createPrice = e.target.value}
+                />
+                <div class="create-actions">
+                  <button class="create-btn secondary" @click=${this.handleCancelCreate}>Cancel</button>
+                  <button class="create-btn primary" @click=${this.handleCreateAndAdd}>Create &amp; Add</button>
+                </div>
+              </div>
+            ` : this.searchResults.length > 0 ? html`
+              <!-- Search results below the add row -->
+              <div class="results-divider">Matching products</div>
               ${this.searchResults.map(product => html`
                 <button class="result-item" @click=${() => this.handleProductSelect(product)}>
                   ${product.image_url ? html`
@@ -178,68 +227,18 @@ class SLMSearchBar extends LitElement {
                   <span class="add-icon">➕</span>
                 </button>
               `)}
-              <button class="result-item add-custom" @click=${this.handleAddCustom}>
-                <div class="no-image">📝</div>
+            ` : html`
+              <!-- No results: offer to create a catalog product -->
+              <button class="result-item create-product" @click=${this.handleShowCreateForm}>
+                <div class="no-image">🆕</div>
                 <div class="result-info">
-                  <div class="result-name">Add "${this.searchQuery}" to list</div>
-                  <div class="result-subtitle">quick add, no catalog entry</div>
+                  <div class="result-name">Create product "${this.searchQuery}"</div>
+                  <div class="result-subtitle">save to catalog with category &amp; price</div>
                 </div>
                 <span class="add-icon">➕</span>
               </button>
-            ` : html`
-              ${this._showCreateForm ? html`
-                <div class="create-form">
-                  <div class="create-form-title">Create new product</div>
-                  <input
-                    class="create-input"
-                    type="text"
-                    placeholder="Product name"
-                    .value=${this._createName}
-                    @input=${(e) => this._createName = e.target.value}
-                  />
-                  <select
-                    class="create-select"
-                    .value=${this._createCategory}
-                    @change=${(e) => this._createCategory = e.target.value}
-                  >
-                    ${cats.map(cat => html`
-                      <option value="${cat.id}" ?selected=${cat.id === this._createCategory}>
-                        ${this.getCategoryEmoji(cat.id)} ${cat.name}
-                      </option>
-                    `)}
-                  </select>
-                  <input
-                    class="create-input"
-                    type="text"
-                    inputmode="decimal"
-                    placeholder="Price (optional)"
-                    .value=${this._createPrice}
-                    @input=${(e) => this._createPrice = e.target.value}
-                  />
-                  <div class="create-actions">
-                    <button class="create-btn secondary" @click=${this.handleCancelCreate}>Cancel</button>
-                    <button class="create-btn primary" @click=${this.handleCreateAndAdd}>Create & Add</button>
-                  </div>
-                </div>
-              ` : html`
-                <button class="result-item add-custom" @click=${this.handleAddCustom}>
-                  <div class="no-image">📝</div>
-                  <div class="result-info">
-                    <div class="result-name">Add "${this.searchQuery}" to list</div>
-                    <div class="result-subtitle">quick add, no catalog entry</div>
-                  </div>
-                  <span class="add-icon">➕</span>
-                </button>
-                <button class="result-item create-product" @click=${this.handleShowCreateForm}>
-                  <div class="no-image">🆕</div>
-                  <div class="result-info">
-                    <div class="result-name">Create product "${this.searchQuery}"</div>
-                    <div class="result-subtitle">add to catalog with category &amp; price</div>
-                  </div>
-                  <span class="add-icon">➕</span>
-                </button>
-              `}
             `}
+
           </div>
         ` : ''}
       </div>
@@ -355,6 +354,24 @@ class SLMSearchBar extends LitElement {
     .add-icon {
       font-size: 20px;
       color: var(--primary-color);
+    }
+    .add-quick {
+      background: var(--secondary-background-color);
+      border-bottom: 2px solid var(--divider-color);
+    }
+    .add-plus {
+      background: var(--primary-color);
+      color: white;
+      font-size: 18px;
+    }
+    .results-divider {
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--secondary-text-color);
+      padding: 6px 12px 2px;
+      opacity: 0.7;
     }
     .add-custom {
       background: rgba(0,0,0,0.02);

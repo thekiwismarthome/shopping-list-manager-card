@@ -97,24 +97,20 @@ class SLMItemGrid extends LitElement {
       </style>
 
       <div class="grid-container">
-        ${this._recentItems.length > 0 ? html`
+        ${this.settings?.showRecentlyUsed !== false && this._recentItems.length > 0 ? html`
           <div class="category-section">
             <div class="category-header" style="${this.getCategoryHeaderStyle(recentColor)}">
               <span class="emoji">⏱️</span>
               <span class="category-name" style="color: ${recentColor}">Recently Used</span>
             </div>
             <div class="items-grid">
-              ${this._recentItems.map(item => html`
+              ${this._recentItems.map(product => html`
                 <slm-item-tile
-                  .item=${item}
+                  .item=${product}
                   .categoryColor=${recentColor}
                   .isRecentlyUsed=${true}
                   .settings=${this.settings}
-                  @item-click=${this.handleItemClick}
-                  @item-decrease=${this.handleItemDecrease}
-                  @item-check=${this.handleItemCheck}
-                  @item-long-press=${this.handleItemLongPress}
-                  @item-swipe-delete=${this.handleItemSwipeDelete}
+                  @add-item=${this.handleAddItem}
                 ></slm-item-tile>
               `)}
             </div>
@@ -177,6 +173,15 @@ class SLMItemGrid extends LitElement {
       'other': '📦'
     };
     return emojiMap[categoryId] || '📦';
+  }
+
+  handleAddItem(e) {
+    e.stopPropagation();
+    this.dispatchEvent(new CustomEvent('add-item', {
+      detail: e.detail,
+      bubbles: true,
+      composed: true
+    }));
   }
 
   handleItemClick(e) {

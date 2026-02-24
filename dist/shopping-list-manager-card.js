@@ -308,7 +308,56 @@ const _=globalThis,$=t=>t,k=_.trustedTypes,E=k?k.createPolicy("lit-html",{create
 
         ${this.showResults?F`
           <div class="results-dropdown">
-            ${this.searchResults.length>0?F`
+
+            <!-- Always-visible add row pinned to the top -->
+            ${this._showCreateForm?"":F`
+              <button class="result-item add-quick" @click=${this.handleAddCustom}>
+                <div class="no-image add-plus">➕</div>
+                <div class="result-info">
+                  <div class="result-name">Add "${this.searchQuery}"</div>
+                  <div class="result-subtitle">quick add to list</div>
+                </div>
+              </button>
+            `}
+
+            ${this._showCreateForm?F`
+              <!-- Inline create-product form -->
+              <div class="create-form">
+                <div class="create-form-title">Create new product</div>
+                <input
+                  class="create-input"
+                  type="text"
+                  placeholder="Product name"
+                  .value=${this._createName}
+                  @input=${t=>this._createName=t.target.value}
+                />
+                <select
+                  class="create-select"
+                  .value=${this._createCategory}
+                  @change=${t=>this._createCategory=t.target.value}
+                >
+                  ${t.map(t=>F`
+                    <option value="${t.id}" ?selected=${t.id===this._createCategory}>
+                      ${this.getCategoryEmoji(t.id)} ${t.name}
+                    </option>
+                  `)}
+                </select>
+                <input
+                  class="create-input"
+                  type="text"
+                  inputmode="decimal"
+                  placeholder="Price (optional)"
+                  .value=${this._createPrice}
+                  @input=${t=>this._createPrice=t.target.value}
+                />
+                <div class="create-actions">
+                  <button class="create-btn secondary" @click=${this.handleCancelCreate}>Cancel</button>
+                  <button class="create-btn primary" @click=${this.handleCreateAndAdd}>Create &amp; Add</button>
+                </div>
+              </div>
+            `:this.searchResults.length>0?F`
+              <!-- Search results below the add row -->
+              <div class="results-divider">Matching products</div>
               ${this.searchResults.map(t=>F`
                 <button class="result-item" @click=${()=>this.handleProductSelect(t)}>
                   ${t.image_url?F`
@@ -325,68 +374,18 @@ const _=globalThis,$=t=>t,k=_.trustedTypes,E=k?k.createPolicy("lit-html",{create
                   <span class="add-icon">➕</span>
                 </button>
               `)}
-              <button class="result-item add-custom" @click=${this.handleAddCustom}>
-                <div class="no-image">📝</div>
+            `:F`
+              <!-- No results: offer to create a catalog product -->
+              <button class="result-item create-product" @click=${this.handleShowCreateForm}>
+                <div class="no-image">🆕</div>
                 <div class="result-info">
-                  <div class="result-name">Add "${this.searchQuery}" to list</div>
-                  <div class="result-subtitle">quick add, no catalog entry</div>
+                  <div class="result-name">Create product "${this.searchQuery}"</div>
+                  <div class="result-subtitle">save to catalog with category &amp; price</div>
                 </div>
                 <span class="add-icon">➕</span>
               </button>
-            `:F`
-              ${this._showCreateForm?F`
-                <div class="create-form">
-                  <div class="create-form-title">Create new product</div>
-                  <input
-                    class="create-input"
-                    type="text"
-                    placeholder="Product name"
-                    .value=${this._createName}
-                    @input=${t=>this._createName=t.target.value}
-                  />
-                  <select
-                    class="create-select"
-                    .value=${this._createCategory}
-                    @change=${t=>this._createCategory=t.target.value}
-                  >
-                    ${t.map(t=>F`
-                      <option value="${t.id}" ?selected=${t.id===this._createCategory}>
-                        ${this.getCategoryEmoji(t.id)} ${t.name}
-                      </option>
-                    `)}
-                  </select>
-                  <input
-                    class="create-input"
-                    type="text"
-                    inputmode="decimal"
-                    placeholder="Price (optional)"
-                    .value=${this._createPrice}
-                    @input=${t=>this._createPrice=t.target.value}
-                  />
-                  <div class="create-actions">
-                    <button class="create-btn secondary" @click=${this.handleCancelCreate}>Cancel</button>
-                    <button class="create-btn primary" @click=${this.handleCreateAndAdd}>Create & Add</button>
-                  </div>
-                </div>
-              `:F`
-                <button class="result-item add-custom" @click=${this.handleAddCustom}>
-                  <div class="no-image">📝</div>
-                  <div class="result-info">
-                    <div class="result-name">Add "${this.searchQuery}" to list</div>
-                    <div class="result-subtitle">quick add, no catalog entry</div>
-                  </div>
-                  <span class="add-icon">➕</span>
-                </button>
-                <button class="result-item create-product" @click=${this.handleShowCreateForm}>
-                  <div class="no-image">🆕</div>
-                  <div class="result-info">
-                    <div class="result-name">Create product "${this.searchQuery}"</div>
-                    <div class="result-subtitle">add to catalog with category &amp; price</div>
-                  </div>
-                  <span class="add-icon">➕</span>
-                </button>
-              `}
             `}
+
           </div>
         `:""}
       </div>
@@ -500,6 +499,24 @@ const _=globalThis,$=t=>t,k=_.trustedTypes,E=k?k.createPolicy("lit-html",{create
       font-size: 20px;
       color: var(--primary-color);
     }
+    .add-quick {
+      background: var(--secondary-background-color);
+      border-bottom: 2px solid var(--divider-color);
+    }
+    .add-plus {
+      background: var(--primary-color);
+      color: white;
+      font-size: 18px;
+    }
+    .results-divider {
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--secondary-text-color);
+      padding: 6px 12px 2px;
+      opacity: 0.7;
+    }
     .add-custom {
       background: rgba(0,0,0,0.02);
     }
@@ -559,7 +576,7 @@ const _=globalThis,$=t=>t,k=_.trustedTypes,E=k?k.createPolicy("lit-html",{create
       background: var(--secondary-background-color);
       color: var(--primary-text-color);
     }
-  `}customElements.define("slm-search-bar",pt);const ut={chicken:"chicken",turkey:"turkey",beef:"beef",steak:"steak",mince:"minced-meat",bacon:"bacon",ham:"ham",sausage:"sausage",pork:"pork",lamb:"lamb-chops",salami:"salami",fish:"fish",salmon:"salmon-fillet",tuna:"tuna",prawn:"shrimp",shrimp:"shrimp",lobster:"lobster",milk:"milk-bottle",cheese:"cheese",butter:"butter",egg:"egg",yogurt:"yogurt",yoghurt:"yogurt",cream:"whipped-cream","ice cream":"ice-cream-cone",bread:"bread",sourdough:"bread",loaf:"bread",bun:"burger-bun",bagel:"bagel",croissant:"croissant",muffin:"muffin",cake:"cake",cookie:"cookie",biscuit:"cookie",apple:"apple",banana:"banana",orange:"orange",grape:"grapes",strawberry:"strawberry",blueberry:"blueberries",lemon:"lemon",avocado:"avocado",pineapple:"pineapple",watermelon:"watermelon",mango:"mango",kiwi:"kiwi",peach:"peach",pear:"pear",cherry:"cherry",tomato:"tomato",potato:"potato",carrot:"carrot",broccoli:"broccoli",lettuce:"lettuce",spinach:"spinach",onion:"onion",garlic:"garlic",corn:"corn",pepper:"bell-pepper",cucumber:"cucumber",mushroom:"mushroom",peas:"peas",coffee:"coffee",tea:"tea",juice:"juice",wine:"wine-bottle",beer:"beer",water:"water-bottle",soda:"soda-can",cola:"soda-can",pasta:"pasta",rice:"rice-bowl",flour:"flour",sugar:"sugar",salt:"salt",oil:"olive-oil",honey:"honey",chocolate:"chocolate-bar",chips:"chips",popcorn:"popcorn",soap:"soap",shampoo:"shampoo",toothpaste:"toothpaste","toilet paper":"toilet-paper",sponge:"sponge"},ht={};class gt extends at{static properties={item:{type:Object},categoryColor:{type:String},isRecentlyUsed:{type:Boolean},settings:{type:Object},touchStartX:{type:Number},touchStartY:{type:Number},touchStartTime:{type:Number},longPressTimer:{type:Number},longPressTriggered:{type:Boolean},_localImgError:{type:Boolean,state:!0}};constructor(){super(),this.isRecentlyUsed=!1,this.touchStartX=0,this.touchStartY=0,this.touchStartTime=0,this.longPressTimer=null,this.longPressTriggered=!1,this._localImgError=!1}hexToRgb(t){const e=/^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(t);return e?{r:parseInt(e[1],16),g:parseInt(e[2],16),b:parseInt(e[3],16)}:{r:159,g:168,b:218}}handleTileClick(t){this.longPressTriggered?this.longPressTriggered=!1:t.target.closest(".decrease-btn")||t.target.closest(".quantity-badge")||this.dispatchEvent(new CustomEvent("item-check",{detail:{itemId:this.item.id,checked:!this.item.checked},bubbles:!0,composed:!0}))}handleDecrease(t){t.stopPropagation(),this.dispatchEvent(new CustomEvent("item-decrease",{detail:{itemId:this.item.id},bubbles:!0,composed:!0}))}handleQuantityClick(t){t.stopPropagation(),this.dispatchEvent(new CustomEvent("item-click",{detail:{itemId:this.item.id},bubbles:!0,composed:!0}))}handleContextMenu(t){return t.preventDefault(),t.stopPropagation(),!1}handleTouchStart(t){this.touchStartX=t.touches[0].clientX,this.touchStartY=t.touches[0].clientY,this.touchStartTime=Date.now(),this.longPressTriggered=!1,this.longPressTimer=setTimeout(()=>{this.longPressTriggered=!0,this.dispatchEvent(new CustomEvent("item-long-press",{detail:{item:this.item},bubbles:!0,composed:!0}))},500)}handleTouchMove(t){if(this.longPressTimer){const e=t.touches[0].clientX,i=t.touches[0].clientY,o=Math.abs(e-this.touchStartX),r=Math.abs(i-this.touchStartY);(o>10||r>10)&&(clearTimeout(this.longPressTimer),this.longPressTimer=null)}}handleTouchEnd(t){this.longPressTimer&&(clearTimeout(this.longPressTimer),this.longPressTimer=null)}handleMouseDown(t){if(2===t.button)return t.preventDefault(),!1;this.longPressTriggered=!1,this.longPressTimer=setTimeout(()=>{this.longPressTriggered=!0,this.dispatchEvent(new CustomEvent("item-long-press",{detail:{item:this.item},bubbles:!0,composed:!0}))},500)}handleMouseUp(t){this.longPressTimer&&(clearTimeout(this.longPressTimer),this.longPressTimer=null)}handleMouseLeave(t){this.longPressTimer&&(clearTimeout(this.longPressTimer),this.longPressTimer=null)}firstUpdated(){const t=this.shadowRoot.querySelector(".tile");t&&(t.addEventListener("touchstart",this.handleTouchStart.bind(this),{passive:!0}),t.addEventListener("touchmove",this.handleTouchMove.bind(this),{passive:!0}),t.addEventListener("touchend",this.handleTouchEnd.bind(this),{passive:!0}),t.addEventListener("contextmenu",this.handleContextMenu.bind(this)))}getCategoryEmoji(t){return{produce:"🥬",dairy:"🥛",meat:"🥩",bakery:"🍞",pantry:"🥫",frozen:"🧊",beverages:"🥤",snacks:"🍿",household:"🧹",health:"💊",pet:"🐾",baby:"👶",other:"📦"}[t]||"📦"}getProductEmoji(t,e){if(!t)return this.getCategoryEmoji(e);const i=t.toLowerCase(),o={chicken:"🍗",turkey:"🦃",duck:"🦆",beef:"🥩",steak:"🥩",mince:"🥩",lamb:"🍖",pork:"🥓",bacon:"🥓",ham:"🍖",sausage:"🌭",salami:"🍖",fish:"🐟",salmon:"🐟",tuna:"🐟",prawn:"🦐",shrimp:"🦐",egg:"🥚",eggs:"🥚",milk:"🥛",cream:"🥛",yogurt:"🫙",yoghurt:"🫙",cheese:"🧀",cheddar:"🧀",feta:"🧀",mozzarella:"🧀",butter:"🧈",bread:"🍞",toast:"🍞",bun:"🥖",roll:"🥖",bagel:"🥯",loaf:"🍞",sourdough:"🍞",wrap:"🫓",croissant:"🥐",apple:"🍎",orange:"🍊",banana:"🍌",grape:"🍇",strawberry:"🍓",blueberry:"🫐",raspberry:"🍓",lemon:"🍋",lime:"🍋",pineapple:"🍍",mango:"🥭",watermelon:"🍉",melon:"🍈",peach:"🍑",pear:"🍐",cherry:"🍒",kiwi:"🥝",avocado:"🥑",tomato:"🍅",potato:"🥔",carrot:"🥕",broccoli:"🥦",lettuce:"🥬",spinach:"🥬",salad:"🥗",kale:"🥬",onion:"🧅",garlic:"🧄",corn:"🌽",pepper:"🫑",cucumber:"🥒",mushroom:"🍄",eggplant:"🍆",peas:"🫛",beans:"🫘",lentil:"🫘",coffee:"☕",espresso:"☕",latte:"☕",tea:"🍵",juice:"🧃",water:"💧",sparkling:"💧",beer:"🍺",wine:"🍷",cider:"🍺",spirits:"🥃",whisky:"🥃",soda:"🥤",cola:"🥤",pasta:"🍝",noodle:"🍜",rice:"🍚",oat:"🌾",cereal:"🥣",flour:"🌾",sugar:"🍬",salt:"🧂",oil:"🫙",vinegar:"🫙",sauce:"🫙",ketchup:"🫙",mustard:"🫙",mayonnaise:"🫙",honey:"🍯",jam:"🫙","peanut butter":"🥜",chocolate:"🍫",chips:"🥔",popcorn:"🍿",biscuit:"🍪",cookie:"🍪",cake:"🎂",muffin:"🧁",doughnut:"🍩","ice cream":"🍦",shampoo:"🧴",conditioner:"🧴",soap:"🧼",toothpaste:"🦷","toilet paper":"🧻",tissues:"🧻",nappy:"👶",diaper:"👶",formula:"👶","pet food":"🐾","dog food":"🐕","cat food":"🐈"};for(const[t,e]of Object.entries(o))if(i.includes(t))return e;return this.getCategoryEmoji(e)}getBundledIcon(t){if(!t)return null;const e=t.toLowerCase();for(const[t,i]of Object.entries(ut))if(e.includes(t)&&ht[i])return ht[i];return null}getLocalImageUrl(t){const e=this.settings?.localImagePath;if(!e||!t)return null;const i=t.toLowerCase().replace(/[^a-z0-9]+/g,"_").replace(/_+$/,"");return`${e.replace(/\/$/,"")}/${i}.jpg`}renderImage(){const t=this.item?.name,e=this.item?.category_id;if(this.item?.image_url)return F`<img src="${this.item.image_url}" alt="${t}">`;const i=this.getBundledIcon(t);if(i)return F`<div class="no-image"><img src="${i}" alt="${t}" class="product-icon"></div>`;const o=this.getLocalImageUrl(t);return o&&!this._localImgError?F`
+  `}customElements.define("slm-search-bar",pt);const ut={chicken:"chicken",turkey:"turkey",beef:"beef",steak:"steak",mince:"minced-meat",bacon:"bacon",ham:"ham",sausage:"sausage",pork:"pork",lamb:"lamb-chops",salami:"salami",fish:"fish",salmon:"salmon-fillet",tuna:"tuna",prawn:"shrimp",shrimp:"shrimp",lobster:"lobster",milk:"milk-bottle",cheese:"cheese",butter:"butter",egg:"egg",yogurt:"yogurt",yoghurt:"yogurt",cream:"whipped-cream","ice cream":"ice-cream-cone",bread:"bread",sourdough:"bread",loaf:"bread",bun:"burger-bun",bagel:"bagel",croissant:"croissant",muffin:"muffin",cake:"cake",cookie:"cookie",biscuit:"cookie",apple:"apple",banana:"banana",orange:"orange",grape:"grapes",strawberry:"strawberry",blueberry:"blueberries",lemon:"lemon",avocado:"avocado",pineapple:"pineapple",watermelon:"watermelon",mango:"mango",kiwi:"kiwi",peach:"peach",pear:"pear",cherry:"cherry",tomato:"tomato",potato:"potato",carrot:"carrot",broccoli:"broccoli",lettuce:"lettuce",spinach:"spinach",onion:"onion",garlic:"garlic",corn:"corn",pepper:"bell-pepper",cucumber:"cucumber",mushroom:"mushroom",peas:"peas",coffee:"coffee",tea:"tea",juice:"juice",wine:"wine-bottle",beer:"beer",water:"water-bottle",soda:"soda-can",cola:"soda-can",pasta:"pasta",rice:"rice-bowl",flour:"flour",sugar:"sugar",salt:"salt",oil:"olive-oil",honey:"honey",chocolate:"chocolate-bar",chips:"chips",popcorn:"popcorn",soap:"soap",shampoo:"shampoo",toothpaste:"toothpaste","toilet paper":"toilet-paper",sponge:"sponge"},ht={};class gt extends at{static properties={item:{type:Object},categoryColor:{type:String},isRecentlyUsed:{type:Boolean},settings:{type:Object},touchStartX:{type:Number},touchStartY:{type:Number},touchStartTime:{type:Number},longPressTimer:{type:Number},longPressTriggered:{type:Boolean},_localImgError:{type:Boolean,state:!0}};constructor(){super(),this.isRecentlyUsed=!1,this.touchStartX=0,this.touchStartY=0,this.touchStartTime=0,this.longPressTimer=null,this.longPressTriggered=!1,this._localImgError=!1}hexToRgb(t){const e=/^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(t);return e?{r:parseInt(e[1],16),g:parseInt(e[2],16),b:parseInt(e[3],16)}:{r:159,g:168,b:218}}handleTileClick(t){this.longPressTriggered?this.longPressTriggered=!1:t.target.closest(".decrease-btn")||t.target.closest(".quantity-badge")||(this.isRecentlyUsed?this.dispatchEvent(new CustomEvent("add-item",{detail:{name:this.item.name,category_id:this.item.category_id,product_id:this.item.id,quantity:1,unit:this.item.default_unit||"units",price:this.item.price||null,image_url:this.item.image_url||null},bubbles:!0,composed:!0})):this.dispatchEvent(new CustomEvent("item-check",{detail:{itemId:this.item.id,checked:!this.item.checked},bubbles:!0,composed:!0})))}handleDecrease(t){t.stopPropagation(),this.dispatchEvent(new CustomEvent("item-decrease",{detail:{itemId:this.item.id},bubbles:!0,composed:!0}))}handleQuantityClick(t){t.stopPropagation(),this.dispatchEvent(new CustomEvent("item-click",{detail:{itemId:this.item.id},bubbles:!0,composed:!0}))}handleContextMenu(t){return t.preventDefault(),t.stopPropagation(),!1}handleTouchStart(t){this.touchStartX=t.touches[0].clientX,this.touchStartY=t.touches[0].clientY,this.touchStartTime=Date.now(),this.longPressTriggered=!1,this.longPressTimer=setTimeout(()=>{this.longPressTriggered=!0,this.dispatchEvent(new CustomEvent("item-long-press",{detail:{item:this.item},bubbles:!0,composed:!0}))},500)}handleTouchMove(t){if(this.longPressTimer){const e=t.touches[0].clientX,i=t.touches[0].clientY,o=Math.abs(e-this.touchStartX),r=Math.abs(i-this.touchStartY);(o>10||r>10)&&(clearTimeout(this.longPressTimer),this.longPressTimer=null)}}handleTouchEnd(t){this.longPressTimer&&(clearTimeout(this.longPressTimer),this.longPressTimer=null)}handleMouseDown(t){if(2===t.button)return t.preventDefault(),!1;this.longPressTriggered=!1,this.longPressTimer=setTimeout(()=>{this.longPressTriggered=!0,this.dispatchEvent(new CustomEvent("item-long-press",{detail:{item:this.item},bubbles:!0,composed:!0}))},500)}handleMouseUp(t){this.longPressTimer&&(clearTimeout(this.longPressTimer),this.longPressTimer=null)}handleMouseLeave(t){this.longPressTimer&&(clearTimeout(this.longPressTimer),this.longPressTimer=null)}firstUpdated(){const t=this.shadowRoot.querySelector(".tile");t&&(t.addEventListener("touchstart",this.handleTouchStart.bind(this),{passive:!0}),t.addEventListener("touchmove",this.handleTouchMove.bind(this),{passive:!0}),t.addEventListener("touchend",this.handleTouchEnd.bind(this),{passive:!0}),t.addEventListener("contextmenu",this.handleContextMenu.bind(this)))}getCategoryEmoji(t){return{produce:"🥬",dairy:"🥛",meat:"🥩",bakery:"🍞",pantry:"🥫",frozen:"🧊",beverages:"🥤",snacks:"🍿",household:"🧹",health:"💊",pet:"🐾",baby:"👶",other:"📦"}[t]||"📦"}getProductEmoji(t,e){if(!t)return this.getCategoryEmoji(e);const i=t.toLowerCase(),o={chicken:"🍗",turkey:"🦃",duck:"🦆",beef:"🥩",steak:"🥩",mince:"🥩",lamb:"🍖",pork:"🥓",bacon:"🥓",ham:"🍖",sausage:"🌭",salami:"🍖",fish:"🐟",salmon:"🐟",tuna:"🐟",prawn:"🦐",shrimp:"🦐",egg:"🥚",eggs:"🥚",milk:"🥛",cream:"🥛",yogurt:"🫙",yoghurt:"🫙",cheese:"🧀",cheddar:"🧀",feta:"🧀",mozzarella:"🧀",butter:"🧈",bread:"🍞",toast:"🍞",bun:"🥖",roll:"🥖",bagel:"🥯",loaf:"🍞",sourdough:"🍞",wrap:"🫓",croissant:"🥐",apple:"🍎",orange:"🍊",banana:"🍌",grape:"🍇",strawberry:"🍓",blueberry:"🫐",raspberry:"🍓",lemon:"🍋",lime:"🍋",pineapple:"🍍",mango:"🥭",watermelon:"🍉",melon:"🍈",peach:"🍑",pear:"🍐",cherry:"🍒",kiwi:"🥝",avocado:"🥑",tomato:"🍅",potato:"🥔",carrot:"🥕",broccoli:"🥦",lettuce:"🥬",spinach:"🥬",salad:"🥗",kale:"🥬",onion:"🧅",garlic:"🧄",corn:"🌽",pepper:"🫑",cucumber:"🥒",mushroom:"🍄",eggplant:"🍆",peas:"🫛",beans:"🫘",lentil:"🫘",coffee:"☕",espresso:"☕",latte:"☕",tea:"🍵",juice:"🧃",water:"💧",sparkling:"💧",beer:"🍺",wine:"🍷",cider:"🍺",spirits:"🥃",whisky:"🥃",soda:"🥤",cola:"🥤",pasta:"🍝",noodle:"🍜",rice:"🍚",oat:"🌾",cereal:"🥣",flour:"🌾",sugar:"🍬",salt:"🧂",oil:"🫙",vinegar:"🫙",sauce:"🫙",ketchup:"🫙",mustard:"🫙",mayonnaise:"🫙",honey:"🍯",jam:"🫙","peanut butter":"🥜",chocolate:"🍫",chips:"🥔",popcorn:"🍿",biscuit:"🍪",cookie:"🍪",cake:"🎂",muffin:"🧁",doughnut:"🍩","ice cream":"🍦",shampoo:"🧴",conditioner:"🧴",soap:"🧼",toothpaste:"🦷","toilet paper":"🧻",tissues:"🧻",nappy:"👶",diaper:"👶",formula:"👶","pet food":"🐾","dog food":"🐕","cat food":"🐈"};for(const[t,e]of Object.entries(o))if(i.includes(t))return e;return this.getCategoryEmoji(e)}getBundledIcon(t){if(!t)return null;const e=t.toLowerCase();for(const[t,i]of Object.entries(ut))if(e.includes(t)&&ht[i])return ht[i];return null}getLocalImageUrl(t){const e=this.settings?.localImagePath;if(!e||!t)return null;const i=t.toLowerCase().replace(/[^a-z0-9]+/g,"_").replace(/_+$/,"");return`${e.replace(/\/$/,"")}/${i}.jpg`}renderImage(){const t=this.item?.name,e=this.item?.category_id;if(this.item?.image_url)return F`<img src="${this.item.image_url}" alt="${t}">`;const i=this.getBundledIcon(t);if(i)return F`<div class="no-image"><img src="${i}" alt="${t}" class="product-icon"></div>`;const o=this.getLocalImageUrl(t);return o&&!this._localImgError?F`
         <div class="no-image">
           <img
             src="${o}"
@@ -581,20 +598,23 @@ const _=globalThis,$=t=>t,k=_.trustedTypes,E=k?k.createPolicy("lit-html",{create
         @mouseup=${this.handleMouseUp}
         @mouseleave=${this.handleMouseLeave}
       >
-        ${this.item.checked?"":F`
-          <button class="decrease-btn" style="background: rgba(${t},${e},${i},0.7)" @click=${this.handleDecrease}>
-            <span>−</span>
-          </button>
-        `}
-
-        ${this.item.checked?"":F`
-          <div
-            class="quantity-badge"
-            style="background: ${this.categoryColor}"
-            @click=${this.handleQuantityClick}
-          >
-            ${this.item.quantity}
-          </div>
+        ${this.isRecentlyUsed?F`
+          <div class="quantity-badge" style="background: ${this.categoryColor}">+</div>
+        `:F`
+          ${this.item.checked?"":F`
+            <button class="decrease-btn" style="background: rgba(${t},${e},${i},0.7)" @click=${this.handleDecrease}>
+              <span>−</span>
+            </button>
+          `}
+          ${this.item.checked?"":F`
+            <div
+              class="quantity-badge"
+              style="background: ${this.categoryColor}"
+              @click=${this.handleQuantityClick}
+            >
+              ${this.item.quantity}
+            </div>
+          `}
         `}
 
         ${this.renderImage()}
@@ -729,7 +749,7 @@ const _=globalThis,$=t=>t,k=_.trustedTypes,E=k?k.createPolicy("lit-html",{create
       </style>
 
       <div class="grid-container">
-        ${this._recentItems.length>0?F`
+        ${!1!==this.settings?.showRecentlyUsed&&this._recentItems.length>0?F`
           <div class="category-section">
             <div class="category-header" style="${this.getCategoryHeaderStyle(i)}">
               <span class="emoji">⏱️</span>
@@ -742,11 +762,7 @@ const _=globalThis,$=t=>t,k=_.trustedTypes,E=k?k.createPolicy("lit-html",{create
                   .categoryColor=${i}
                   .isRecentlyUsed=${!0}
                   .settings=${this.settings}
-                  @item-click=${this.handleItemClick}
-                  @item-decrease=${this.handleItemDecrease}
-                  @item-check=${this.handleItemCheck}
-                  @item-long-press=${this.handleItemLongPress}
-                  @item-swipe-delete=${this.handleItemSwipeDelete}
+                  @add-item=${this.handleAddItem}
                 ></slm-item-tile>
               `)}
             </div>
@@ -786,7 +802,7 @@ const _=globalThis,$=t=>t,k=_.trustedTypes,E=k?k.createPolicy("lit-html",{create
             </div>
           `})}
       </div>
-    `}getCategoryEmoji(t){return{produce:"🥬",dairy:"🥛",meat:"🥩",bakery:"🍞",pantry:"🥫",frozen:"🧊",beverages:"🥤",snacks:"🍿",household:"🧹",health:"💊",pet:"🐾",baby:"👶",other:"📦"}[t]||"📦"}handleItemClick(t){t.stopPropagation(),this.dispatchEvent(new CustomEvent("item-click",{detail:t.detail,bubbles:!0,composed:!0}))}handleItemDecrease(t){t.stopPropagation(),this.dispatchEvent(new CustomEvent("item-decrease",{detail:t.detail,bubbles:!0,composed:!0}))}handleItemCheck(t){t.stopPropagation(),this.dispatchEvent(new CustomEvent("item-check",{detail:t.detail,bubbles:!0,composed:!0}))}handleItemLongPress(t){t.stopPropagation(),this.dispatchEvent(new CustomEvent("item-long-press",{detail:t.detail,bubbles:!0,composed:!0}))}handleItemSwipeDelete(t){t.stopPropagation(),this.dispatchEvent(new CustomEvent("item-swipe-delete",{detail:t.detail,bubbles:!0,composed:!0}))}static styles=n`
+    `}getCategoryEmoji(t){return{produce:"🥬",dairy:"🥛",meat:"🥩",bakery:"🍞",pantry:"🥫",frozen:"🧊",beverages:"🥤",snacks:"🍿",household:"🧹",health:"💊",pet:"🐾",baby:"👶",other:"📦"}[t]||"📦"}handleAddItem(t){t.stopPropagation(),this.dispatchEvent(new CustomEvent("add-item",{detail:t.detail,bubbles:!0,composed:!0}))}handleItemClick(t){t.stopPropagation(),this.dispatchEvent(new CustomEvent("item-click",{detail:t.detail,bubbles:!0,composed:!0}))}handleItemDecrease(t){t.stopPropagation(),this.dispatchEvent(new CustomEvent("item-decrease",{detail:t.detail,bubbles:!0,composed:!0}))}handleItemCheck(t){t.stopPropagation(),this.dispatchEvent(new CustomEvent("item-check",{detail:t.detail,bubbles:!0,composed:!0}))}handleItemLongPress(t){t.stopPropagation(),this.dispatchEvent(new CustomEvent("item-long-press",{detail:t.detail,bubbles:!0,composed:!0}))}handleItemSwipeDelete(t){t.stopPropagation(),this.dispatchEvent(new CustomEvent("item-swipe-delete",{detail:t.detail,bubbles:!0,composed:!0}))}static styles=n`
     .grid-container {
       padding: 4px;
     }
@@ -3948,6 +3964,7 @@ const _=globalThis,$=t=>t,k=_.trustedTypes,E=k?k.createPolicy("lit-html",{create
                 .categories=${this.categories}
                 .settings=${this.settings}
                 .api=${this.api}
+                @add-item=${this.handleAddItem}
                 @item-click=${this.handleItemClick}
                 @item-decrease=${this.handleItemDecrease}
                 @item-check=${this.handleItemCheck}

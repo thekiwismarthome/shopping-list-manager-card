@@ -426,6 +426,7 @@ class ShoppingListManagerCard extends LitElement {
                 .categories=${this.categories}
                 .settings=${this.settings}
                 .api=${this.api}
+                @add-item=${this.handleAddItem}
                 @item-click=${this.handleItemClick}
                 @item-decrease=${this.handleItemDecrease}
                 @item-check=${this.handleItemCheck}
