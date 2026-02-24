@@ -38,7 +38,8 @@ class SLMItemList extends LitElement {
     const recentIds = [...new Set(rawIds)];
 
     const limit = this.settings?.recentProductsCount || 8;
-    const currentProductIds = (this.items || []).map(i => i.product_id).filter(Boolean);
+    // Only exclude unchecked items — checked (bought) items can reappear in recently-used
+    const currentProductIds = (this.items || []).filter(i => !i.checked).map(i => i.product_id).filter(Boolean);
 
     const filteredIds = recentIds
       .filter(id => !currentProductIds.includes(id))
