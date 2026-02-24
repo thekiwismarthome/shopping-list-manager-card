@@ -166,18 +166,6 @@ class ShoppingListManagerCard extends LitElement {
     const itemsResult = await this.api.getItems(this.activeList.id);
     this.items = itemsResult.items;
 
-    // Seed recently-used from existing items so the section is populated on first load
-    const recentKey = 'slm_recent_products';
-    const existing = localStorage.getItem(recentKey);
-    if (!existing || JSON.parse(existing).length === 0) {
-      const productIds = this.items
-        .filter(i => i.product_id)
-        .map(i => i.product_id);
-      if (productIds.length > 0) {
-        localStorage.setItem(recentKey, JSON.stringify([...new Set(productIds)].slice(0, 50)));
-      }
-    }
-
     const totalResult = await this.api.getListTotal(this.activeList.id);
     this.total = totalResult;
 
@@ -250,7 +238,8 @@ class ShoppingListManagerCard extends LitElement {
       if (existingItem) {
         await this.api.updateItem(existingItem.id, { quantity: 1 });
       } else {
-        await this.api.addItem(this.activeList.id, { ...itemData, quantity: 1 });
+        const { fromRecentlyUsed: _removed, ...cleanData } = itemData;
+        await this.api.addItem(this.activeList.id, { ...cleanData, quantity: 1 });
       }
     } else if (existingItem) {
       // Normal add: increment existing unchecked item

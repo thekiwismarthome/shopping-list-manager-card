@@ -22,33 +22,38 @@ class SLMItemGrid extends LitElement {
   }
 
   async _loadRecentItems() {
-    if (!this.api || !this.settings?.showRecentlyUsed) {
+    if (!this.api || this.settings?.showRecentlyUsed === false) {
       this._recentItems = [];
       return;
     }
-
-    const recentKey = 'slm_recent_products';
-    const saved = localStorage.getItem(recentKey);
-    const rawIds = saved ? JSON.parse(saved) : [];
-    // Deduplicate while preserving most-recent-first order
-    const recentIds = [...new Set(rawIds)];
 
     const limit = this.settings?.recentProductsCount || 8;
-    // Only exclude unchecked items — checked (bought) items can reappear in recently-used
-    const currentProductIds = (this.items || []).filter(i => !i.checked).map(i => i.product_id).filter(Boolean);
 
-    const filteredIds = recentIds
-      .filter(id => !currentProductIds.includes(id))
-      .slice(0, limit);
-
-    if (filteredIds.length === 0) {
-      this._recentItems = [];
-      return;
-    }
+    // Exclude products already unchecked in the current list
+    const currentProductIds = new Set(
+      (this.items || []).filter(i => !i.checked).map(i => i.product_id).filter(Boolean)
+    );
 
     try {
-      const result = await this.api.getProductsByIds(filteredIds);
-      this._recentItems = result.products || [];
+      // Primary: localStorage recent-adds (most-recent-first)
+      const recentKey = 'slm_recent_products';
+      const saved = localStorage.getItem(recentKey);
+      const rawIds = saved ? JSON.parse(saved) : [];
+      const filteredIds = [...new Set(rawIds)]
+        .filter(id => !currentProductIds.has(id))
+        .slice(0, limit);
+
+      if (filteredIds.length > 0) {
+        const result = await this.api.getProductsByIds(filteredIds);
+        this._recentItems = result.products || [];
+        return;
+      }
+
+      // Fallback: backend suggestions by purchase frequency
+      const result = await this.api.getProductSuggestions(limit + currentProductIds.size);
+      this._recentItems = (result.products || [])
+        .filter(p => !currentProductIds.has(p.id))
+        .slice(0, limit);
     } catch (err) {
       console.error('Failed to load recent items:', err);
       this._recentItems = [];
