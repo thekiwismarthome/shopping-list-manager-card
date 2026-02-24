@@ -39,10 +39,12 @@ class SLMItemTile extends LitElement {
       this.longPressTriggered = false;
       return;
     }
-    if (
-      e.target.closest('.decrease-btn') ||
-      e.target.closest('.quantity-badge')
-    ) {
+    if (e.target.closest('.decrease-btn')) {
+      return;
+    }
+    // For regular tiles, quantity-badge click is handled separately (increment)
+    // For recently-used tiles, the badge IS the + button, so let it fall through
+    if (!this.isRecentlyUsed && e.target.closest('.quantity-badge')) {
       return;
     }
     if (this.isRecentlyUsed) {
