@@ -88,8 +88,6 @@ class SLMItemGrid extends LitElement {
   render() {
     const groupedItems = this.groupItemsByCategory();
     const tilesPerRow = this.settings?.tilesPerRow || 3;
-    const recentColor = '#9e9e9e';
-
     return html`
       <style>
         .items-grid {
@@ -98,26 +96,6 @@ class SLMItemGrid extends LitElement {
       </style>
 
       <div class="grid-container">
-        ${this.settings?.showRecentlyUsed !== false && this._recentItems.length > 0 ? html`
-          <div class="category-section">
-            <div class="category-header" style="${this.getCategoryHeaderStyle(recentColor)}">
-              <span class="emoji">⏱️</span>
-              <span class="category-name" style="color: ${recentColor}">Recently Used</span>
-            </div>
-            <div class="items-grid">
-              ${this._recentItems.map(product => html`
-                <slm-item-tile
-                  .item=${product}
-                  .categoryColor=${recentColor}
-                  .isRecentlyUsed=${true}
-                  .settings=${this.settings}
-                  @add-item=${this.handleAddItem}
-                ></slm-item-tile>
-              `)}
-            </div>
-          </div>
-        ` : ''}
-
         ${groupedItems.length === 0 && this._recentItems.length === 0 ? html`
           <div class="empty">
             <div class="empty-emoji">🛒</div>
@@ -153,6 +131,26 @@ class SLMItemGrid extends LitElement {
             </div>
           `;
         })}
+
+        ${this.settings?.showRecentlyUsed !== false && this._recentItems.length > 0 ? html`
+          <div class="category-section">
+            <div class="category-header" style="${this.getCategoryHeaderStyle('#9e9e9e')}">
+              <span class="emoji">⏱️</span>
+              <span class="category-name" style="color: #9e9e9e">Recently Used</span>
+            </div>
+            <div class="items-grid">
+              ${this._recentItems.map(product => html`
+                <slm-item-tile
+                  .item=${product}
+                  .categoryColor=${'#9e9e9e'}
+                  .isRecentlyUsed=${true}
+                  .settings=${this.settings}
+                  @add-item=${this.handleAddItem}
+                ></slm-item-tile>
+              `)}
+            </div>
+          </div>
+        ` : ''}
       </div>
     `;
   }

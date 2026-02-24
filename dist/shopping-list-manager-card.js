@@ -741,7 +741,7 @@ const _=globalThis,$=t=>t,k=_.trustedTypes,E=k?k.createPolicy("lit-html",{create
       font-size: 40px;
       color: white;
     }
-  `}customElements.define("slm-item-tile",gt);class ft extends at{constructor(){super(),this._recentItems=[]}static properties={items:{type:Array},categories:{type:Array},settings:{type:Object},api:{type:Object},_recentItems:{type:Array,state:!0}};updated(t){(t.has("items")||t.has("settings")||t.has("api"))&&this._loadRecentItems()}async _loadRecentItems(){if(!this.api||!1===this.settings?.showRecentlyUsed)return void(this._recentItems=[]);const t=this.settings?.recentProductsCount||8,e=new Set((this.items||[]).filter(t=>!t.checked).map(t=>t.product_id).filter(Boolean));try{const i="slm_recent_products",o=localStorage.getItem(i),r=o?JSON.parse(o):[],n=[...new Set(r)].filter(t=>!e.has(t)).slice(0,t);if(n.length>0){const t=await this.api.getProductsByIds(n);return void(this._recentItems=t.products||[])}const a=await this.api.getProductSuggestions(t+e.size);this._recentItems=(a.products||[]).filter(t=>!e.has(t.id)).slice(0,t)}catch(t){console.error("Failed to load recent items:",t),this._recentItems=[]}}groupItemsByCategory(){if("alphabetical"===(this.settings?.sortMode||"category")){const t=(this.items||[]).filter(t=>!t.checked);return t.sort((t,e)=>t.name.localeCompare(e.name)),[{category:{id:"_alpha",name:null,color:"#9fa8da"},items:t}]}const t={};return(this.categories||[]).forEach(e=>{t[e.id]={category:e,items:(this.items||[]).filter(t=>t.category_id===e.id&&!t.checked)}}),Object.values(t).filter(t=>t.items.length>0)}hexToRgb(t){const e=/^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(t);return e?{r:parseInt(e[1],16),g:parseInt(e[2],16),b:parseInt(e[3],16)}:{r:159,g:168,b:218}}getCategoryHeaderStyle(t){const{r:e,g:i,b:o}=this.hexToRgb(t);return`border-left: 4px solid ${t}; background: linear-gradient(to right, rgba(${e},${i},${o},0.22), rgba(${e},${i},${o},0.066)); border-radius: 0 8px 8px 0;`}render(){const t=this.groupItemsByCategory(),e=this.settings?.tilesPerRow||3,i="#9e9e9e";return F`
+  `}customElements.define("slm-item-tile",gt);class ft extends at{constructor(){super(),this._recentItems=[]}static properties={items:{type:Array},categories:{type:Array},settings:{type:Object},api:{type:Object},_recentItems:{type:Array,state:!0}};updated(t){(t.has("items")||t.has("settings")||t.has("api"))&&this._loadRecentItems()}async _loadRecentItems(){if(!this.api||!1===this.settings?.showRecentlyUsed)return void(this._recentItems=[]);const t=this.settings?.recentProductsCount||8,e=new Set((this.items||[]).filter(t=>!t.checked).map(t=>t.product_id).filter(Boolean));try{const i="slm_recent_products",o=localStorage.getItem(i),r=o?JSON.parse(o):[],n=[...new Set(r)].filter(t=>!e.has(t)).slice(0,t);if(n.length>0){const t=await this.api.getProductsByIds(n);return void(this._recentItems=t.products||[])}const a=await this.api.getProductSuggestions(t+e.size);this._recentItems=(a.products||[]).filter(t=>!e.has(t.id)).slice(0,t)}catch(t){console.error("Failed to load recent items:",t),this._recentItems=[]}}groupItemsByCategory(){if("alphabetical"===(this.settings?.sortMode||"category")){const t=(this.items||[]).filter(t=>!t.checked);return t.sort((t,e)=>t.name.localeCompare(e.name)),[{category:{id:"_alpha",name:null,color:"#9fa8da"},items:t}]}const t={};return(this.categories||[]).forEach(e=>{t[e.id]={category:e,items:(this.items||[]).filter(t=>t.category_id===e.id&&!t.checked)}}),Object.values(t).filter(t=>t.items.length>0)}hexToRgb(t){const e=/^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(t);return e?{r:parseInt(e[1],16),g:parseInt(e[2],16),b:parseInt(e[3],16)}:{r:159,g:168,b:218}}getCategoryHeaderStyle(t){const{r:e,g:i,b:o}=this.hexToRgb(t);return`border-left: 4px solid ${t}; background: linear-gradient(to right, rgba(${e},${i},${o},0.22), rgba(${e},${i},${o},0.066)); border-radius: 0 8px 8px 0;`}render(){const t=this.groupItemsByCategory(),e=this.settings?.tilesPerRow||3;return F`
       <style>
         .items-grid {
           grid-template-columns: repeat(${e}, 1fr);
@@ -749,26 +749,6 @@ const _=globalThis,$=t=>t,k=_.trustedTypes,E=k?k.createPolicy("lit-html",{create
       </style>
 
       <div class="grid-container">
-        ${!1!==this.settings?.showRecentlyUsed&&this._recentItems.length>0?F`
-          <div class="category-section">
-            <div class="category-header" style="${this.getCategoryHeaderStyle(i)}">
-              <span class="emoji">⏱️</span>
-              <span class="category-name" style="color: ${i}">Recently Used</span>
-            </div>
-            <div class="items-grid">
-              ${this._recentItems.map(t=>F`
-                <slm-item-tile
-                  .item=${t}
-                  .categoryColor=${i}
-                  .isRecentlyUsed=${!0}
-                  .settings=${this.settings}
-                  @add-item=${this.handleAddItem}
-                ></slm-item-tile>
-              `)}
-            </div>
-          </div>
-        `:""}
-
         ${0===t.length&&0===this._recentItems.length?F`
           <div class="empty">
             <div class="empty-emoji">🛒</div>
@@ -801,6 +781,26 @@ const _=globalThis,$=t=>t,k=_.trustedTypes,E=k?k.createPolicy("lit-html",{create
               </div>
             </div>
           `})}
+
+        ${!1!==this.settings?.showRecentlyUsed&&this._recentItems.length>0?F`
+          <div class="category-section">
+            <div class="category-header" style="${this.getCategoryHeaderStyle("#9e9e9e")}">
+              <span class="emoji">⏱️</span>
+              <span class="category-name" style="color: #9e9e9e">Recently Used</span>
+            </div>
+            <div class="items-grid">
+              ${this._recentItems.map(t=>F`
+                <slm-item-tile
+                  .item=${t}
+                  .categoryColor=${"#9e9e9e"}
+                  .isRecentlyUsed=${!0}
+                  .settings=${this.settings}
+                  @add-item=${this.handleAddItem}
+                ></slm-item-tile>
+              `)}
+            </div>
+          </div>
+        `:""}
       </div>
     `}getCategoryEmoji(t){return{produce:"🥬",dairy:"🥛",meat:"🥩",bakery:"🍞",pantry:"🥫",frozen:"🧊",beverages:"🥤",snacks:"🍿",household:"🧹",health:"💊",pet:"🐾",baby:"👶",other:"📦"}[t]||"📦"}handleAddItem(t){t.stopPropagation(),this.dispatchEvent(new CustomEvent("add-item",{detail:t.detail,bubbles:!0,composed:!0}))}handleItemClick(t){t.stopPropagation(),this.dispatchEvent(new CustomEvent("item-click",{detail:t.detail,bubbles:!0,composed:!0}))}handleItemDecrease(t){t.stopPropagation(),this.dispatchEvent(new CustomEvent("item-decrease",{detail:t.detail,bubbles:!0,composed:!0}))}handleItemCheck(t){t.stopPropagation(),this.dispatchEvent(new CustomEvent("item-check",{detail:t.detail,bubbles:!0,composed:!0}))}handleItemLongPress(t){t.stopPropagation(),this.dispatchEvent(new CustomEvent("item-long-press",{detail:t.detail,bubbles:!0,composed:!0}))}handleItemSwipeDelete(t){t.stopPropagation(),this.dispatchEvent(new CustomEvent("item-swipe-delete",{detail:t.detail,bubbles:!0,composed:!0}))}static styles=n`
     .grid-container {
@@ -922,16 +922,6 @@ const _=globalThis,$=t=>t,k=_.trustedTypes,E=k?k.createPolicy("lit-html",{create
       `:F`
       <div class="list-container">
 
-        ${i&&this._recentItems.length>0?F`
-          <div class="list-section">
-            <div class="category-header" style="${this.getCategoryHeaderStyle(o)}">
-              <span class="cat-emoji">⏱️</span>
-              <span class="cat-name" style="color: ${o}">Recently Used</span>
-            </div>
-            ${this._recentItems.map(t=>this.renderRecentRow(t))}
-          </div>
-        `:""}
-
         ${e.map(e=>F`
           <div class="list-section">
             ${"category"===t?F`
@@ -943,6 +933,16 @@ const _=globalThis,$=t=>t,k=_.trustedTypes,E=k?k.createPolicy("lit-html",{create
             ${e.items.map(t=>this.renderRow(t))}
           </div>
         `)}
+
+        ${i&&this._recentItems.length>0?F`
+          <div class="list-section">
+            <div class="category-header" style="${this.getCategoryHeaderStyle(o)}">
+              <span class="cat-emoji">⏱️</span>
+              <span class="cat-name" style="color: ${o}">Recently Used</span>
+            </div>
+            ${this._recentItems.map(t=>this.renderRecentRow(t))}
+          </div>
+        `:""}
 
       </div>
     `}static styles=n`

@@ -353,16 +353,6 @@ class SLMItemList extends LitElement {
     return html`
       <div class="list-container">
 
-        ${showRecent && this._recentItems.length > 0 ? html`
-          <div class="list-section">
-            <div class="category-header" style="${this.getCategoryHeaderStyle(recentColor)}">
-              <span class="cat-emoji">⏱️</span>
-              <span class="cat-name" style="color: ${recentColor}">Recently Used</span>
-            </div>
-            ${this._recentItems.map(product => this.renderRecentRow(product))}
-          </div>
-        ` : ''}
-
         ${sections.map(section => html`
           <div class="list-section">
             ${mode === 'category' ? html`
@@ -374,6 +364,16 @@ class SLMItemList extends LitElement {
             ${section.items.map(item => this.renderRow(item))}
           </div>
         `)}
+
+        ${showRecent && this._recentItems.length > 0 ? html`
+          <div class="list-section">
+            <div class="category-header" style="${this.getCategoryHeaderStyle(recentColor)}">
+              <span class="cat-emoji">⏱️</span>
+              <span class="cat-name" style="color: ${recentColor}">Recently Used</span>
+            </div>
+            ${this._recentItems.map(product => this.renderRecentRow(product))}
+          </div>
+        ` : ''}
 
       </div>
     `;
