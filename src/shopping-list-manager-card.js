@@ -92,7 +92,15 @@ class ShoppingListManagerCard extends LitElement {
       _slmInstanceCounters.set(this._baseCardId, count + 1);
     }
     if (this._assignedCardId) {
+      const prevCardId = this._cardId;
       this._cardId = this._assignedCardId;
+      // If the card ID was updated and we already have a user ID (hass fired first),
+      // reload settings now with the correct per-card key.
+      if (this._cardId !== prevCardId && this._settingsUserId) {
+        this.settings = this.loadSettings();
+        this.applyColorScheme();
+        this.requestUpdate();
+      }
     }
   }
 
