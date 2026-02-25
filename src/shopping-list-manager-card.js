@@ -11,6 +11,10 @@ import './components/list-management/slm-lists-view.js';
 import './components/list-management/slm-loyalty-cards-view.js';
 import './settings/slm-settings-view.js';
 
+// Tracks how many instances with each config-hash are currently connected.
+// Resets on full page reload, so DOM-order assignments are stable across refreshes.
+const _slmInstanceCounters = new Map();
+
 class ShoppingListManagerCard extends LitElement {
   static properties = {
     hass: { type: Object },
@@ -66,9 +70,30 @@ class ShoppingListManagerCard extends LitElement {
     this.showEditDialog = false;
     this.editingItem = null;
     this._settingsUserId = null;
+    this._baseCardId = null;
     this._cardId = null;
+    this._assignedCardId = null;
     this.settings = this.loadSettings();
     this._subscribed = false;
+  }
+
+  connectedCallback() {
+    super.connectedCallback();
+    if (!this._assignedCardId && this._baseCardId) {
+      // First connection: assign a position-based ID among cards with the same config hash
+      const count = _slmInstanceCounters.get(this._baseCardId) ?? 0;
+      _slmInstanceCounters.set(this._baseCardId, count + 1);
+      this._assignedCardId = count === 0
+        ? this._baseCardId
+        : `${this._baseCardId}_${count}`;
+    } else if (this._assignedCardId && this._baseCardId) {
+      // Reconnect after SPA navigation: re-register in the counter
+      const count = _slmInstanceCounters.get(this._baseCardId) ?? 0;
+      _slmInstanceCounters.set(this._baseCardId, count + 1);
+    }
+    if (this._assignedCardId) {
+      this._cardId = this._assignedCardId;
+    }
   }
 
   _hashConfig(config) {
@@ -501,7 +526,13 @@ class ShoppingListManagerCard extends LitElement {
 
   disconnectedCallback() {
     super.disconnectedCallback();
-    
+
+    // Decrement instance counter so position slots are correctly reclaimed
+    if (this._baseCardId) {
+      const count = _slmInstanceCounters.get(this._baseCardId) ?? 1;
+      _slmInstanceCounters.set(this._baseCardId, Math.max(0, count - 1));
+    }
+
     // Clean up event subscriptions when card is removed
     if (this._unsubscribers) {
       console.log('[SLM] Cleaning up event subscriptions');
@@ -807,7 +838,12 @@ class ShoppingListManagerCard extends LitElement {
 
   setConfig(config) {
     this.config = config;
-    this._cardId = this._hashConfig(config);
+    const newBaseId = this._hashConfig(config);
+    if (newBaseId !== this._baseCardId) {
+      this._baseCardId = newBaseId;
+      this._assignedCardId = null; // force reassignment on next connectedCallback
+      this._cardId = newBaseId;    // temporary until connectedCallback disambiguates
+    }
   }
 
   getCardSize() {
