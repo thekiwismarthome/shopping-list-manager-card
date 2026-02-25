@@ -153,10 +153,10 @@ class SLMAppearanceSettings extends LitElement {
             <div class="settings-item">
               <div class="item-content full-width">
                 <div class="item-title">Font Size</div>
-                <input 
-                  type="range" 
-                  min="12" 
-                  max="24" 
+                <input
+                  type="range"
+                  min="12"
+                  max="24"
                   .value=${this.settings.fontSize}
                   @input=${(e) => this.handleSettingChange('fontSize', parseInt(e.target.value))}
                   class="size-slider"
@@ -165,6 +165,21 @@ class SLMAppearanceSettings extends LitElement {
               </div>
             </div>
           ` : ''}
+
+          <div class="settings-item">
+            <div class="item-content full-width">
+              <div class="item-title">Font Weight</div>
+              <div class="tile-options">
+                ${[['light', 'Light'], ['normal', 'Regular'], ['bold', 'Bold']].map(([val, label]) => html`
+                  <button
+                    class="tile-option ${(this.settings.fontWeight || 'normal') === val ? 'selected' : ''}"
+                    style="font-weight: ${val === 'light' ? '300' : val === 'bold' ? '700' : '400'}"
+                    @click=${() => this.handleSettingChange('fontWeight', val)}
+                  >${label}</button>
+                `)}
+              </div>
+            </div>
+          </div>
 
           <button class="settings-item" @click=${() => this.showFontSettings = true}>
             <div class="item-content">

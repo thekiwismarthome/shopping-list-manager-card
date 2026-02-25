@@ -238,13 +238,11 @@ class SLMItemList extends LitElement {
   }
 
   renderRowIcon(name, categoryId, imageUrl) {
+    // 1. Explicit product image URL
     if (imageUrl) {
       return html`<img src="${imageUrl}" alt="${name}" class="row-img" />`;
     }
-    const bundled = this.getBundledIcon(name);
-    if (bundled) {
-      return html`<img src="${bundled}" alt="${name}" class="row-img icon-img" />`;
-    }
+    // 2. Local HA image folder
     const localUrl = this.getLocalImageUrl(name);
     if (localUrl) {
       return html`
@@ -256,6 +254,12 @@ class SLMItemList extends LitElement {
         /><span class="row-emoji" style="display:none">${this.getProductEmoji(name, categoryId)}</span>
       `;
     }
+    // 3. Bundled icons8 icon
+    const bundled = this.getBundledIcon(name);
+    if (bundled) {
+      return html`<img src="${bundled}" alt="${name}" class="row-img icon-img" />`;
+    }
+    // 4. Emoji fallback
     return html`<span class="row-emoji">${this.getProductEmoji(name, categoryId)}</span>`;
   }
 
@@ -380,6 +384,10 @@ class SLMItemList extends LitElement {
   }
 
   static styles = css`
+    :host {
+      font-size: var(--slm-font-size-base, 16px);
+      font-weight: var(--slm-font-weight-base, 400);
+    }
     .list-container {
       padding: 4px;
     }
@@ -459,15 +467,15 @@ class SLMItemList extends LitElement {
       min-width: 0;
     }
     .row-name {
-      font-weight: 600;
-      font-size: 14px;
+      font-weight: var(--slm-font-weight-base, 600);
+      font-size: 0.875em;
       color: var(--slm-text-primary, #e0e0e0);
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
     }
     .row-price {
-      font-size: 12px;
+      font-size: 0.75em;
       color: var(--slm-accent-primary, #9fa8da);
       font-weight: 600;
       margin-top: 1px;

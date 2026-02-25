@@ -91,7 +91,8 @@ class ShoppingListManagerCard extends LitElement {
       sortMode: 'category',
       showRecentlyUsed: true,
       showPriceOnTile: true,
-      localImagePath: ''
+      localImagePath: '/local/images/groceries',
+      fontWeight: 'normal'
     };
 
     const key = this._settingsUserId
@@ -114,25 +115,58 @@ class ShoppingListManagerCard extends LitElement {
   async firstUpdated() {
     this.api = new ShoppingListAPI(this.hass);
     await this.loadData();
-    //this.subscribeToUpdates();
     this.applyColorScheme();
+    if (this.settings.keepScreenOn) this.acquireWakeLock();
+    this._visibilityHandler = () => {
+      if (this.settings.keepScreenOn && document.visibilityState === 'visible') {
+        this.acquireWakeLock();
+      }
+    };
+    document.addEventListener('visibilitychange', this._visibilityHandler);
+  }
+
+  disconnectedCallback() {
+    super.disconnectedCallback();
+    this.releaseWakeLock();
+    document.removeEventListener('visibilitychange', this._visibilityHandler);
+  }
+
+  async acquireWakeLock() {
+    if (!('wakeLock' in navigator)) return;
+    try {
+      this._wakeLock = await navigator.wakeLock.request('screen');
+      this._wakeLock.addEventListener('release', () => { this._wakeLock = null; });
+    } catch (err) {
+      console.warn('[SLM] Wake lock failed:', err.message);
+    }
+  }
+
+  releaseWakeLock() {
+    this._wakeLock?.release();
+    this._wakeLock = null;
   }
 
   applyColorScheme() {
     const mode = this.settings.darkMode;
 
     if (mode === 'on') {
-      // Force SLM Dark
       this.setAttribute('data-theme', 'dark');
-    } 
-    else if (mode === 'off') {
-      // Force SLM Light
+    } else if (mode === 'off') {
       this.setAttribute('data-theme', 'light');
-    } 
-    else {
-      // System = Follow Home Assistant Theme
+    } else {
       this.removeAttribute('data-theme');
     }
+
+    // Apply font size as a CSS custom property (cascades through shadow DOM)
+    if (!this.settings.useSystemTextSize) {
+      this.style.setProperty('--slm-font-size-base', `${this.settings.fontSize}px`);
+    } else {
+      this.style.removeProperty('--slm-font-size-base');
+    }
+
+    // Apply font weight
+    const weightMap = { light: '300', normal: '400', bold: '700' };
+    this.style.setProperty('--slm-font-weight-base', weightMap[this.settings.fontWeight] || '400');
   }
 
   async loadData() {
@@ -298,6 +332,11 @@ class ShoppingListManagerCard extends LitElement {
     this.settings = { ...this.settings, ...e.detail };
     this.saveSettings();
     this.applyColorScheme();
+    if (this.settings.keepScreenOn) {
+      this.acquireWakeLock();
+    } else {
+      this.releaseWakeLock();
+    }
     this.requestUpdate();
   }
 

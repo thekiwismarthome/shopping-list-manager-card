@@ -250,15 +250,12 @@ class SLMItemTile extends LitElement {
     const name = this.item?.name;
     const categoryId = this.item?.category_id;
 
+    // 1. Explicit product image URL (highest priority)
     if (this.item?.image_url) {
       return html`<img src="${this.item.image_url}" alt="${name}">`;
     }
 
-    const bundled = this.getBundledIcon(name);
-    if (bundled) {
-      return html`<div class="no-image"><img src="${bundled}" alt="${name}" class="product-icon"></div>`;
-    }
-
+    // 2. Local HA image folder (user's own curated images)
     const localUrl = this.getLocalImageUrl(name);
     if (localUrl && !this._localImgError) {
       return html`
@@ -267,12 +264,19 @@ class SLMItemTile extends LitElement {
             src="${localUrl}"
             alt="${name}"
             class="product-icon"
-            @error=${() => { this._localImgError = true; }}
+            @error=${() => { this._localImgError = true; this.requestUpdate(); }}
           >
         </div>
       `;
     }
 
+    // 3. Bundled icons8 icon
+    const bundled = this.getBundledIcon(name);
+    if (bundled) {
+      return html`<div class="no-image"><img src="${bundled}" alt="${name}" class="product-icon"></div>`;
+    }
+
+    // 4. Emoji fallback
     return html`
       <div class="no-image">
         <div class="emoji">${this.getProductEmoji(name, categoryId)}</div>
@@ -334,6 +338,10 @@ class SLMItemTile extends LitElement {
   }
 
   static styles = css`
+    :host {
+      font-size: var(--slm-font-size-base, 16px);
+      font-weight: var(--slm-font-weight-base, 400);
+    }
     .tile {
       position: relative;
       border-radius: 14px;
@@ -410,8 +418,8 @@ class SLMItemTile extends LitElement {
       padding: 5px 8px 7px;
     }
     .name {
-      font-weight: 600;
-      font-size: 12px;
+      font-weight: var(--slm-font-weight-base, 600);
+      font-size: 0.75em;
       line-height: 1.2;
       margin-bottom: 2px;
       color: var(--slm-text-primary, #e0e0e0);
@@ -422,7 +430,7 @@ class SLMItemTile extends LitElement {
       -webkit-box-orient: vertical;
     }
     .price {
-      font-size: 11px;
+      font-size: 0.69em;
       color: var(--slm-accent-primary, #9fa8da);
       font-weight: 700;
     }
