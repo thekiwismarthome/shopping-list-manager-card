@@ -13,7 +13,6 @@ class SLMItemTile extends LitElement {
     touchStartTime: { type: Number },
     longPressTimer: { type: Number },
     longPressTriggered: { type: Boolean },
-    _localImgError: { type: Boolean, state: true }
   };
 
   constructor() {
@@ -24,7 +23,15 @@ class SLMItemTile extends LitElement {
     this.touchStartTime = 0;
     this.longPressTimer = null;
     this.longPressTriggered = false;
-    this._localImgError = false;
+    this._localImgExtIdx = 0;
+    this._localImgItemId = null;
+  }
+
+  updated(changedProps) {
+    if (changedProps.has('item') && this.item?.id !== this._localImgItemId) {
+      this._localImgItemId = this.item?.id;
+      this._localImgExtIdx = 0;
+    }
   }
 
   hexToRgb(hex) {
@@ -239,32 +246,37 @@ class SLMItemTile extends LitElement {
     return null;
   }
 
-  getLocalImageUrl(name) {
+  getLocalImageBasePath(name) {
     const basePath = this.settings?.localImagePath;
     if (!basePath || !name) return null;
-    const slug = name.toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/_+$/, '');
-    return `${basePath.replace(/\/$/, '')}/${slug}.jpg`;
+    // Use hyphens, keep apostrophes — e.g. "Arnott's Shapes" → "arnott's-shapes"
+    const slug = name.toLowerCase()
+      .replace(/[^a-z0-9']+/g, '-')
+      .replace(/-+/g, '-')
+      .replace(/^-|-$/g, '');
+    return `${basePath.replace(/\/$/, '')}/${slug}`;
   }
 
   renderImage() {
     const name = this.item?.name;
     const categoryId = this.item?.category_id;
+    const exts = ['webp', 'jpg', 'png', 'jpeg'];
 
     // 1. Explicit product image URL (highest priority)
     if (this.item?.image_url) {
       return html`<img src="${this.item.image_url}" alt="${name}">`;
     }
 
-    // 2. Local HA image folder (user's own curated images)
-    const localUrl = this.getLocalImageUrl(name);
-    if (localUrl && !this._localImgError) {
+    // 2. Local HA image folder — try webp → jpg → png → jpeg
+    const localBase = this.getLocalImageBasePath(name);
+    if (localBase && this._localImgExtIdx < exts.length) {
       return html`
         <div class="no-image">
           <img
-            src="${localUrl}"
+            src="${localBase}.${exts[this._localImgExtIdx]}"
             alt="${name}"
             class="product-icon"
-            @error=${() => { this._localImgError = true; this.requestUpdate(); }}
+            @error=${() => { this._localImgExtIdx++; this.requestUpdate(); }}
           >
         </div>
       `;

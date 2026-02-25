@@ -141,11 +141,14 @@ class SLMItemList extends LitElement {
     return null;
   }
 
-  getLocalImageUrl(name) {
+  getLocalImageBasePath(name) {
     const basePath = this.settings?.localImagePath;
     if (!basePath || !name) return null;
-    const slug = name.toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/_+$/, '');
-    return `${basePath.replace(/\/$/, '')}/${slug}.jpg`;
+    const slug = name.toLowerCase()
+      .replace(/[^a-z0-9']+/g, '-')
+      .replace(/-+/g, '-')
+      .replace(/^-|-$/g, '');
+    return `${basePath.replace(/\/$/, '')}/${slug}`;
   }
 
   groupItems() {
@@ -238,19 +241,31 @@ class SLMItemList extends LitElement {
   }
 
   renderRowIcon(name, categoryId, imageUrl) {
+    const exts = ['webp', 'jpg', 'png', 'jpeg'];
+
     // 1. Explicit product image URL
     if (imageUrl) {
       return html`<img src="${imageUrl}" alt="${name}" class="row-img" />`;
     }
-    // 2. Local HA image folder
-    const localUrl = this.getLocalImageUrl(name);
-    if (localUrl) {
+    // 2. Local HA image folder — try webp → jpg → png → jpeg via DOM src swap
+    const localBase = this.getLocalImageBasePath(name);
+    if (localBase) {
       return html`
         <img
-          src="${localUrl}"
+          src="${localBase}.${exts[0]}"
           alt="${name}"
           class="row-img icon-img"
-          @error=${(e) => { e.target.style.display='none'; e.target.nextElementSibling?.style.removeProperty('display'); }}
+          @error=${(e) => {
+            const src = e.target.getAttribute('src');
+            const curExt = exts.find(ext => src.endsWith(`.${ext}`));
+            const nextIdx = curExt !== undefined ? exts.indexOf(curExt) + 1 : exts.length;
+            if (nextIdx < exts.length) {
+              e.target.setAttribute('src', src.replace(`.${curExt}`, `.${exts[nextIdx]}`));
+            } else {
+              e.target.style.display = 'none';
+              e.target.nextElementSibling?.style.removeProperty('display');
+            }
+          }}
         /><span class="row-emoji" style="display:none">${this.getProductEmoji(name, categoryId)}</span>
       `;
     }
