@@ -196,4 +196,17 @@ export class ShoppingListAPI {
       country
     });
   }
+
+  async exportData() {
+    return await this.hass.callWS({
+      type: 'shopping_list_manager/export_data'
+    });
+  }
+
+  async importData(data) {
+    return await this.hass.callWS({
+      type: 'shopping_list_manager/import_data',
+      data
+    });
+  }
 }

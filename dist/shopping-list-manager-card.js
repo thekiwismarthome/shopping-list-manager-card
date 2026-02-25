@@ -19,7 +19,7 @@ const C=globalThis,A=t=>t,I=C.trustedTypes,S=I?I.createPolicy("lit-html",{create
  * @license
  * Copyright 2017 Google LLC
  * SPDX-License-Identifier: BSD-3-Clause
- */class st extends E{constructor(){super(...arguments),this.renderOptions={host:this},this._$Do=void 0}createRenderRoot(){const t=super.createRenderRoot();return this.renderOptions.renderBefore??=t.firstChild,t}update(t){const e=this.render();this.hasUpdated||(this.renderOptions.isConnected=this.isConnected),super.update(t),this._$Do=((t,e,r)=>{const i=r?.renderBefore??e;let n=i._$litPart$;if(void 0===n){const t=r?.renderBefore??null;i._$litPart$=n=new _(e.insertBefore(D(),t),t,void 0,r??{})}return n._$AI(t),n})(e,this.renderRoot,this.renderOptions)}connectedCallback(){super.connectedCallback(),this._$Do?.setConnected(!0)}disconnectedCallback(){super.disconnectedCallback(),this._$Do?.setConnected(!1)}render(){return G}}st._$litElement$=!0,st.finalized=!0,ot.litElementHydrateSupport?.({LitElement:st});const at=ot.litElementPolyfillSupport;at?.({LitElement:st}),(ot.litElementVersions??=[]).push("4.2.2");class ct{constructor(t){this.hass=t}subscribeToUpdates(t){const e=["shopping_list_manager_item_added","shopping_list_manager_item_updated","shopping_list_manager_item_checked","shopping_list_manager_item_deleted","shopping_list_manager_list_updated"].map(e=>this.hass.connection.subscribeEvents(t,e));return()=>{e.forEach(t=>t())}}async getLists(){return await this.hass.callWS({type:"shopping_list_manager/lists/get_all"})}async createList(t,e="mdi:cart"){return await this.hass.callWS({type:"shopping_list_manager/lists/create",name:t,icon:e})}async updateList(t,e){return await this.hass.callWS({type:"shopping_list_manager/lists/update",list_id:t,...e})}async deleteList(t){return await this.hass.callWS({type:"shopping_list_manager/lists/delete",list_id:t})}async setActiveList(t){return await this.hass.callWS({type:"shopping_list_manager/lists/set_active",list_id:t})}async incrementItem(t,e){return await this.hass.callWS({type:"shopping_list_manager/items/increment",item_id:t,amount:e})}async getItems(t){return await this.hass.callWS({type:"shopping_list_manager/items/get",list_id:t})}async addItem(t,e){return await this.hass.callWS({type:"shopping_list_manager/items/add",list_id:t,...e})}async updateItem(t,e){return await this.hass.callWS({type:"shopping_list_manager/items/update",item_id:t,...e})}async checkItem(t,e){return await this.hass.callWS({type:"shopping_list_manager/items/check",item_id:t,checked:e})}async deleteItem(t){return await this.hass.callWS({type:"shopping_list_manager/items/delete",item_id:t})}async bulkCheckItems(t,e){return await this.hass.callWS({type:"shopping_list_manager/items/bulk_check",item_ids:t,checked:e})}async clearCheckedItems(t){return await this.hass.callWS({type:"shopping_list_manager/items/clear_checked",list_id:t})}async getListTotal(t){return await this.hass.callWS({type:"shopping_list_manager/items/get_total",list_id:t})}async searchProducts(t,e={}){return await this.hass.callWS({type:"shopping_list_manager/products/search",query:t,limit:e.limit||20,exclude_allergens:e.excludeAllergens,include_tags:e.includeTags,substitution_group:e.substitutionGroup})}async getProductSuggestions(t=20){return await this.hass.callWS({type:"shopping_list_manager/products/suggestions",limit:t})}async getProductSubstitutes(t,e=5){return await this.hass.callWS({type:"shopping_list_manager/products/substitutes",product_id:t,limit:e})}async addProduct(t){return await this.hass.callWS({type:"shopping_list_manager/products/add",...t})}async updateProduct(t,e){return await this.hass.callWS({type:"shopping_list_manager/products/update",product_id:t,...e})}async getProductsByIds(t){return await this.hass.callWS({type:"shopping_list_manager/products/get_by_ids",product_ids:t})}async getCategories(){return await this.hass.callWS({type:"shopping_list_manager/categories/get_all"})}async getIntegrationSettings(){return await this.hass.callWS({type:"shopping_list_manager/get_integration_settings"})}async setCountry(t){return await this.hass.callWS({type:"shopping_list_manager/set_country",country:t})}}class lt extends st{static properties={currentView:{type:String}};handleNavClick(t){this.dispatchEvent(new CustomEvent("nav-changed",{detail:{view:t},bubbles:!0,composed:!0}))}render(){return Q`
+ */class st extends E{constructor(){super(...arguments),this.renderOptions={host:this},this._$Do=void 0}createRenderRoot(){const t=super.createRenderRoot();return this.renderOptions.renderBefore??=t.firstChild,t}update(t){const e=this.render();this.hasUpdated||(this.renderOptions.isConnected=this.isConnected),super.update(t),this._$Do=((t,e,r)=>{const i=r?.renderBefore??e;let n=i._$litPart$;if(void 0===n){const t=r?.renderBefore??null;i._$litPart$=n=new _(e.insertBefore(D(),t),t,void 0,r??{})}return n._$AI(t),n})(e,this.renderRoot,this.renderOptions)}connectedCallback(){super.connectedCallback(),this._$Do?.setConnected(!0)}disconnectedCallback(){super.disconnectedCallback(),this._$Do?.setConnected(!1)}render(){return G}}st._$litElement$=!0,st.finalized=!0,ot.litElementHydrateSupport?.({LitElement:st});const at=ot.litElementPolyfillSupport;at?.({LitElement:st}),(ot.litElementVersions??=[]).push("4.2.2");class ct{constructor(t){this.hass=t}subscribeToUpdates(t){const e=["shopping_list_manager_item_added","shopping_list_manager_item_updated","shopping_list_manager_item_checked","shopping_list_manager_item_deleted","shopping_list_manager_list_updated"].map(e=>this.hass.connection.subscribeEvents(t,e));return()=>{e.forEach(t=>t())}}async getLists(){return await this.hass.callWS({type:"shopping_list_manager/lists/get_all"})}async createList(t,e="mdi:cart"){return await this.hass.callWS({type:"shopping_list_manager/lists/create",name:t,icon:e})}async updateList(t,e){return await this.hass.callWS({type:"shopping_list_manager/lists/update",list_id:t,...e})}async deleteList(t){return await this.hass.callWS({type:"shopping_list_manager/lists/delete",list_id:t})}async setActiveList(t){return await this.hass.callWS({type:"shopping_list_manager/lists/set_active",list_id:t})}async incrementItem(t,e){return await this.hass.callWS({type:"shopping_list_manager/items/increment",item_id:t,amount:e})}async getItems(t){return await this.hass.callWS({type:"shopping_list_manager/items/get",list_id:t})}async addItem(t,e){return await this.hass.callWS({type:"shopping_list_manager/items/add",list_id:t,...e})}async updateItem(t,e){return await this.hass.callWS({type:"shopping_list_manager/items/update",item_id:t,...e})}async checkItem(t,e){return await this.hass.callWS({type:"shopping_list_manager/items/check",item_id:t,checked:e})}async deleteItem(t){return await this.hass.callWS({type:"shopping_list_manager/items/delete",item_id:t})}async bulkCheckItems(t,e){return await this.hass.callWS({type:"shopping_list_manager/items/bulk_check",item_ids:t,checked:e})}async clearCheckedItems(t){return await this.hass.callWS({type:"shopping_list_manager/items/clear_checked",list_id:t})}async getListTotal(t){return await this.hass.callWS({type:"shopping_list_manager/items/get_total",list_id:t})}async searchProducts(t,e={}){return await this.hass.callWS({type:"shopping_list_manager/products/search",query:t,limit:e.limit||20,exclude_allergens:e.excludeAllergens,include_tags:e.includeTags,substitution_group:e.substitutionGroup})}async getProductSuggestions(t=20){return await this.hass.callWS({type:"shopping_list_manager/products/suggestions",limit:t})}async getProductSubstitutes(t,e=5){return await this.hass.callWS({type:"shopping_list_manager/products/substitutes",product_id:t,limit:e})}async addProduct(t){return await this.hass.callWS({type:"shopping_list_manager/products/add",...t})}async updateProduct(t,e){return await this.hass.callWS({type:"shopping_list_manager/products/update",product_id:t,...e})}async getProductsByIds(t){return await this.hass.callWS({type:"shopping_list_manager/products/get_by_ids",product_ids:t})}async getCategories(){return await this.hass.callWS({type:"shopping_list_manager/categories/get_all"})}async getIntegrationSettings(){return await this.hass.callWS({type:"shopping_list_manager/get_integration_settings"})}async setCountry(t){return await this.hass.callWS({type:"shopping_list_manager/set_country",country:t})}async exportData(){return await this.hass.callWS({type:"shopping_list_manager/export_data"})}async importData(t){return await this.hass.callWS({type:"shopping_list_manager/import_data",data:t})}}class lt extends st{static properties={currentView:{type:String}};handleNavClick(t){this.dispatchEvent(new CustomEvent("nav-changed",{detail:{view:t},bubbles:!0,composed:!0}))}render(){return Q`
       <nav class="bottom-nav">
         <button
           class="nav-item ${"shopping"===this.currentView?"active":""}"
@@ -3747,7 +3747,7 @@ const C=globalThis,A=t=>t,I=C.trustedTypes,S=I?I.createPolicy("lit-html",{create
       font-size: 14px;
       color: var(--secondary-text-color);
     }
-  `}customElements.define("slm-support-settings",xs);class Ds extends st{static properties={api:{type:Object},_currentCountry:{type:String,state:!0},_availableCountries:{type:Object,state:!0},_loading:{type:Boolean,state:!0},_saving:{type:Boolean,state:!0},_successMessage:{type:String,state:!0},_errorMessage:{type:String,state:!0}};constructor(){super(),this._currentCountry=null,this._availableCountries={},this._loading=!0,this._saving=!1,this._successMessage="",this._errorMessage=""}async connectedCallback(){super.connectedCallback(),await this._loadSettings()}async _loadSettings(){this._loading=!0;try{const t=await this.api.getIntegrationSettings();this._currentCountry=t.country,this._availableCountries=t.available_countries||{}}catch(t){this._errorMessage="Failed to load region settings.",console.error("[SLM] Failed to load integration settings:",t)}finally{this._loading=!1}}async _handleCountrySelect(t){if(t===this._currentCountry||this._saving)return;const e=this._availableCountries[t]||t;if(confirm(`Switch to ${e}?\n\nDefault catalog products will be replaced with ${e} products. Your custom products are kept.`)){this._saving=!0,this._successMessage="",this._errorMessage="";try{const r=await this.api.setCountry(t);this._currentCountry=r.country,this._successMessage=`✓ Switched to ${e} — ${r.products_loaded} products loaded`}catch(t){this._errorMessage="Failed to switch region. Please try again.",console.error("[SLM] Failed to set country:",t)}finally{this._saving=!1}}}render(){return Q`
+  `}customElements.define("slm-support-settings",xs);class Ds extends st{static properties={api:{type:Object},_currentCountry:{type:String,state:!0},_availableCountries:{type:Object,state:!0},_loading:{type:Boolean,state:!0},_saving:{type:Boolean,state:!0},_successMessage:{type:String,state:!0},_errorMessage:{type:String,state:!0},_backupStatus:{type:String,state:!0},_backupWorking:{type:Boolean,state:!0}};constructor(){super(),this._currentCountry=null,this._availableCountries={},this._loading=!0,this._saving=!1,this._successMessage="",this._errorMessage="",this._backupStatus="",this._backupWorking=!1}async connectedCallback(){super.connectedCallback(),await this._loadSettings()}async _loadSettings(){this._loading=!0;try{const t=await this.api.getIntegrationSettings();this._currentCountry=t.country,this._availableCountries=t.available_countries||{}}catch(t){this._errorMessage="Failed to load region settings.",console.error("[SLM] Failed to load integration settings:",t)}finally{this._loading=!1}}async _handleExport(){this._backupWorking=!0,this._backupStatus="";try{const t=await this.api.exportData(),e=new Blob([JSON.stringify(t,null,2)],{type:"application/json"}),r=URL.createObjectURL(e),i=document.createElement("a"),n=(new Date).toISOString().slice(0,10);i.href=r,i.download=`shopping_list_manager_backup_${n}.json`,i.click(),URL.revokeObjectURL(r);const o=(t.user_products||[]).length,s=(t.lists||[]).length;this._backupStatus=`success:Exported ${o} custom product${1!==o?"s":""} and ${s} list${1!==s?"s":""}`}catch(t){this._backupStatus="error:Export failed. Please try again.",console.error("[SLM] Export failed:",t)}finally{this._backupWorking=!1}}async _handleImport(t){const e=t.target.files[0];if(e){t.target.value="",this._backupWorking=!0,this._backupStatus="";try{const t=await e.text(),r=JSON.parse(t);if(!r.slm_backup_version)return void(this._backupStatus="error:Invalid backup file.");const i=await this.api.importData(r),{products:n,lists:o,items:s}=i.imported||{};this._backupStatus=`success:Imported ${n} product${1!==n?"s":""}, ${o} list${1!==o?"s":""}, ${s} item${1!==s?"s":""}. Reload to see changes.`}catch(t){this._backupStatus="error:Import failed. Make sure the file is a valid backup.",console.error("[SLM] Import failed:",t)}finally{this._backupWorking=!1}}}async _handleCountrySelect(t){if(t===this._currentCountry||this._saving)return;const e=this._availableCountries[t]||t;if(confirm(`Switch to ${e}?\n\nDefault catalog products will be replaced with ${e} products. Your custom products are kept.`)){this._saving=!0,this._successMessage="",this._errorMessage="";try{const r=await this.api.setCountry(t);this._currentCountry=r.country,this._successMessage=`✓ Switched to ${e} — ${r.products_loaded} products loaded`}catch(t){this._errorMessage="Failed to switch region. Please try again.",console.error("[SLM] Failed to set country:",t)}finally{this._saving=!1}}}render(){return Q`
       <div class="data-settings">
         <div class="header">
           <button class="back-btn" @click=${()=>this.dispatchEvent(new Event("back"))}>
@@ -3793,6 +3793,55 @@ const C=globalThis,A=t=>t,I=C.trustedTypes,S=I?I.createPolicy("lit-html",{create
 
             ${this._saving?Q`
               <div class="message info">Switching catalog…</div>
+            `:""}
+
+            <div class="section-header">Backup &amp; Restore</div>
+
+            <div class="settings-item backup-item">
+              <div class="item-content full-width">
+                <div class="item-title">Export Data</div>
+                <div class="item-subtitle">
+                  Download your custom products and lists as a JSON file.
+                  Catalog products are excluded — they reload automatically.
+                </div>
+                <button
+                  class="action-btn"
+                  ?disabled=${this._backupWorking}
+                  @click=${this._handleExport}
+                >
+                  Download backup
+                </button>
+              </div>
+            </div>
+
+            <div class="settings-item backup-item">
+              <div class="item-content full-width">
+                <div class="item-title">Import Data</div>
+                <div class="item-subtitle">
+                  Restore from a backup file. Existing data is kept — only missing
+                  products and lists are added.
+                </div>
+                <label class="action-btn ${this._backupWorking?"disabled":""}">
+                  Choose backup file
+                  <input
+                    type="file"
+                    accept=".json,application/json"
+                    style="display:none"
+                    ?disabled=${this._backupWorking}
+                    @change=${this._handleImport}
+                  />
+                </label>
+              </div>
+            </div>
+
+            ${this._backupStatus?Q`
+              <div class="message ${this._backupStatus.startsWith("success")?"success":"error"}">
+                ${this._backupStatus.replace(/^(success|error):/,"")}
+              </div>
+            `:""}
+
+            ${this._backupWorking?Q`
+              <div class="message info">Working…</div>
             `:""}
 
             <div class="section-header">About</div>
@@ -3936,6 +3985,28 @@ const C=globalThis,A=t=>t,I=C.trustedTypes,S=I?I.createPolicy("lit-html",{create
     .message.info {
       background: rgba(159, 168, 218, 0.15);
       color: var(--slm-accent-primary, #9fa8da);
+    }
+    .backup-item {
+      flex-direction: column;
+      align-items: flex-start;
+    }
+    .action-btn {
+      display: inline-block;
+      margin-top: 12px;
+      padding: 9px 18px;
+      background: var(--slm-accent-primary);
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .action-btn:disabled,
+    .action-btn.disabled {
+      opacity: 0.5;
+      cursor: default;
     }
   `}customElements.define("slm-data-settings",Ds);class ks extends st{static properties={hass:{type:Object},api:{type:Object},settings:{type:Object},categories:{type:Array},currentSection:{type:String}};constructor(){super(),this.currentSection="main"}handleSettingChange(t,e){this.dispatchEvent(new CustomEvent("settings-changed",{detail:{[t]:e},bubbles:!0,composed:!0}))}handleNavigation(t){this.currentSection=t}renderMainSettings(){return Q`
       <div class="settings-main">

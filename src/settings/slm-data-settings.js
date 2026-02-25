@@ -9,6 +9,8 @@ class SLMDataSettings extends LitElement {
     _saving: { type: Boolean, state: true },
     _successMessage: { type: String, state: true },
     _errorMessage: { type: String, state: true },
+    _backupStatus: { type: String, state: true },
+    _backupWorking: { type: Boolean, state: true },
   };
 
   constructor() {
@@ -19,6 +21,8 @@ class SLMDataSettings extends LitElement {
     this._saving = false;
     this._successMessage = '';
     this._errorMessage = '';
+    this._backupStatus = '';
+    this._backupWorking = false;
   }
 
   async connectedCallback() {
@@ -37,6 +41,55 @@ class SLMDataSettings extends LitElement {
       console.error('[SLM] Failed to load integration settings:', err);
     } finally {
       this._loading = false;
+    }
+  }
+
+  async _handleExport() {
+    this._backupWorking = true;
+    this._backupStatus = '';
+    try {
+      const data = await this.api.exportData();
+      const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      const date = new Date().toISOString().slice(0, 10);
+      a.href = url;
+      a.download = `shopping_list_manager_backup_${date}.json`;
+      a.click();
+      URL.revokeObjectURL(url);
+      const productCount = (data.user_products || []).length;
+      const listCount = (data.lists || []).length;
+      this._backupStatus = `success:Exported ${productCount} custom product${productCount !== 1 ? 's' : ''} and ${listCount} list${listCount !== 1 ? 's' : ''}`;
+    } catch (err) {
+      this._backupStatus = 'error:Export failed. Please try again.';
+      console.error('[SLM] Export failed:', err);
+    } finally {
+      this._backupWorking = false;
+    }
+  }
+
+  async _handleImport(e) {
+    const file = e.target.files[0];
+    if (!file) return;
+    e.target.value = '';
+
+    this._backupWorking = true;
+    this._backupStatus = '';
+    try {
+      const text = await file.text();
+      const data = JSON.parse(text);
+      if (!data.slm_backup_version) {
+        this._backupStatus = 'error:Invalid backup file.';
+        return;
+      }
+      const result = await this.api.importData(data);
+      const { products, lists, items } = result.imported || {};
+      this._backupStatus = `success:Imported ${products} product${products !== 1 ? 's' : ''}, ${lists} list${lists !== 1 ? 's' : ''}, ${items} item${items !== 1 ? 's' : ''}. Reload to see changes.`;
+    } catch (err) {
+      this._backupStatus = 'error:Import failed. Make sure the file is a valid backup.';
+      console.error('[SLM] Import failed:', err);
+    } finally {
+      this._backupWorking = false;
     }
   }
 
@@ -111,6 +164,55 @@ class SLMDataSettings extends LitElement {
 
             ${this._saving ? html`
               <div class="message info">Switching catalog…</div>
+            ` : ''}
+
+            <div class="section-header">Backup &amp; Restore</div>
+
+            <div class="settings-item backup-item">
+              <div class="item-content full-width">
+                <div class="item-title">Export Data</div>
+                <div class="item-subtitle">
+                  Download your custom products and lists as a JSON file.
+                  Catalog products are excluded — they reload automatically.
+                </div>
+                <button
+                  class="action-btn"
+                  ?disabled=${this._backupWorking}
+                  @click=${this._handleExport}
+                >
+                  Download backup
+                </button>
+              </div>
+            </div>
+
+            <div class="settings-item backup-item">
+              <div class="item-content full-width">
+                <div class="item-title">Import Data</div>
+                <div class="item-subtitle">
+                  Restore from a backup file. Existing data is kept — only missing
+                  products and lists are added.
+                </div>
+                <label class="action-btn ${this._backupWorking ? 'disabled' : ''}">
+                  Choose backup file
+                  <input
+                    type="file"
+                    accept=".json,application/json"
+                    style="display:none"
+                    ?disabled=${this._backupWorking}
+                    @change=${this._handleImport}
+                  />
+                </label>
+              </div>
+            </div>
+
+            ${this._backupStatus ? html`
+              <div class="message ${this._backupStatus.startsWith('success') ? 'success' : 'error'}">
+                ${this._backupStatus.replace(/^(success|error):/, '')}
+              </div>
+            ` : ''}
+
+            ${this._backupWorking ? html`
+              <div class="message info">Working…</div>
             ` : ''}
 
             <div class="section-header">About</div>
@@ -257,6 +359,28 @@ class SLMDataSettings extends LitElement {
     .message.info {
       background: rgba(159, 168, 218, 0.15);
       color: var(--slm-accent-primary, #9fa8da);
+    }
+    .backup-item {
+      flex-direction: column;
+      align-items: flex-start;
+    }
+    .action-btn {
+      display: inline-block;
+      margin-top: 12px;
+      padding: 9px 18px;
+      background: var(--slm-accent-primary);
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .action-btn:disabled,
+    .action-btn.disabled {
+      opacity: 0.5;
+      cursor: default;
     }
   `;
 }
