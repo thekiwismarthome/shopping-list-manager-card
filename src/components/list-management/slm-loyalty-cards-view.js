@@ -1,5 +1,6 @@
 import { LitElement, html, css } from 'lit';
 import JsBarcode from 'jsbarcode';
+import { Html5Qrcode } from 'html5-qrcode';
 
 class SLMLoyaltyCardsView extends LitElement {
   static properties = {
@@ -29,7 +30,69 @@ class SLMLoyaltyCardsView extends LitElement {
       notes: '',
       color: '#9fa8da'
     };
+    this._scannerInstance = null;
     this.loadCards();
+  }
+
+  disconnectedCallback() {
+    super.disconnectedCallback();
+    this.stopBarcodeScanner();
+  }
+
+  startBarcodeScanner(isEdit) {
+    // Mount scanner outside shadow DOM so document.getElementById works
+    const host = document.createElement('div');
+    host.id = 'slm-barcode-scanner-host';
+    Object.assign(host.style, {
+      position: 'fixed', top: '0', left: '0', right: '0', bottom: '0',
+      zIndex: '99999', background: '#000',
+      display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center'
+    });
+
+    const label = document.createElement('p');
+    label.textContent = 'Point camera at barcode';
+    Object.assign(label.style, { color: '#fff', fontSize: '16px', margin: '0 0 12px 0' });
+
+    const scanRegion = document.createElement('div');
+    scanRegion.id = 'slm-scanner-region';
+    Object.assign(scanRegion.style, { width: '100%', maxWidth: '400px' });
+
+    const cancelBtn = document.createElement('button');
+    cancelBtn.textContent = '✕ Cancel';
+    Object.assign(cancelBtn.style, {
+      marginTop: '20px', padding: '10px 28px', fontSize: '16px', fontWeight: '600',
+      background: '#fff', color: '#333', border: 'none', borderRadius: '10px', cursor: 'pointer'
+    });
+    cancelBtn.onclick = () => this.stopBarcodeScanner();
+
+    host.append(label, scanRegion, cancelBtn);
+    document.body.appendChild(host);
+
+    this._scannerInstance = new Html5Qrcode('slm-scanner-region');
+    this._scannerInstance.start(
+      { facingMode: 'environment' },
+      { fps: 10, qrbox: { width: 280, height: 120 } },
+      (decodedText) => {
+        if (isEdit) {
+          this.editingCard = { ...this.editingCard, number: decodedText, barcode: decodedText };
+        } else {
+          this.newCard = { ...this.newCard, number: decodedText, barcode: decodedText };
+        }
+        this.stopBarcodeScanner();
+      },
+      () => {} // scan errors are normal — scanner keeps retrying
+    ).catch((err) => {
+      console.warn('Scanner failed to start:', err);
+      this.stopBarcodeScanner();
+    });
+  }
+
+  stopBarcodeScanner() {
+    if (this._scannerInstance) {
+      this._scannerInstance.stop().catch(() => {});
+      this._scannerInstance = null;
+    }
+    document.getElementById('slm-barcode-scanner-host')?.remove();
   }
 
   loadCards() {
@@ -214,7 +277,10 @@ class SLMLoyaltyCardsView extends LitElement {
             </label>
             <label>
               Card Number
-              <input type="text" name="number" placeholder="Card/Member number" .value=${card.number} required />
+              <div class="scan-row">
+                <input type="text" name="number" placeholder="Card/Member number" .value=${card.number} required />
+                <button type="button" class="scan-btn" title="Scan barcode" @click=${() => this.startBarcodeScanner(isEdit)}>📷</button>
+              </div>
             </label>
             <label>
               Barcode
@@ -471,6 +537,30 @@ class SLMLoyaltyCardsView extends LitElement {
       padding: 4px;
       height: 40px;
       cursor: pointer;
+    }
+    .scan-row {
+      display: flex;
+      gap: 8px;
+      align-items: stretch;
+      margin-top: 6px;
+    }
+    .scan-row input {
+      flex: 1;
+      margin-top: 0;
+    }
+    .scan-btn {
+      flex-shrink: 0;
+      padding: 0 14px;
+      font-size: 20px;
+      background: var(--slm-bg-main, #fafbfc);
+      border: 2px solid var(--slm-border-subtle);
+      border-radius: 8px;
+      cursor: pointer;
+      line-height: 1;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .scan-btn:active {
+      background: var(--slm-border-subtle);
     }
     .dialog-footer {
       display: flex;

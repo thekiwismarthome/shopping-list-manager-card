@@ -33,6 +33,10 @@ class ShoppingListManagerCard extends LitElement {
     if (this.api) {
       this.api.hass = hass;
     }
+    // Sync currency from HA system config as soon as hass is available
+    if (hass?.config?.currency && !this.total.currency) {
+      this.total = { ...this.total, currency: hass.config.currency };
+    }
     if (!this._subscribed && hass?.connection) {
       this._subscribed = true;
       this.subscribeToUpdates();
@@ -51,7 +55,7 @@ class ShoppingListManagerCard extends LitElement {
     this.recentItems = [];
     this.items = [];
     this.categories = [];
-    this.total = { total: 0, currency: 'NZD', item_count: 0 };
+    this.total = { total: 0, currency: '', item_count: 0 };
     this.loading = true;
     this.showAddDialog = false;
     this.showEditDialog = false;
