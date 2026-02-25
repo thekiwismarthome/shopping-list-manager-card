@@ -25,8 +25,7 @@ class ShoppingListManagerCard extends LitElement {
     showAddDialog: { type: Boolean },
     showEditDialog: { type: Boolean },
     editingItem: { type: Object },
-    settings: { type: Object },
-    cardId: { type: String }
+    settings: { type: Object }
   };
   set hass(hass) {
     this._hass = hass;
@@ -36,6 +35,12 @@ class ShoppingListManagerCard extends LitElement {
     // Sync currency from HA system config as soon as hass is available
     if (hass?.config?.currency && !this.total.currency) {
       this.total = { ...this.total, currency: hass.config.currency };
+    }
+    // Use hass.user.id as stable per-user settings key
+    const userId = hass?.user?.id;
+    if (userId && this._settingsUserId !== userId) {
+      this._settingsUserId = userId;
+      this.settings = this.loadSettings();
     }
     if (!this._subscribed && hass?.connection) {
       this._subscribed = true;
@@ -60,15 +65,9 @@ class ShoppingListManagerCard extends LitElement {
     this.showAddDialog = false;
     this.showEditDialog = false;
     this.editingItem = null;
-    this.cardId = this.generateCardId();
+    this._settingsUserId = null;
     this.settings = this.loadSettings();
     this._subscribed = false;
-  }
-
-  generateCardId() {
-    const timestamp = Date.now();
-    const random = Math.random().toString(36).substring(2, 9);
-    return `card_${timestamp}_${random}`;
   }
 
   loadSettings() {
@@ -95,18 +94,21 @@ class ShoppingListManagerCard extends LitElement {
       localImagePath: ''
     };
 
-    const cardKey = `slm_settings_${this.cardId}`;
-    const cardSettings = localStorage.getItem(cardKey);
-    
-    if (cardSettings) {
-      return { ...defaults, ...JSON.parse(cardSettings) };
+    const key = this._settingsUserId
+      ? `slm_settings_${this._settingsUserId}`
+      : 'slm_settings_default';
+    const saved = localStorage.getItem(key);
+    if (saved) {
+      return { ...defaults, ...JSON.parse(saved) };
     }
     return defaults;
   }
 
   saveSettings() {
-    const cardKey = `slm_settings_${this.cardId}`;
-    localStorage.setItem(cardKey, JSON.stringify(this.settings));
+    const key = this._settingsUserId
+      ? `slm_settings_${this._settingsUserId}`
+      : 'slm_settings_default';
+    localStorage.setItem(key, JSON.stringify(this.settings));
   }
 
   async firstUpdated() {
@@ -140,7 +142,7 @@ class ShoppingListManagerCard extends LitElement {
       const listsResult = await this.api.getLists();
       this.lists = listsResult.lists || [];
       
-      const lastListKey = `slm_last_list_${this.cardId}`;
+      const lastListKey = `slm_last_list_${this._settingsUserId || 'default'}`;
       if (this.settings.openLastUsedList) {
         const lastListId = localStorage.getItem(lastListKey);
         this.activeList = this.lists.find(l => l.id === lastListId) || 
@@ -173,7 +175,7 @@ class ShoppingListManagerCard extends LitElement {
     const totalResult = await this.api.getListTotal(this.activeList.id);
     this.total = totalResult;
 
-    const lastListKey = `slm_last_list_${this.cardId}`;
+    const lastListKey = `slm_last_list_${this._settingsUserId || 'default'}`;
     localStorage.setItem(lastListKey, this.activeList.id);
   }
 
@@ -476,6 +478,7 @@ class ShoppingListManagerCard extends LitElement {
         return html`
           <slm-loyalty-cards-view
             .api=${this.api}
+            .userId=${this._hass?.user?.id || null}
           ></slm-loyalty-cards-view>
         `;
 

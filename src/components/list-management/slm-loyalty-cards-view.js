@@ -5,6 +5,7 @@ import { Html5Qrcode } from 'html5-qrcode';
 class SLMLoyaltyCardsView extends LitElement {
   static properties = {
     api: { type: Object },
+    userId: { type: String },
     cards: { type: Array },
     showAddDialog: { type: Boolean },
     showEditDialog: { type: Boolean },
@@ -16,6 +17,7 @@ class SLMLoyaltyCardsView extends LitElement {
 
   constructor() {
     super();
+    this.userId = null;
     this.cards = [];
     this.showAddDialog = false;
     this.showEditDialog = false;
@@ -31,7 +33,14 @@ class SLMLoyaltyCardsView extends LitElement {
       color: '#9fa8da'
     };
     this._scannerInstance = null;
-    this.loadCards();
+    this._loadedForUserId = null;
+  }
+
+  updated(changedProps) {
+    if (changedProps.has('userId') && this.userId && this.userId !== this._loadedForUserId) {
+      this._loadedForUserId = this.userId;
+      this.loadCards();
+    }
   }
 
   disconnectedCallback() {
@@ -95,13 +104,17 @@ class SLMLoyaltyCardsView extends LitElement {
     document.getElementById('slm-barcode-scanner-host')?.remove();
   }
 
+  _cardsKey() {
+    return this.userId ? `slm_loyalty_cards_${this.userId}` : 'slm_loyalty_cards_default';
+  }
+
   loadCards() {
-    const saved = localStorage.getItem('slm_loyalty_cards');
+    const saved = localStorage.getItem(this._cardsKey());
     this.cards = saved ? JSON.parse(saved) : [];
   }
 
   saveCards() {
-    localStorage.setItem('slm_loyalty_cards', JSON.stringify(this.cards));
+    localStorage.setItem(this._cardsKey(), JSON.stringify(this.cards));
   }
 
   handleAddCard() {
