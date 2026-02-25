@@ -66,8 +66,26 @@ class ShoppingListManagerCard extends LitElement {
     this.showEditDialog = false;
     this.editingItem = null;
     this._settingsUserId = null;
+    this._cardId = null;
     this.settings = this.loadSettings();
     this._subscribed = false;
+  }
+
+  _hashConfig(config) {
+    const str = JSON.stringify(config);
+    let hash = 0;
+    for (let i = 0; i < str.length; i++) {
+      hash = ((hash << 5) - hash) + str.charCodeAt(i);
+      hash |= 0;
+    }
+    return Math.abs(hash).toString(36);
+  }
+
+  _getSettingsKey() {
+    const parts = ['slm_settings'];
+    if (this._settingsUserId) parts.push(this._settingsUserId);
+    if (this._cardId) parts.push(this._cardId);
+    return parts.join('_');
   }
 
   loadSettings() {
@@ -95,20 +113,29 @@ class ShoppingListManagerCard extends LitElement {
       fontWeight: 'normal'
     };
 
-    const key = this._settingsUserId
-      ? `slm_settings_${this._settingsUserId}`
-      : 'slm_settings_default';
+    const key = this._getSettingsKey();
     const saved = localStorage.getItem(key);
     if (saved) {
       return { ...defaults, ...JSON.parse(saved) };
     }
+
+    // Migration: on first load with a card-specific key, copy from the old
+    // per-user key so existing settings aren't lost.
+    if (this._cardId && this._settingsUserId) {
+      const oldKey = `slm_settings_${this._settingsUserId}`;
+      const oldSaved = localStorage.getItem(oldKey);
+      if (oldSaved) {
+        const migrated = { ...defaults, ...JSON.parse(oldSaved) };
+        localStorage.setItem(key, JSON.stringify(migrated));
+        return migrated;
+      }
+    }
+
     return defaults;
   }
 
   saveSettings() {
-    const key = this._settingsUserId
-      ? `slm_settings_${this._settingsUserId}`
-      : 'slm_settings_default';
+    const key = this._getSettingsKey();
     localStorage.setItem(key, JSON.stringify(this.settings));
   }
 
@@ -780,6 +807,7 @@ class ShoppingListManagerCard extends LitElement {
 
   setConfig(config) {
     this.config = config;
+    this._cardId = this._hashConfig(config);
   }
 
   getCardSize() {
