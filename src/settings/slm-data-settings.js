@@ -134,25 +134,22 @@ class SLMDataSettings extends LitElement {
             <div class="section-header">Product Catalog Region</div>
 
             <div class="settings-item">
-              <div class="item-content full-width">
+              <div class="item-content">
                 <div class="item-title">Region</div>
-                <div class="item-subtitle">
-                  Selects which country's product catalog is used for suggestions and pricing.
-                  Custom products you've added are always kept.
-                </div>
-                <div class="country-options">
-                  ${Object.entries(this._availableCountries).map(([code, name]) => html`
-                    <button
-                      class="country-btn ${this._currentCountry === code ? 'selected' : ''}"
-                      ?disabled=${this._saving}
-                      @click=${() => this._handleCountrySelect(code)}
-                    >
-                      <span class="country-code">${code}</span>
-                      <span class="country-name">${name}</span>
-                    </button>
-                  `)}
-                </div>
+                <div class="item-subtitle">Country-specific products and pricing</div>
               </div>
+              <select
+                class="region-select"
+                .value=${this._currentCountry || ''}
+                ?disabled=${this._saving}
+                @change=${(e) => this._handleCountrySelect(e.target.value)}
+              >
+                ${Object.entries(this._availableCountries).map(([code, name]) => html`
+                  <option value=${code} ?selected=${this._currentCountry === code}>
+                    ${code} — ${name}
+                  </option>
+                `)}
+              </select>
             </div>
 
             ${this._successMessage ? html`
@@ -165,6 +162,18 @@ class SLMDataSettings extends LitElement {
             ${this._saving ? html`
               <div class="message info">Switching catalog…</div>
             ` : ''}
+
+            <div class="section-header">About</div>
+            <div class="settings-item">
+              <div class="item-content">
+                <div class="item-title">How it works</div>
+                <div class="item-subtitle">
+                  Switching region replaces the default product catalog (names, prices, brands)
+                  with one suited to your country. Any products you've created or customised
+                  are preserved. The change takes effect immediately — no restart needed.
+                </div>
+              </div>
+            </div>
 
             <div class="section-header">Backup &amp; Restore</div>
 
@@ -215,17 +224,6 @@ class SLMDataSettings extends LitElement {
               <div class="message info">Working…</div>
             ` : ''}
 
-            <div class="section-header">About</div>
-            <div class="settings-item">
-              <div class="item-content">
-                <div class="item-title">How it works</div>
-                <div class="item-subtitle">
-                  Switching region replaces the default product catalog (names, prices, brands)
-                  with one suited to your country. Any products you've created or customised
-                  are preserved. The change takes effect immediately — no restart needed.
-                </div>
-              </div>
-            </div>
           </div>
         `}
       </div>
@@ -299,47 +297,20 @@ class SLMDataSettings extends LitElement {
       color: var(--slm-text-secondary);
       line-height: 1.5;
     }
-    .country-options {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 8px;
-      margin-top: 14px;
-    }
-    .country-btn {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      padding: 10px 14px;
-      border: 2px solid var(--slm-border-subtle);
-      border-radius: 10px;
-      background: transparent;
+    .region-select {
+      background: var(--slm-bg-elevated);
+      color: var(--slm-text-primary);
+      border: 1px solid var(--slm-border-subtle);
+      border-radius: 8px;
+      padding: 7px 10px;
+      font-size: 13px;
+      font-weight: 600;
       cursor: pointer;
-      -webkit-tap-highlight-color: transparent;
-      transition: all 0.15s;
-      min-width: 64px;
+      flex-shrink: 0;
     }
-    .country-btn:disabled {
+    .region-select:disabled {
       opacity: 0.5;
       cursor: default;
-    }
-    .country-btn.selected {
-      background: var(--slm-accent-primary);
-      border-color: var(--slm-accent-primary);
-    }
-    .country-code {
-      font-size: 15px;
-      font-weight: 700;
-      color: var(--slm-text-primary);
-    }
-    .country-btn.selected .country-code,
-    .country-btn.selected .country-name {
-      color: white;
-    }
-    .country-name {
-      font-size: 10px;
-      color: var(--slm-text-secondary);
-      margin-top: 2px;
-      text-align: center;
     }
     .message {
       margin: 8px 16px;
