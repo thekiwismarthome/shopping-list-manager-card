@@ -112,7 +112,7 @@ class SLMItemTile extends LitElement {
     this.longPressTimer = setTimeout(() => {
       this.longPressTriggered = true;
       this.dispatchEvent(new CustomEvent('item-long-press', {
-        detail: { item: this.item },
+        detail: { item: this._longPressItem() },
         bubbles: true,
         composed: true
       }));
@@ -148,11 +148,29 @@ class SLMItemTile extends LitElement {
     this.longPressTimer = setTimeout(() => {
       this.longPressTriggered = true;
       this.dispatchEvent(new CustomEvent('item-long-press', {
-        detail: { item: this.item },
+        detail: { item: this._longPressItem() },
         bubbles: true,
         composed: true
       }));
     }, 500);
+  }
+
+  _longPressItem() {
+    if (!this.isRecentlyUsed) return this.item;
+    // Recently-used tiles hold Products — return an item-shaped object so the
+    // edit dialog renders correctly, with _isProductEdit to skip api.updateItem
+    return {
+      id: null,
+      product_id: this.item.id,
+      name: this.item.name,
+      category_id: this.item.category_id,
+      unit: this.item.default_unit || 'units',
+      quantity: this.item.default_quantity || 1,
+      price: this.item.price || '',
+      image_url: this.item.image_url || '',
+      note: '',
+      _isProductEdit: true
+    };
   }
 
   handleMouseUp(e) {

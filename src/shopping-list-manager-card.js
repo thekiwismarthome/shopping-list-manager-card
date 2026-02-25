@@ -252,6 +252,11 @@ class ShoppingListManagerCard extends LitElement {
   async handleItemCheck(e) {
     const { itemId, checked } = e.detail;
     await this.api.checkItem(itemId, checked);
+    // Track checked-off items so they appear in recently-used suggestions
+    if (checked) {
+      const item = this.items.find(i => i.id === itemId);
+      if (item?.product_id) this.trackRecentlyUsed(item.product_id);
+    }
     await this.loadActiveListData();
   }
 
@@ -336,9 +341,33 @@ class ShoppingListManagerCard extends LitElement {
     localStorage.setItem(recentKey, JSON.stringify(trimmed));
   }
 
+  async _syncProductFromItemData(productId, data) {
+    const productUpdate = {};
+    if (data.name) productUpdate.name = data.name;
+    if (data.category_id) productUpdate.category_id = data.category_id;
+    if (data.price !== undefined && data.price !== '') productUpdate.price = parseFloat(data.price) || 0;
+    if (data.unit) productUpdate.default_unit = data.unit;
+    if (data.image_url !== undefined) productUpdate.image_url = data.image_url;
+    if (Object.keys(productUpdate).length > 0) {
+      await this.api.updateProduct(productId, productUpdate);
+    }
+  }
+
   async handleEditItem(e) {
     const { itemId, data } = e.detail;
-    await this.api.updateItem(itemId, data);
+
+    if (this.editingItem?._isProductEdit) {
+      // Editing a product directly from recently-used (no list item exists)
+      await this._syncProductFromItemData(this.editingItem.product_id, data);
+    } else {
+      await this.api.updateItem(itemId, data);
+      // Also propagate changes to the product catalog so future uses pick them up
+      const item = this.items.find(i => i.id === itemId);
+      if (item?.product_id) {
+        await this._syncProductFromItemData(item.product_id, data);
+      }
+    }
+
     await this.loadActiveListData();
     this.showEditDialog = false;
     this.editingItem = null;
