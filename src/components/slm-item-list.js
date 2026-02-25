@@ -40,7 +40,7 @@ class SLMItemList extends LitElement {
     );
 
     try {
-      // Primary: localStorage recent-adds (most-recent-first)
+      // Step 1: recently-tracked products from localStorage (ordered by recency)
       const recentKey = 'slm_recent_products';
       const saved = localStorage.getItem(recentKey);
       const rawIds = saved ? JSON.parse(saved) : [];
@@ -48,17 +48,23 @@ class SLMItemList extends LitElement {
         .filter(id => !currentProductIds.has(id))
         .slice(0, limit);
 
+      let recent = [];
       if (filteredIds.length > 0) {
         const result = await this.api.getProductsByIds(filteredIds);
-        this._recentItems = result.products || [];
-        return;
+        recent = result.products || [];
       }
 
-      // Fallback: backend suggestions by purchase frequency
-      const result = await this.api.getProductSuggestions(limit + currentProductIds.size);
-      this._recentItems = (result.products || [])
-        .filter(p => !currentProductIds.has(p.id))
-        .slice(0, limit);
+      // Step 2: fill remaining slots with backend suggestions
+      if (recent.length < limit) {
+        const excludeIds = new Set([...currentProductIds, ...recent.map(p => p.id)]);
+        const sugResult = await this.api.getProductSuggestions(limit + excludeIds.size);
+        const suggestions = (sugResult.products || [])
+          .filter(p => !excludeIds.has(p.id))
+          .slice(0, limit - recent.length);
+        recent = [...recent, ...suggestions];
+      }
+
+      this._recentItems = recent;
     } catch (err) {
       console.error('Failed to load recent items:', err);
       this._recentItems = [];
