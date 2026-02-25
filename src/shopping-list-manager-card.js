@@ -267,7 +267,27 @@ class ShoppingListManagerCard extends LitElement {
   }
 
   async handleAddItem(e) {
-    const itemData = e.detail;
+    const itemData = { ...e.detail };
+
+    // Auto-create a product record if none exists yet (quick-add from search)
+    // so the item is reusable across lists and appears in suggestions/recently-used.
+    if (!itemData.product_id && !itemData.fromRecentlyUsed) {
+      try {
+        const productData = {
+          name: itemData.name,
+          category_id: itemData.category_id || 'other',
+          custom: true
+        };
+        if (itemData.price) productData.price = parseFloat(itemData.price);
+        if (itemData.image_url) productData.image_url = itemData.image_url;
+        const result = await this.api.addProduct(productData);
+        const product = result.product || result;
+        if (product?.id) itemData.product_id = product.id;
+      } catch (err) {
+        console.warn('[SLM] Could not auto-create product:', err);
+        // Continue — item will still be added to the list without a product_id
+      }
+    }
 
     const existingItem = this.items.find(i =>
       i.product_id && i.product_id === itemData.product_id && !i.checked
