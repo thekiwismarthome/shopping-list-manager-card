@@ -169,6 +169,13 @@ export class ShoppingListAPI {
     });
   }
 
+  async getProductsByIds(productIds) {
+    return await this.hass.callWS({
+      type: 'shopping_list_manager/products/get_by_ids',
+      product_ids: productIds
+    });
+  }
+
   // Categories
   async getCategories() {
     return await this.hass.callWS({

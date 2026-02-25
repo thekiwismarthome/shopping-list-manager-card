@@ -1,15 +1,18 @@
 import { LitElement, html, css } from 'lit';
+import { PRODUCT_ICON_MAP } from '../icons/product-icon-map.js';
+import { PRODUCT_ICONS } from '../icons/product-icons.js';
 
 class SLMItemTile extends LitElement {
   static properties = {
     item: { type: Object },
     categoryColor: { type: String },
     isRecentlyUsed: { type: Boolean },
+    settings: { type: Object },
     touchStartX: { type: Number },
     touchStartY: { type: Number },
     touchStartTime: { type: Number },
     longPressTimer: { type: Number },
-    longPressTriggered: { type: Boolean }
+    longPressTriggered: { type: Boolean },
   };
 
   constructor() {
@@ -20,6 +23,15 @@ class SLMItemTile extends LitElement {
     this.touchStartTime = 0;
     this.longPressTimer = null;
     this.longPressTriggered = false;
+    this._localImgExtIdx = 0;
+    this._localImgItemId = null;
+  }
+
+  updated(changedProps) {
+    if (changedProps.has('item') && this.item?.id !== this._localImgItemId) {
+      this._localImgItemId = this.item?.id;
+      this._localImgExtIdx = 0;
+    }
   }
 
   hexToRgb(hex) {
@@ -34,21 +46,38 @@ class SLMItemTile extends LitElement {
       this.longPressTriggered = false;
       return;
     }
-
-    if (
-      e.target.closest('.decrease-btn') ||
-      e.target.closest('.quantity-badge')
-    ) {
+    if (e.target.closest('.decrease-btn')) {
       return;
     }
-
+    // For regular tiles, quantity-badge click is handled separately (increment)
+    // For recently-used tiles, the badge IS the + button, so let it fall through
+    if (!this.isRecentlyUsed && e.target.closest('.quantity-badge')) {
+      return;
+    }
+    if (this.isRecentlyUsed) {
+      // Recently-used tiles hold Products, not list Items — dispatch add-item
+      this.dispatchEvent(new CustomEvent('add-item', {
+        detail: {
+          name: this.item.name,
+          category_id: this.item.category_id,
+          product_id: this.item.id,
+          quantity: 1,
+          unit: this.item.default_unit || 'units',
+          price: this.item.price || null,
+          image_url: this.item.image_url || null,
+          fromRecentlyUsed: true
+        },
+        bubbles: true,
+        composed: true
+      }));
+      return;
+    }
     this.dispatchEvent(new CustomEvent('item-check', {
       detail: { itemId: this.item.id, checked: !this.item.checked },
       bubbles: true,
       composed: true
     }));
   }
-
 
   handleDecrease(e) {
     e.stopPropagation();
@@ -83,7 +112,7 @@ class SLMItemTile extends LitElement {
     this.longPressTimer = setTimeout(() => {
       this.longPressTriggered = true;
       this.dispatchEvent(new CustomEvent('item-long-press', {
-        detail: { item: this.item },
+        detail: { item: this._longPressItem() },
         bubbles: true,
         composed: true
       }));
@@ -96,7 +125,6 @@ class SLMItemTile extends LitElement {
       const touchY = e.touches[0].clientY;
       const deltaX = Math.abs(touchX - this.touchStartX);
       const deltaY = Math.abs(touchY - this.touchStartY);
-
       if (deltaX > 10 || deltaY > 10) {
         clearTimeout(this.longPressTimer);
         this.longPressTimer = null;
@@ -116,16 +144,33 @@ class SLMItemTile extends LitElement {
       e.preventDefault();
       return false;
     }
-
     this.longPressTriggered = false;
     this.longPressTimer = setTimeout(() => {
       this.longPressTriggered = true;
       this.dispatchEvent(new CustomEvent('item-long-press', {
-        detail: { item: this.item },
+        detail: { item: this._longPressItem() },
         bubbles: true,
         composed: true
       }));
     }, 500);
+  }
+
+  _longPressItem() {
+    if (!this.isRecentlyUsed) return this.item;
+    // Recently-used tiles hold Products — return an item-shaped object so the
+    // edit dialog renders correctly, with _isProductEdit to skip api.updateItem
+    return {
+      id: null,
+      product_id: this.item.id,
+      name: this.item.name,
+      category_id: this.item.category_id,
+      unit: this.item.default_unit || 'units',
+      quantity: this.item.default_quantity || 1,
+      price: this.item.price || '',
+      image_url: this.item.image_url || '',
+      note: '',
+      _isProductEdit: true
+    };
   }
 
   handleMouseUp(e) {
@@ -154,29 +199,127 @@ class SLMItemTile extends LitElement {
 
   getCategoryEmoji(categoryId) {
     const emojiMap = {
-      'produce': '🥬',
-      'dairy': '🥛',
-      'meat': '🥩',
-      'bakery': '🍞',
-      'pantry': '🥫',
-      'frozen': '🧊',
-      'beverages': '🥤',
-      'snacks': '🍿',
-      'household': '🧹',
-      'health': '💊',
-      'pet': '🐾',
-      'baby': '👶',
-      'other': '📦'
+      'produce': '🥬', 'dairy': '🥛', 'meat': '🥩', 'bakery': '🍞',
+      'pantry': '🥫', 'frozen': '🧊', 'beverages': '🥤', 'snacks': '🍿',
+      'household': '🧹', 'health': '💊', 'pet': '🐾', 'baby': '👶', 'other': '📦'
     };
     return emojiMap[categoryId] || '📦';
   }
 
+  getProductEmoji(name, categoryId) {
+    if (!name) return this.getCategoryEmoji(categoryId);
+    const lower = name.toLowerCase();
+    const productMap = {
+      'chicken': '🍗', 'turkey': '🦃', 'duck': '🦆',
+      'beef': '🥩', 'steak': '🥩', 'mince': '🥩', 'lamb': '🍖',
+      'pork': '🥓', 'bacon': '🥓', 'ham': '🍖', 'sausage': '🌭', 'salami': '🍖',
+      'fish': '🐟', 'salmon': '🐟', 'tuna': '🐟', 'prawn': '🦐', 'shrimp': '🦐',
+      'egg': '🥚', 'eggs': '🥚',
+      'milk': '🥛', 'cream': '🥛', 'yogurt': '🫙', 'yoghurt': '🫙',
+      'cheese': '🧀', 'cheddar': '🧀', 'feta': '🧀', 'mozzarella': '🧀',
+      'butter': '🧈',
+      'bread': '🍞', 'toast': '🍞', 'bun': '🥖', 'roll': '🥖', 'bagel': '🥯',
+      'loaf': '🍞', 'sourdough': '🍞', 'wrap': '🫓', 'croissant': '🥐',
+      'apple': '🍎', 'orange': '🍊', 'banana': '🍌', 'grape': '🍇',
+      'strawberry': '🍓', 'blueberry': '🫐', 'raspberry': '🍓',
+      'lemon': '🍋', 'lime': '🍋', 'pineapple': '🍍', 'mango': '🥭',
+      'watermelon': '🍉', 'melon': '🍈', 'peach': '🍑', 'pear': '🍐',
+      'cherry': '🍒', 'kiwi': '🥝', 'avocado': '🥑',
+      'tomato': '🍅', 'potato': '🥔', 'carrot': '🥕', 'broccoli': '🥦',
+      'lettuce': '🥬', 'spinach': '🥬', 'salad': '🥗', 'kale': '🥬',
+      'onion': '🧅', 'garlic': '🧄', 'corn': '🌽', 'pepper': '🫑',
+      'cucumber': '🥒', 'mushroom': '🍄', 'eggplant': '🍆',
+      'peas': '🫛', 'beans': '🫘', 'lentil': '🫘',
+      'coffee': '☕', 'espresso': '☕', 'latte': '☕',
+      'tea': '🍵', 'juice': '🧃',
+      'water': '💧', 'sparkling': '💧',
+      'beer': '🍺', 'wine': '🍷', 'cider': '🍺', 'spirits': '🥃', 'whisky': '🥃',
+      'soda': '🥤', 'cola': '🥤',
+      'pasta': '🍝', 'noodle': '🍜', 'rice': '🍚', 'oat': '🌾', 'cereal': '🥣',
+      'flour': '🌾', 'sugar': '🍬', 'salt': '🧂', 'oil': '🫙', 'vinegar': '🫙',
+      'sauce': '🫙', 'ketchup': '🫙', 'mustard': '🫙', 'mayonnaise': '🫙',
+      'honey': '🍯', 'jam': '🫙', 'peanut butter': '🥜',
+      'chocolate': '🍫', 'chips': '🥔', 'popcorn': '🍿', 'biscuit': '🍪',
+      'cookie': '🍪', 'cake': '🎂', 'muffin': '🧁', 'doughnut': '🍩',
+      'ice cream': '🍦',
+      'shampoo': '🧴', 'conditioner': '🧴', 'soap': '🧼', 'toothpaste': '🦷',
+      'toilet paper': '🧻', 'tissues': '🧻',
+      'nappy': '👶', 'diaper': '👶', 'formula': '👶',
+      'pet food': '🐾', 'dog food': '🐕', 'cat food': '🐈',
+    };
+    for (const [key, emoji] of Object.entries(productMap)) {
+      if (lower.includes(key)) return emoji;
+    }
+    return this.getCategoryEmoji(categoryId);
+  }
+
+  getBundledIcon(name) {
+    if (!name) return null;
+    const lower = name.toLowerCase();
+    for (const [keyword, slug] of Object.entries(PRODUCT_ICON_MAP)) {
+      if (lower.includes(keyword) && PRODUCT_ICONS[slug]) {
+        return PRODUCT_ICONS[slug];
+      }
+    }
+    return null;
+  }
+
+  getLocalImageBasePath(name) {
+    const basePath = this.settings?.localImagePath;
+    if (!basePath || !name) return null;
+    // Use hyphens, keep apostrophes — e.g. "Arnott's Shapes" → "arnott's-shapes"
+    const slug = name.toLowerCase()
+      .replace(/[^a-z0-9']+/g, '-')
+      .replace(/-+/g, '-')
+      .replace(/^-|-$/g, '');
+    return `${basePath.replace(/\/$/, '')}/${slug}`;
+  }
+
+  renderImage() {
+    const name = this.item?.name;
+    const categoryId = this.item?.category_id;
+    const exts = ['webp', 'jpg', 'png', 'jpeg'];
+
+    // 1. Explicit product image URL (highest priority)
+    if (this.item?.image_url) {
+      return html`<img src="${this.item.image_url}" alt="${name}">`;
+    }
+
+    // 2. Local HA image folder — try webp → jpg → png → jpeg
+    const localBase = this.getLocalImageBasePath(name);
+    if (localBase && this._localImgExtIdx < exts.length) {
+      return html`
+        <div class="no-image">
+          <img
+            src="${localBase}.${exts[this._localImgExtIdx]}"
+            alt="${name}"
+            class="product-icon"
+            @error=${() => { this._localImgExtIdx++; this.requestUpdate(); }}
+          >
+        </div>
+      `;
+    }
+
+    // 3. Bundled icons8 icon
+    const bundled = this.getBundledIcon(name);
+    if (bundled) {
+      return html`<div class="no-image"><img src="${bundled}" alt="${name}" class="product-icon"></div>`;
+    }
+
+    // 4. Emoji fallback
+    return html`
+      <div class="no-image">
+        <div class="emoji">${this.getProductEmoji(name, categoryId)}</div>
+      </div>
+    `;
+  }
+
   render() {
     const { r, g, b } = this.hexToRgb(this.categoryColor);
-    // Tile background: muted colour, even more muted when recently used
     const tileBg = this.isRecentlyUsed
       ? `rgba(${r},${g},${b},0.12)`
       : `rgba(${r},${g},${b},0.25)`;
+    const showPrice = this.settings?.showPriceOnTile !== false;
 
     return html`
       <div
@@ -187,34 +330,31 @@ class SLMItemTile extends LitElement {
         @mouseup=${this.handleMouseUp}
         @mouseleave=${this.handleMouseLeave}
       >
-        ${!this.item.checked ? html`
-          <button class="decrease-btn" style="background: rgba(${r},${g},${b},0.7)" @click=${this.handleDecrease}>
-            <span>−</span>
-          </button>
-        ` : ''}
-
-        ${!this.item.checked ? html`
-          <div
-            class="quantity-badge"
-            style="background: ${this.categoryColor}"
-            @click=${this.handleQuantityClick}
-          >
-            ${this.item.quantity}
-          </div>
-        ` : ''}
-
-        ${this.item.image_url ? html`
-          <img src="${this.item.image_url}" alt="${this.item.name}">
+        ${this.isRecentlyUsed ? html`
+          <div class="quantity-badge" style="background: ${this.categoryColor}">+</div>
         ` : html`
-          <div class="no-image">
-            <div class="emoji">${this.getCategoryEmoji(this.item.category_id)}</div>
-          </div>
+          ${!this.item.checked ? html`
+            <button class="decrease-btn" style="background: rgba(${r},${g},${b},0.7)" @click=${this.handleDecrease}>
+              <span>−</span>
+            </button>
+          ` : ''}
+          ${!this.item.checked ? html`
+            <div
+              class="quantity-badge"
+              style="background: ${this.categoryColor}"
+              @click=${this.handleQuantityClick}
+            >
+              ${this.item.quantity}
+            </div>
+          ` : ''}
         `}
+
+        ${this.renderImage()}
 
         <div class="info">
           <div class="name">${this.item.name}</div>
-          ${this.item.price ? html`
-            <div class="price">$${(this.item.price * this.item.quantity).toFixed(2)}</div>
+          ${showPrice && this.item.price ? html`
+            <div class="price">$${(this.item.price * (this.item.quantity || 1)).toFixed(2)}</div>
           ` : ''}
         </div>
 
@@ -228,6 +368,10 @@ class SLMItemTile extends LitElement {
   }
 
   static styles = css`
+    :host {
+      font-size: var(--slm-font-size-base, 16px);
+      font-weight: var(--slm-font-weight-base, 400);
+    }
     .tile {
       position: relative;
       border-radius: 14px;
@@ -291,6 +435,11 @@ class SLMItemTile extends LitElement {
       justify-content: center;
       background: transparent;
     }
+    .product-icon {
+      width: 60%;
+      height: 60%;
+      object-fit: contain;
+    }
     .emoji {
       font-size: 40px;
     }
@@ -299,8 +448,8 @@ class SLMItemTile extends LitElement {
       padding: 5px 8px 7px;
     }
     .name {
-      font-weight: 600;
-      font-size: 12px;
+      font-weight: var(--slm-font-weight-base, 600);
+      font-size: 0.75em;
       line-height: 1.2;
       margin-bottom: 2px;
       color: var(--slm-text-primary, #e0e0e0);
@@ -311,7 +460,7 @@ class SLMItemTile extends LitElement {
       -webkit-box-orient: vertical;
     }
     .price {
-      font-size: 11px;
+      font-size: 0.69em;
       color: var(--slm-accent-primary, #9fa8da);
       font-weight: 700;
     }

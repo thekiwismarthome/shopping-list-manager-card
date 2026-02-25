@@ -1,39 +1,50 @@
 import { LitElement, html, css } from 'lit';
 
+const UNITS = ['units', 'kg', 'g', 'L', 'mL', 'pack', 'bunch', 'dozen', 'bottle', 'can', 'bag', 'box', 'loaf', 'slice'];
+
 class SLMEditItemDialog extends LitElement {
   static properties = {
     api: { type: Object },
     item: { type: Object },
     categories: { type: Array },
     editedItem: { type: Object },
-    imagePreview: { type: String }
+    imagePreview: { type: String },
+    _customUnit: { type: Boolean, state: true }
   };
 
   constructor() {
     super();
     this.editedItem = {};
     this.imagePreview = null;
+    this._customUnit = false;
   }
 
   updated(changedProperties) {
     if (changedProperties.has('item') && this.item) {
+      const unit = this.item.unit || 'units';
+      this._customUnit = !UNITS.includes(unit);
       this.editedItem = {
         name: this.item.name,
+        category_id: this.item.category_id || 'other',
         quantity: this.item.quantity,
-        unit: this.item.unit,
+        unit,
         note: this.item.note || '',
-        image_url: this.item.image_url || ''
+        image_url: this.item.image_url || '',
+        price: this.item.price != null ? this.item.price : ''
       };
       this.imagePreview = this.item.image_url || null;
     }
   }
 
   handleSave() {
+    const data = { ...this.editedItem };
+    if (data.price === '' || data.price === null) {
+      delete data.price;
+    } else {
+      data.price = parseFloat(data.price) || 0;
+    }
     this.dispatchEvent(new CustomEvent('save-item', {
-      detail: {
-        itemId: this.item.id,
-        data: this.editedItem
-      },
+      detail: { itemId: this.item.id, data },
       bubbles: true,
       composed: true
     }));
@@ -49,16 +60,27 @@ class SLMEditItemDialog extends LitElement {
     }
   }
 
-  handleDuplicate() {
-    // TODO: Implement duplicate functionality
-    alert('Duplicate feature coming soon');
-  }
-
   handleClose() {
     this.dispatchEvent(new CustomEvent('close', {
       bubbles: true,
       composed: true
     }));
+  }
+
+  handleQtyChange(delta) {
+    const newQty = Math.max(1, (this.editedItem.quantity || 1) + delta);
+    this.editedItem = { ...this.editedItem, quantity: newQty };
+  }
+
+  handleUnitSelect(e) {
+    const val = e.target.value;
+    if (val === '__other__') {
+      this._customUnit = true;
+      this.editedItem = { ...this.editedItem, unit: '' };
+    } else {
+      this._customUnit = false;
+      this.editedItem = { ...this.editedItem, unit: val };
+    }
   }
 
   handleImageUrlInput(e) {
@@ -93,8 +115,20 @@ class SLMEditItemDialog extends LitElement {
     if (urlInput) urlInput.value = '';
   }
 
+  getCategoryEmoji(categoryId) {
+    const emojiMap = {
+      'produce': '🥬', 'dairy': '🥛', 'meat': '🥩', 'bakery': '🍞',
+      'pantry': '🥫', 'frozen': '🧊', 'beverages': '🥤', 'snacks': '🍿',
+      'household': '🧹', 'health': '💊', 'pet': '🐾', 'baby': '👶', 'other': '📦'
+    };
+    return emojiMap[categoryId] || '📦';
+  }
+
   render() {
     if (!this.item) return html``;
+    const cats = this.categories || [];
+    const currentUnit = this.editedItem.unit || 'units';
+    const selectUnit = this._customUnit ? '__other__' : currentUnit;
 
     return html`
       <div class="overlay" @click=${this.handleClose}>
@@ -114,33 +148,64 @@ class SLMEditItemDialog extends LitElement {
               />
             </div>
 
+            <div class="form-group">
+              <label>Category</label>
+              <select
+                .value=${this.editedItem.category_id || 'other'}
+                @change=${(e) => this.editedItem = { ...this.editedItem, category_id: e.target.value }}
+              >
+                ${cats.map(cat => html`
+                  <option value="${cat.id}" ?selected=${cat.id === this.editedItem.category_id}>
+                    ${this.getCategoryEmoji(cat.id)} ${cat.name}
+                  </option>
+                `)}
+              </select>
+            </div>
+
             <div class="form-row">
               <div class="form-group half">
                 <label>Quantity</label>
-                <input
-                  type="number"
-                  min="1"
-                  .value=${this.editedItem.quantity || 1}
-                  @input=${(e) => this.editedItem = { ...this.editedItem, quantity: parseInt(e.target.value) || 1 }}
-                />
+                <div class="qty-stepper">
+                  <button class="qty-btn" @click=${() => this.handleQtyChange(-1)}>−</button>
+                  <span class="qty-value">${this.editedItem.quantity || 1}</span>
+                  <button class="qty-btn" @click=${() => this.handleQtyChange(1)}>+</button>
+                </div>
               </div>
 
               <div class="form-group half">
                 <label>Unit</label>
-                <input
-                  type="text"
-                  .value=${this.editedItem.unit || ''}
-                  @input=${(e) => this.editedItem = { ...this.editedItem, unit: e.target.value }}
-                />
+                <select .value=${selectUnit} @change=${this.handleUnitSelect}>
+                  ${UNITS.map(u => html`<option value="${u}" ?selected=${u === selectUnit}>${u}</option>`)}
+                  <option value="__other__" ?selected=${this._customUnit}>Other…</option>
+                </select>
+                ${this._customUnit ? html`
+                  <input
+                    type="text"
+                    placeholder="e.g. jar, punnet…"
+                    .value=${currentUnit}
+                    @input=${(e) => this.editedItem = { ...this.editedItem, unit: e.target.value }}
+                    style="margin-top: 6px;"
+                  />
+                ` : ''}
               </div>
             </div>
 
-            ${this.item.price ? html`
-              <div class="price-info">
-                <span>Total:</span>
-                <span class="price-value">$${(this.item.price * (this.editedItem.quantity || 1)).toFixed(2)}</span>
-              </div>
-            ` : ''}
+            <div class="form-group">
+              <label>Unit Price ($)</label>
+              <input
+                type="text"
+                inputmode="decimal"
+                placeholder="0.00"
+                .value=${this.editedItem.price !== '' && this.editedItem.price != null ? String(this.editedItem.price) : ''}
+                @input=${(e) => this.editedItem = { ...this.editedItem, price: e.target.value }}
+              />
+              ${this.editedItem.price && this.editedItem.price !== '' ? html`
+                <div class="price-info">
+                  <span>Total:</span>
+                  <span class="price-value">$${(parseFloat(this.editedItem.price) * (this.editedItem.quantity || 1)).toFixed(2)}</span>
+                </div>
+              ` : ''}
+            </div>
 
             <div class="form-group">
               <label>Notes</label>
@@ -185,9 +250,6 @@ class SLMEditItemDialog extends LitElement {
           </div>
 
           <div class="dialog-footer">
-            <button class="action-btn secondary" @click=${this.handleDuplicate}>
-              Duplicate
-            </button>
             <button class="action-btn danger" @click=${this.handleDelete}>
               Delete
             </button>
@@ -282,7 +344,8 @@ class SLMEditItemDialog extends LitElement {
       color: var(--slm-text-secondary, #757575);
     }
     .form-group input,
-    .form-group textarea {
+    .form-group textarea,
+    .form-group select {
       box-sizing: border-box;
       width: 100%;
       padding: 10px 12px;
@@ -295,29 +358,62 @@ class SLMEditItemDialog extends LitElement {
       transition: border-color 0.15s;
     }
     .form-group input:focus,
-    .form-group textarea:focus {
+    .form-group textarea:focus,
+    .form-group select:focus {
       outline: none;
       border-color: var(--slm-accent-primary, #9fa8da);
     }
     .form-group textarea {
       resize: vertical;
     }
+    .qty-stepper {
+      display: flex;
+      align-items: center;
+      border: 2px solid var(--slm-border-subtle, #e8eaf6);
+      border-radius: 8px;
+      overflow: hidden;
+    }
+    .qty-btn {
+      width: 40px;
+      height: 44px;
+      border: none;
+      background: var(--slm-bg-main, #fafbfc);
+      color: var(--slm-text-primary, #424242);
+      font-size: 20px;
+      font-weight: 700;
+      cursor: pointer;
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .qty-btn:active {
+      background: var(--slm-border-subtle, #e8eaf6);
+    }
+    .qty-value {
+      flex: 1;
+      text-align: center;
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--slm-text-primary, #424242);
+      background: var(--slm-bg-elevated, #ffffff);
+      padding: 10px 0;
+      min-width: 40px;
+    }
     .price-info {
       display: flex;
       justify-content: space-between;
-      padding: 12px;
+      padding: 8px 12px;
       background: var(--slm-bg-main, #fafbfc);
       border-radius: 8px;
-      margin-bottom: 16px;
-      font-size: 15px;
+      margin-top: 8px;
+      font-size: 14px;
       color: var(--slm-text-primary, #424242);
     }
     .price-value {
       font-weight: 700;
       color: var(--slm-accent-primary, #9fa8da);
     }
-
-    /* Image section */
     .image-section {}
     .image-preview-wrap {
       position: relative;
@@ -373,7 +469,6 @@ class SLMEditItemDialog extends LitElement {
     .browse-btn:hover {
       border-color: var(--slm-accent-primary, #9fa8da);
     }
-
     .dialog-footer {
       display: flex;
       gap: 8px;
@@ -393,11 +488,6 @@ class SLMEditItemDialog extends LitElement {
     .action-btn.primary {
       background: linear-gradient(135deg, #9fa8da 0%, #c5cae9 100%);
       color: white;
-    }
-    .action-btn.secondary {
-      background: var(--slm-bg-main, #fafbfc);
-      color: var(--slm-text-primary, #424242);
-      border: 1px solid var(--slm-border-subtle, #e8eaf6);
     }
     .action-btn.danger {
       background: var(--slm-accent-danger, #ef9a9a);

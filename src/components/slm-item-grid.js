@@ -4,7 +4,7 @@ import './slm-item-tile.js';
 class SLMItemGrid extends LitElement {
   constructor() {
     super();
-    console.log("GRID CONSTRUCTOR");
+    this._recentItems = [];
   }
 
   static properties = {
@@ -12,44 +12,76 @@ class SLMItemGrid extends LitElement {
     categories: { type: Array },
     settings: { type: Object },
     api: { type: Object },
-    recentItems: { type: Array }
+    _recentItems: { type: Array, state: true }
   };
 
-  groupItemsByCategory() {
-    const grouped = {};
+  updated(changedProperties) {
+    if (changedProperties.has('items') || changedProperties.has('settings') || changedProperties.has('api')) {
+      this._loadRecentItems();
+    }
+  }
 
-    this.categories.forEach(cat => {
+  async _loadRecentItems() {
+    if (!this.api || this.settings?.showRecentlyUsed === false) {
+      this._recentItems = [];
+      return;
+    }
+
+    const limit = this.settings?.recentProductsCount || 8;
+    const currentProductIds = new Set(
+      (this.items || []).filter(i => !i.checked).map(i => i.product_id).filter(Boolean)
+    );
+
+    try {
+      // Step 1: recently-tracked products from localStorage (ordered by recency)
+      const recentKey = 'slm_recent_products';
+      const saved = localStorage.getItem(recentKey);
+      const rawIds = saved ? JSON.parse(saved) : [];
+      const filteredIds = [...new Set(rawIds)]
+        .filter(id => !currentProductIds.has(id))
+        .slice(0, limit);
+
+      let recent = [];
+      if (filteredIds.length > 0) {
+        const result = await this.api.getProductsByIds(filteredIds);
+        recent = result.products || [];
+      }
+
+      // Step 2: fill remaining slots with backend suggestions
+      if (recent.length < limit) {
+        const excludeIds = new Set([...currentProductIds, ...recent.map(p => p.id)]);
+        const sugResult = await this.api.getProductSuggestions(limit + excludeIds.size);
+        const suggestions = (sugResult.products || [])
+          .filter(p => !excludeIds.has(p.id))
+          .slice(0, limit - recent.length);
+        recent = [...recent, ...suggestions];
+      }
+
+      this._recentItems = recent;
+    } catch (err) {
+      console.error('Failed to load recent items:', err);
+      this._recentItems = [];
+    }
+  }
+
+  groupItemsByCategory() {
+    const sortMode = this.settings?.sortMode || 'category';
+
+    if (sortMode === 'alphabetical') {
+      const unchecked = (this.items || []).filter(item => !item.checked);
+      unchecked.sort((a, b) => a.name.localeCompare(b.name));
+      return [{ category: { id: '_alpha', name: null, color: '#9fa8da' }, items: unchecked }];
+    }
+
+    const grouped = {};
+    (this.categories || []).forEach(cat => {
       grouped[cat.id] = {
         category: cat,
-        items: this.items.filter(item => item.category_id === cat.id && !item.checked)
+        items: (this.items || []).filter(item => item.category_id === cat.id && !item.checked)
       };
     });
 
     return Object.values(grouped).filter(g => g.items.length > 0);
-  }
-
-  async getRecentlyUsedItems() {
-    if (!this.api) return [];
-
-    const recentKey = 'slm_recent_products';
-    const saved = localStorage.getItem(recentKey);
-    const recentIds = saved ? JSON.parse(saved) : [];
-
-    const limit = this.settings?.recentProductsCount || 8;
-
-    const currentProductIds = this.items.map(i => i.product_id);
-
-    const filteredIds = recentIds
-      .filter(id => !currentProductIds.includes(id))
-      .slice(0, limit);
-
-    if (filteredIds.length === 0) return [];
-
-    const products = await Promise.all(
-      filteredIds.map(id => this.api.getProductSuggestions(1))
-    );
-
-    return products.flatMap(p => p.products || []);
   }
 
   hexToRgb(hex) {
@@ -66,10 +98,7 @@ class SLMItemGrid extends LitElement {
 
   render() {
     const groupedItems = this.groupItemsByCategory();
-    const recentItems = this.getRecentlyUsedItems();
     const tilesPerRow = this.settings?.tilesPerRow || 3;
-    const recentColor = '#9e9e9e';
-
     return html`
       <style>
         .items-grid {
@@ -78,30 +107,7 @@ class SLMItemGrid extends LitElement {
       </style>
 
       <div class="grid-container">
-        ${recentItems.length > 0 ? html`
-          <div class="category-section">
-            <div class="category-header" style="${this.getCategoryHeaderStyle(recentColor)}">
-              <span class="emoji">⏱️</span>
-              <span class="category-name" style="color: ${recentColor}">Recently Used</span>
-            </div>
-            <div class="items-grid">
-              ${recentItems.map(item => html`
-                <slm-item-tile
-                  .item=${item}
-                  .categoryColor=${recentColor}
-                  .isRecentlyUsed=${true}
-                  @item-click=${this.handleItemClick}
-                  @item-decrease=${this.handleItemDecrease}
-                  @item-check=${this.handleItemCheck}
-                  @item-long-press=${this.handleItemLongPress}
-                  @item-swipe-delete=${this.handleItemSwipeDelete}
-                ></slm-item-tile>
-              `)}
-            </div>
-          </div>
-        ` : ''}
-
-        ${groupedItems.length === 0 && recentItems.length === 0 ? html`
+        ${groupedItems.length === 0 && this._recentItems.length === 0 ? html`
           <div class="empty">
             <div class="empty-emoji">🛒</div>
             <p>Your shopping list is empty</p>
@@ -113,15 +119,18 @@ class SLMItemGrid extends LitElement {
           const color = group.category.color || '#9fa8da';
           return html`
             <div class="category-section">
-              <div class="category-header" style="${this.getCategoryHeaderStyle(color)}">
-                <span class="emoji">${this.getCategoryEmoji(group.category.id)}</span>
-                <span class="category-name" style="color: ${color}">${group.category.name}</span>
-              </div>
+              ${group.category.id !== '_alpha' ? html`
+                <div class="category-header" style="${this.getCategoryHeaderStyle(color)}">
+                  <span class="emoji">${this.getCategoryEmoji(group.category.id)}</span>
+                  <span class="category-name" style="color: ${color}">${group.category.name}</span>
+                </div>
+              ` : ''}
               <div class="items-grid">
                 ${group.items.map(item => html`
                   <slm-item-tile
                     .item=${item}
                     .categoryColor=${color}
+                    .settings=${this.settings}
                     @item-click=${this.handleItemClick}
                     @item-decrease=${this.handleItemDecrease}
                     @item-check=${this.handleItemCheck}
@@ -133,6 +142,26 @@ class SLMItemGrid extends LitElement {
             </div>
           `;
         })}
+
+        ${this.settings?.showRecentlyUsed !== false && this._recentItems.length > 0 ? html`
+          <div class="category-section">
+            <div class="category-header" style="${this.getCategoryHeaderStyle('#9e9e9e')}">
+              <span class="emoji">⏱️</span>
+              <span class="category-name" style="color: #9e9e9e">Recently Used</span>
+            </div>
+            <div class="items-grid">
+              ${this._recentItems.map(product => html`
+                <slm-item-tile
+                  .item=${product}
+                  .categoryColor=${'#9e9e9e'}
+                  .isRecentlyUsed=${true}
+                  .settings=${this.settings}
+                  @add-item=${this.handleAddItem}
+                ></slm-item-tile>
+              `)}
+            </div>
+          </div>
+        ` : ''}
       </div>
     `;
   }
@@ -156,9 +185,17 @@ class SLMItemGrid extends LitElement {
     return emojiMap[categoryId] || '📦';
   }
 
+  handleAddItem(e) {
+    e.stopPropagation();
+    this.dispatchEvent(new CustomEvent('add-item', {
+      detail: e.detail,
+      bubbles: true,
+      composed: true
+    }));
+  }
+
   handleItemClick(e) {
     e.stopPropagation();
-    console.log("GRID RECEIVED ITEM CLICK");
     this.dispatchEvent(new CustomEvent('item-click', {
       detail: e.detail,
       bubbles: true,

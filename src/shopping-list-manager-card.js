@@ -4,6 +4,7 @@ import './components/slm-bottom-nav.js';
 import './components/slm-list-header.js';
 import './components/slm-search-bar.js';
 import './components/slm-item-grid.js';
+import './components/slm-item-list.js';
 import './components/slm-add-item-dialog.js';
 import './components/slm-edit-item-dialog.js';
 import './components/list-management/slm-lists-view.js';
@@ -24,13 +25,22 @@ class ShoppingListManagerCard extends LitElement {
     showAddDialog: { type: Boolean },
     showEditDialog: { type: Boolean },
     editingItem: { type: Object },
-    settings: { type: Object },
-    cardId: { type: String }
+    settings: { type: Object }
   };
   set hass(hass) {
     this._hass = hass;
     if (this.api) {
       this.api.hass = hass;
+    }
+    // Sync currency from HA system config as soon as hass is available
+    if (hass?.config?.currency && !this.total.currency) {
+      this.total = { ...this.total, currency: hass.config.currency };
+    }
+    // Use hass.user.id as stable per-user settings key
+    const userId = hass?.user?.id;
+    if (userId && this._settingsUserId !== userId) {
+      this._settingsUserId = userId;
+      this.settings = this.loadSettings();
     }
     if (!this._subscribed && hass?.connection) {
       this._subscribed = true;
@@ -50,20 +60,14 @@ class ShoppingListManagerCard extends LitElement {
     this.recentItems = [];
     this.items = [];
     this.categories = [];
-    this.total = { total: 0, currency: 'NZD', item_count: 0 };
+    this.total = { total: 0, currency: '', item_count: 0 };
     this.loading = true;
     this.showAddDialog = false;
     this.showEditDialog = false;
     this.editingItem = null;
-    this.cardId = this.generateCardId();
+    this._settingsUserId = null;
     this.settings = this.loadSettings();
     this._subscribed = false;
-  }
-
-  generateCardId() {
-    const timestamp = Date.now();
-    const random = Math.random().toString(36).substring(2, 9);
-    return `card_${timestamp}_${random}`;
   }
 
   loadSettings() {
@@ -82,45 +86,87 @@ class ShoppingListManagerCard extends LitElement {
       recentProductsCount: 8,
       tilesPerRow: 3,
       useEmojis: true,
-      colorScheme: 'pastel'
+      colorScheme: 'pastel',
+      viewMode: 'tile',
+      sortMode: 'category',
+      showRecentlyUsed: true,
+      showPriceOnTile: true,
+      localImagePath: '/local/images/groceries',
+      fontWeight: 'normal'
     };
 
-    const cardKey = `slm_settings_${this.cardId}`;
-    const cardSettings = localStorage.getItem(cardKey);
-    
-    if (cardSettings) {
-      return { ...defaults, ...JSON.parse(cardSettings) };
+    const key = this._settingsUserId
+      ? `slm_settings_${this._settingsUserId}`
+      : 'slm_settings_default';
+    const saved = localStorage.getItem(key);
+    if (saved) {
+      return { ...defaults, ...JSON.parse(saved) };
     }
     return defaults;
   }
 
   saveSettings() {
-    const cardKey = `slm_settings_${this.cardId}`;
-    localStorage.setItem(cardKey, JSON.stringify(this.settings));
+    const key = this._settingsUserId
+      ? `slm_settings_${this._settingsUserId}`
+      : 'slm_settings_default';
+    localStorage.setItem(key, JSON.stringify(this.settings));
   }
 
   async firstUpdated() {
     this.api = new ShoppingListAPI(this.hass);
     await this.loadData();
-    //this.subscribeToUpdates();
     this.applyColorScheme();
+    if (this.settings.keepScreenOn) this.acquireWakeLock();
+    this._visibilityHandler = () => {
+      if (this.settings.keepScreenOn && document.visibilityState === 'visible') {
+        this.acquireWakeLock();
+      }
+    };
+    document.addEventListener('visibilitychange', this._visibilityHandler);
+  }
+
+  disconnectedCallback() {
+    super.disconnectedCallback();
+    this.releaseWakeLock();
+    document.removeEventListener('visibilitychange', this._visibilityHandler);
+  }
+
+  async acquireWakeLock() {
+    if (!('wakeLock' in navigator)) return;
+    try {
+      this._wakeLock = await navigator.wakeLock.request('screen');
+      this._wakeLock.addEventListener('release', () => { this._wakeLock = null; });
+    } catch (err) {
+      console.warn('[SLM] Wake lock failed:', err.message);
+    }
+  }
+
+  releaseWakeLock() {
+    this._wakeLock?.release();
+    this._wakeLock = null;
   }
 
   applyColorScheme() {
     const mode = this.settings.darkMode;
 
     if (mode === 'on') {
-      // Force SLM Dark
       this.setAttribute('data-theme', 'dark');
-    } 
-    else if (mode === 'off') {
-      // Force SLM Light
+    } else if (mode === 'off') {
       this.setAttribute('data-theme', 'light');
-    } 
-    else {
-      // System = Follow Home Assistant Theme
+    } else {
       this.removeAttribute('data-theme');
     }
+
+    // Apply font size as a CSS custom property (cascades through shadow DOM)
+    if (!this.settings.useSystemTextSize) {
+      this.style.setProperty('--slm-font-size-base', `${this.settings.fontSize}px`);
+    } else {
+      this.style.removeProperty('--slm-font-size-base');
+    }
+
+    // Apply font weight
+    const weightMap = { light: '300', normal: '400', bold: '700' };
+    this.style.setProperty('--slm-font-weight-base', weightMap[this.settings.fontWeight] || '400');
   }
 
   async loadData() {
@@ -130,7 +176,7 @@ class ShoppingListManagerCard extends LitElement {
       const listsResult = await this.api.getLists();
       this.lists = listsResult.lists || [];
       
-      const lastListKey = `slm_last_list_${this.cardId}`;
+      const lastListKey = `slm_last_list_${this._settingsUserId || 'default'}`;
       if (this.settings.openLastUsedList) {
         const lastListId = localStorage.getItem(lastListKey);
         this.activeList = this.lists.find(l => l.id === lastListId) || 
@@ -156,14 +202,14 @@ class ShoppingListManagerCard extends LitElement {
 
   async loadActiveListData() {
     if (!this.activeList) return;
-    
+
     const itemsResult = await this.api.getItems(this.activeList.id);
     this.items = itemsResult.items;
 
     const totalResult = await this.api.getListTotal(this.activeList.id);
     this.total = totalResult;
 
-    const lastListKey = `slm_last_list_${this.cardId}`;
+    const lastListKey = `slm_last_list_${this._settingsUserId || 'default'}`;
     localStorage.setItem(lastListKey, this.activeList.id);
   }
 
@@ -206,6 +252,11 @@ class ShoppingListManagerCard extends LitElement {
   async handleItemCheck(e) {
     const { itemId, checked } = e.detail;
     await this.api.checkItem(itemId, checked);
+    // Track checked-off items so they appear in recently-used suggestions
+    if (checked) {
+      const item = this.items.find(i => i.id === itemId);
+      if (item?.product_id) this.trackRecentlyUsed(item.product_id);
+    }
     await this.loadActiveListData();
   }
 
@@ -221,25 +272,55 @@ class ShoppingListManagerCard extends LitElement {
   }
 
   async handleAddItem(e) {
-    const itemData = e.detail;
-    
-    // Check if item already exists
-    const existingItem = this.items.find(i => 
-      i.product_id === itemData.product_id && !i.checked
+    const itemData = { ...e.detail };
+
+    // Auto-create a product record if none exists yet (quick-add from search)
+    // so the item is reusable across lists and appears in suggestions/recently-used.
+    if (!itemData.product_id && !itemData.fromRecentlyUsed) {
+      try {
+        // Do NOT send 'custom' — it's not in the WS schema (backend forces custom=True itself)
+        const productData = {
+          name: itemData.name,
+          category_id: itemData.category_id || 'other'
+        };
+        if (itemData.price) productData.price = parseFloat(itemData.price);
+        if (itemData.image_url) productData.image_url = itemData.image_url;
+        const result = await this.api.addProduct(productData);
+        const product = result.product || result;
+        if (product?.id) itemData.product_id = product.id;
+      } catch (err) {
+        console.warn('[SLM] Could not auto-create product:', err);
+        // Continue — item will still be added to the list without a product_id
+      }
+    }
+
+    const existingItem = this.items.find(i =>
+      i.product_id && i.product_id === itemData.product_id && !i.checked
     );
 
-    if (existingItem) {
-      // Increase quantity instead of adding duplicate
-      await this.api.updateItem(existingItem.id, { 
+    if (itemData.fromRecentlyUsed) {
+      // Recently-used: always start fresh at qty=1
+      if (existingItem) {
+        await this.api.updateItem(existingItem.id, { quantity: 1 });
+      } else {
+        // Strip internal flag and any null/undefined optional fields (backend schema rejects nulls)
+        const { fromRecentlyUsed: _flag, ...rest } = itemData;
+        const addData = { quantity: 1 };
+        for (const [k, v] of Object.entries(rest)) {
+          if (v !== null && v !== undefined) addData[k] = v;
+        }
+        await this.api.addItem(this.activeList.id, addData);
+      }
+    } else if (existingItem) {
+      // Normal add: increment existing unchecked item
+      await this.api.updateItem(existingItem.id, {
         quantity: existingItem.quantity + 1
       });
     } else {
       await this.api.addItem(this.activeList.id, itemData);
     }
-    
-    // Track recently used
+
     this.trackRecentlyUsed(itemData.product_id);
-    
     await this.loadActiveListData();
     this.showAddDialog = false;
   }
@@ -260,9 +341,33 @@ class ShoppingListManagerCard extends LitElement {
     localStorage.setItem(recentKey, JSON.stringify(trimmed));
   }
 
+  async _syncProductFromItemData(productId, data) {
+    const productUpdate = {};
+    if (data.name) productUpdate.name = data.name;
+    if (data.category_id) productUpdate.category_id = data.category_id;
+    if (data.price !== undefined && data.price !== '') productUpdate.price = parseFloat(data.price) || 0;
+    if (data.unit) productUpdate.default_unit = data.unit;
+    if (data.image_url !== undefined) productUpdate.image_url = data.image_url;
+    if (Object.keys(productUpdate).length > 0) {
+      await this.api.updateProduct(productId, productUpdate);
+    }
+  }
+
   async handleEditItem(e) {
     const { itemId, data } = e.detail;
-    await this.api.updateItem(itemId, data);
+
+    if (this.editingItem?._isProductEdit) {
+      // Editing a product directly from recently-used (no list item exists)
+      await this._syncProductFromItemData(this.editingItem.product_id, data);
+    } else {
+      await this.api.updateItem(itemId, data);
+      // Also propagate changes to the product catalog so future uses pick them up
+      const item = this.items.find(i => i.id === itemId);
+      if (item?.product_id) {
+        await this._syncProductFromItemData(item.product_id, data);
+      }
+    }
+
     await this.loadActiveListData();
     this.showEditDialog = false;
     this.editingItem = null;
@@ -276,7 +381,42 @@ class ShoppingListManagerCard extends LitElement {
     this.settings = { ...this.settings, ...e.detail };
     this.saveSettings();
     this.applyColorScheme();
+    if (this.settings.keepScreenOn) {
+      this.acquireWakeLock();
+    } else {
+      this.releaseWakeLock();
+    }
     this.requestUpdate();
+  }
+
+  handleMenuSettingChange(e) {
+    const { key, value } = e.detail;
+    this.settings = { ...this.settings, [key]: value };
+    this.saveSettings();
+    this.requestUpdate();
+  }
+
+  async handleCreateAndAddProduct(e) {
+    const { name, category_id, price } = e.detail;
+    try {
+      const productData = { name, category_id }; // backend forces custom=True
+      if (price) productData.price = parseFloat(price);
+      const result = await this.api.addProduct(productData);
+      const product = result.product || result;
+      const itemData = {
+        name,
+        category_id,
+        product_id: product.id,
+        quantity: 1,
+        unit: 'units'
+      };
+      if (price) itemData.price = parseFloat(price);
+      await this.api.addItem(this.activeList.id, itemData);
+      if (product.id) this.trackRecentlyUsed(product.id);
+      await this.loadActiveListData();
+    } catch (err) {
+      console.error('Failed to create product:', err);
+    }
   }
 
   handleBackToLists() {
@@ -356,8 +496,10 @@ class ShoppingListManagerCard extends LitElement {
           <slm-list-header
             .activeList=${this.activeList}
             .itemCount=${this.items.filter(i => !i.checked).length}
+            .settings=${this.settings}
             @back=${this.handleBackToLists}
             @share=${this.handleShareList}
+            @menu-setting-change=${this.handleMenuSettingChange}
           ></slm-list-header>
 
           <div class="content-area">
@@ -367,19 +509,36 @@ class ShoppingListManagerCard extends LitElement {
               .categories=${this.categories}
               .activeListId=${this.activeList?.id}
               @add-item=${this.handleAddItem}
+              @create-and-add-product=${this.handleCreateAndAddProduct}
             ></slm-search-bar>
 
-            <slm-item-grid
-              .items=${this.items}
-              .categories=${this.categories}
-              .settings=${this.settings}
-              .api=${this.api}
-              @item-click=${this.handleItemClick}
-              @item-decrease=${this.handleItemDecrease}
-              @item-check=${this.handleItemCheck}
-              @item-long-press=${this.handleItemLongPress}
-              @item-swipe-delete=${this.handleItemSwipeDelete}
-            ></slm-item-grid>
+            ${this.settings.viewMode === 'list' ? html`
+              <slm-item-list
+                .items=${this.items}
+                .categories=${this.categories}
+                .settings=${this.settings}
+                .api=${this.api}
+                @add-item=${this.handleAddItem}
+                @item-click=${this.handleItemClick}
+                @item-decrease=${this.handleItemDecrease}
+                @item-check=${this.handleItemCheck}
+                @item-long-press=${this.handleItemLongPress}
+                @item-swipe-delete=${this.handleItemSwipeDelete}
+              ></slm-item-list>
+            ` : html`
+              <slm-item-grid
+                .items=${this.items}
+                .categories=${this.categories}
+                .settings=${this.settings}
+                .api=${this.api}
+                @add-item=${this.handleAddItem}
+                @item-click=${this.handleItemClick}
+                @item-decrease=${this.handleItemDecrease}
+                @item-check=${this.handleItemCheck}
+                @item-long-press=${this.handleItemLongPress}
+                @item-swipe-delete=${this.handleItemSwipeDelete}
+              ></slm-item-grid>
+            `}
           </div>
 
           <div class="total-bar">
@@ -407,6 +566,7 @@ class ShoppingListManagerCard extends LitElement {
         return html`
           <slm-loyalty-cards-view
             .api=${this.api}
+            .userId=${this._hass?.user?.id || null}
           ></slm-loyalty-cards-view>
         `;
 

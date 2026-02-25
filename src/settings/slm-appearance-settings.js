@@ -104,16 +104,32 @@ class SLMAppearanceSettings extends LitElement {
           <div class="settings-item">
             <div class="item-content full-width">
               <div class="item-title">Recently Used Products</div>
-              <input 
-                type="range" 
-                min="4" 
-                max="20" 
+              <input
+                type="range"
+                min="4"
+                max="20"
                 step="4"
                 .value=${this.settings.recentProductsCount}
                 @input=${(e) => this.handleSettingChange('recentProductsCount', parseInt(e.target.value))}
                 class="size-slider"
               />
               <div class="size-value">${this.settings.recentProductsCount} products</div>
+            </div>
+          </div>
+
+          <div class="section-header">Product Images</div>
+
+          <div class="settings-item">
+            <div class="item-content full-width">
+              <div class="item-title">Local HA Image Path</div>
+              <div class="item-subtitle">Auto-match images by product name slug</div>
+              <input
+                class="text-input"
+                type="text"
+                placeholder="/local/images/groceries"
+                .value=${this.settings.localImagePath || ''}
+                @change=${(e) => this.handleSettingChange('localImagePath', e.target.value.trim())}
+              />
             </div>
           </div>
 
@@ -137,10 +153,10 @@ class SLMAppearanceSettings extends LitElement {
             <div class="settings-item">
               <div class="item-content full-width">
                 <div class="item-title">Font Size</div>
-                <input 
-                  type="range" 
-                  min="12" 
-                  max="24" 
+                <input
+                  type="range"
+                  min="12"
+                  max="24"
                   .value=${this.settings.fontSize}
                   @input=${(e) => this.handleSettingChange('fontSize', parseInt(e.target.value))}
                   class="size-slider"
@@ -149,6 +165,21 @@ class SLMAppearanceSettings extends LitElement {
               </div>
             </div>
           ` : ''}
+
+          <div class="settings-item">
+            <div class="item-content full-width">
+              <div class="item-title">Font Weight</div>
+              <div class="tile-options">
+                ${[['light', 'Light'], ['normal', 'Regular'], ['bold', 'Bold']].map(([val, label]) => html`
+                  <button
+                    class="tile-option ${(this.settings.fontWeight || 'normal') === val ? 'selected' : ''}"
+                    style="font-weight: ${val === 'light' ? '300' : val === 'bold' ? '700' : '400'}"
+                    @click=${() => this.handleSettingChange('fontWeight', val)}
+                  >${label}</button>
+                `)}
+              </div>
+            </div>
+          </div>
 
           <button class="settings-item" @click=${() => this.showFontSettings = true}>
             <div class="item-content">
@@ -333,6 +364,22 @@ class SLMAppearanceSettings extends LitElement {
     }
     input:checked + .slider:before {
       transform: translateX(22px);
+    }
+    .text-input {
+      box-sizing: border-box;
+      width: 100%;
+      margin-top: 10px;
+      padding: 9px 12px;
+      border: 1px solid var(--slm-border-subtle);
+      border-radius: 8px;
+      font-size: 14px;
+      font-family: inherit;
+      color: var(--slm-text-primary);
+      background: var(--slm-bg-elevated);
+    }
+    .text-input:focus {
+      outline: none;
+      border-color: var(--slm-accent-primary);
     }
   `;
 }
