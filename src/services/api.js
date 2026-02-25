@@ -182,4 +182,18 @@ export class ShoppingListAPI {
       type: 'shopping_list_manager/categories/get_all'
     });
   }
+
+  // Integration settings
+  async getIntegrationSettings() {
+    return await this.hass.callWS({
+      type: 'shopping_list_manager/get_integration_settings'
+    });
+  }
+
+  async setCountry(country) {
+    return await this.hass.callWS({
+      type: 'shopping_list_manager/set_country',
+      country
+    });
+  }
 }

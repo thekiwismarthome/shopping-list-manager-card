@@ -4,6 +4,7 @@ import './slm-appearance-settings.js';
 import './slm-notification-settings.js';
 import './slm-category-settings.js';
 import './slm-support-settings.js';
+import './slm-data-settings.js';
 
 class SLMSettingsView extends LitElement {
   static properties = {
@@ -104,6 +105,17 @@ class SLMSettingsView extends LitElement {
 
           <div class="section-header">Lists</div>
 
+          <button class="settings-item" @click=${() => this.handleNavigation('data')}>
+            <div class="item-icon">
+              <span class="emoji">🌏</span>
+            </div>
+            <div class="item-content">
+              <div class="item-title">Region &amp; Catalog</div>
+              <div class="item-subtitle">Country-specific products and pricing</div>
+            </div>
+            <span class="chevron">></span>
+          </button>
+
           <button class="settings-item" @click=${() => this.handleNavigation('categories')}>
             <div class="item-icon">
               <span class="emoji">📦</span>
@@ -191,6 +203,14 @@ class SLMSettingsView extends LitElement {
           <slm-support-settings
             @back=${() => this.currentSection = 'main'}
           ></slm-support-settings>
+        `;
+
+      case 'data':
+        return html`
+          <slm-data-settings
+            .api=${this.api}
+            @back=${() => this.currentSection = 'main'}
+          ></slm-data-settings>
         `;
 
       default:
