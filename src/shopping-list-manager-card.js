@@ -273,10 +273,10 @@ class ShoppingListManagerCard extends LitElement {
     // so the item is reusable across lists and appears in suggestions/recently-used.
     if (!itemData.product_id && !itemData.fromRecentlyUsed) {
       try {
+        // Do NOT send 'custom' — it's not in the WS schema (backend forces custom=True itself)
         const productData = {
           name: itemData.name,
-          category_id: itemData.category_id || 'other',
-          custom: true
+          category_id: itemData.category_id || 'other'
         };
         if (itemData.price) productData.price = parseFloat(itemData.price);
         if (itemData.image_url) productData.image_url = itemData.image_url;
@@ -370,7 +370,7 @@ class ShoppingListManagerCard extends LitElement {
   async handleCreateAndAddProduct(e) {
     const { name, category_id, price } = e.detail;
     try {
-      const productData = { name, category_id, custom: true };
+      const productData = { name, category_id }; // backend forces custom=True
       if (price) productData.price = parseFloat(price);
       const result = await this.api.addProduct(productData);
       const product = result.product || result;
