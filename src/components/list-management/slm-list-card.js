@@ -85,7 +85,7 @@ class SLMListCard extends LitElement {
 
   render() {
     return html`
-      <div 
+      <div
         class="list-card ${this.isActive ? 'active' : 'inactive'} ${this.getColorClass()}"
         @click=${this.handleCardClick}
       >
@@ -111,36 +111,35 @@ class SLMListCard extends LitElement {
           <span>${this.currency} $${this.totalCost.toFixed(2)}</span>
         </div>
 
-
         <button class="menu-btn" @click=${this.handleMenuClick}>
           <ha-icon icon="mdi:dots-vertical"></ha-icon>
         </button>
-
-        ${this.showMenu ? html`
-          <div class="menu-overlay" @click=${(e) => { e.stopPropagation(); this.showMenu = false; }}>
-            <div class="menu-popup" style="left: ${this.menuX}px; top: ${this.menuY}px;">
-              <button @click=${(e) => this.handleAction('rename', e)}>
-                <ha-icon icon="mdi:pencil"></ha-icon>
-                Rename
-              </button>
-              ${this._canManageMembers ? html`
-                <button @click=${(e) => this.handleAction('members', e)}>
-                  <ha-icon icon="mdi:account-multiple"></ha-icon>
-                  Manage Members
-                </button>
-              ` : ''}
-              <button @click=${(e) => this.handleAction('copy', e)}>
-                <ha-icon icon="mdi:content-copy"></ha-icon>
-                Copy
-              </button>
-              <button class="danger" @click=${(e) => this.handleAction('delete', e)}>
-                <ha-icon icon="mdi:delete"></ha-icon>
-                Delete
-              </button>
-            </div>
-          </div>
-        ` : ''}
       </div>
+
+      ${this.showMenu ? html`
+        <div class="menu-overlay" @click=${(e) => { e.stopPropagation(); this.showMenu = false; }}>
+          <div class="menu-popup" style="left: ${this.menuX}px; top: ${this.menuY}px;">
+            <button @click=${(e) => this.handleAction('rename', e)}>
+              <ha-icon icon="mdi:pencil"></ha-icon>
+              Rename
+            </button>
+            ${this._canManageMembers ? html`
+              <button @click=${(e) => this.handleAction('members', e)}>
+                <ha-icon icon="mdi:account-multiple"></ha-icon>
+                Manage Members
+              </button>
+            ` : ''}
+            <button @click=${(e) => this.handleAction('copy', e)}>
+              <ha-icon icon="mdi:content-copy"></ha-icon>
+              Copy
+            </button>
+            <button class="danger" @click=${(e) => this.handleAction('delete', e)}>
+              <ha-icon icon="mdi:delete"></ha-icon>
+              Delete
+            </button>
+          </div>
+        </div>
+      ` : ''}
     `;
   }
 

@@ -1738,7 +1738,7 @@ const C=globalThis,A=t=>t,I=C.trustedTypes,S=I?I.createPolicy("lit-html",{create
       transform: scale(0.97);
     }
   `}customElements.define("slm-edit-item-dialog",yt);class vt extends st{static properties={list:{type:Object},isActive:{type:Boolean},itemCount:{type:Number},totalCost:{type:Number},currency:{type:String},emoji:{type:String},currentUserId:{type:String},isAdmin:{type:Boolean},showMenu:{type:Boolean},menuX:{type:Number},menuY:{type:Number}};constructor(){super(),this.showMenu=!1,this.itemCount=0,this.totalCost=0,this.currency="NZD",this.currentUserId="",this.isAdmin=!1,this.menuX=0,this.menuY=0}get _isPrivate(){return!!this.list?.owner_id}get _isOwner(){return this.list?.owner_id===this.currentUserId}get _canManageMembers(){return this._isPrivate&&(this._isOwner||this.isAdmin)}getColorClass(){return`color-${parseInt(this.list.id.slice(-1),16)%6}`}dimColor(t){return`rgba(${parseInt(t.slice(1,3),16)}, ${parseInt(t.slice(3,5),16)}, ${parseInt(t.slice(5,7),16)}, 0.5)`}handleCardClick(t){t.target.closest(".menu-btn")||this.dispatchEvent(new CustomEvent("list-select",{detail:{listId:this.list.id},bubbles:!0,composed:!0}))}handleMenuClick(t){t.stopPropagation();const e=t.target.closest(".menu-btn").getBoundingClientRect();this.menuX=e.right-160,this.menuY=e.bottom+5,this.showMenu=!this.showMenu}handleAction(t,e){e.stopPropagation(),this.showMenu=!1,this.dispatchEvent(new CustomEvent("list-action",{detail:{action:t,listId:this.list.id},bubbles:!0,composed:!0}))}render(){return Q`
-      <div 
+      <div
         class="list-card ${this.isActive?"active":"inactive"} ${this.getColorClass()}"
         @click=${this.handleCardClick}
       >
@@ -1764,36 +1764,35 @@ const C=globalThis,A=t=>t,I=C.trustedTypes,S=I?I.createPolicy("lit-html",{create
           <span>${this.currency} $${this.totalCost.toFixed(2)}</span>
         </div>
 
-
         <button class="menu-btn" @click=${this.handleMenuClick}>
           <ha-icon icon="mdi:dots-vertical"></ha-icon>
         </button>
-
-        ${this.showMenu?Q`
-          <div class="menu-overlay" @click=${t=>{t.stopPropagation(),this.showMenu=!1}}>
-            <div class="menu-popup" style="left: ${this.menuX}px; top: ${this.menuY}px;">
-              <button @click=${t=>this.handleAction("rename",t)}>
-                <ha-icon icon="mdi:pencil"></ha-icon>
-                Rename
-              </button>
-              ${this._canManageMembers?Q`
-                <button @click=${t=>this.handleAction("members",t)}>
-                  <ha-icon icon="mdi:account-multiple"></ha-icon>
-                  Manage Members
-                </button>
-              `:""}
-              <button @click=${t=>this.handleAction("copy",t)}>
-                <ha-icon icon="mdi:content-copy"></ha-icon>
-                Copy
-              </button>
-              <button class="danger" @click=${t=>this.handleAction("delete",t)}>
-                <ha-icon icon="mdi:delete"></ha-icon>
-                Delete
-              </button>
-            </div>
-          </div>
-        `:""}
       </div>
+
+      ${this.showMenu?Q`
+        <div class="menu-overlay" @click=${t=>{t.stopPropagation(),this.showMenu=!1}}>
+          <div class="menu-popup" style="left: ${this.menuX}px; top: ${this.menuY}px;">
+            <button @click=${t=>this.handleAction("rename",t)}>
+              <ha-icon icon="mdi:pencil"></ha-icon>
+              Rename
+            </button>
+            ${this._canManageMembers?Q`
+              <button @click=${t=>this.handleAction("members",t)}>
+                <ha-icon icon="mdi:account-multiple"></ha-icon>
+                Manage Members
+              </button>
+            `:""}
+            <button @click=${t=>this.handleAction("copy",t)}>
+              <ha-icon icon="mdi:content-copy"></ha-icon>
+              Copy
+            </button>
+            <button class="danger" @click=${t=>this.handleAction("delete",t)}>
+              <ha-icon icon="mdi:delete"></ha-icon>
+              Delete
+            </button>
+          </div>
+        </div>
+      `:""}
     `}static styles=o`
     .list-card {
       position: relative;
