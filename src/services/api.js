@@ -28,11 +28,12 @@ export class ShoppingListAPI {
     return await this.hass.callWS({ type: 'shopping_list_manager/lists/get_all' });
   }
 
-  async createList(name, icon = 'mdi:cart') {
-    return await this.hass.callWS({ 
+  async createList(name, icon = 'mdi:cart', isPrivate = true) {
+    return await this.hass.callWS({
       type: 'shopping_list_manager/lists/create',
       name,
-      icon
+      icon,
+      private: isPrivate
     });
   }
 
@@ -194,6 +195,20 @@ export class ShoppingListAPI {
     return await this.hass.callWS({
       type: 'shopping_list_manager/set_country',
       country
+    });
+  }
+
+  async updateListMembers(listId, allowedUsers) {
+    return await this.hass.callWS({
+      type: 'shopping_list_manager/lists/update_members',
+      list_id: listId,
+      allowed_users: allowedUsers
+    });
+  }
+
+  async getHAUsers() {
+    return await this.hass.callWS({
+      type: 'shopping_list_manager/users/get_all'
     });
   }
 

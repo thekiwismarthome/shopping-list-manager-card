@@ -8,6 +8,8 @@ class SLMListCard extends LitElement {
     totalCost: { type: Number },
     currency: { type: String },
     emoji: { type: String },
+    currentUserId: { type: String },
+    isAdmin: { type: Boolean },
     showMenu: { type: Boolean },
     menuX: { type: Number },
     menuY: { type: Number }
@@ -19,8 +21,22 @@ class SLMListCard extends LitElement {
     this.itemCount = 0;
     this.totalCost = 0;
     this.currency = 'NZD';
+    this.currentUserId = '';
+    this.isAdmin = false;
     this.menuX = 0;
     this.menuY = 0;
+  }
+
+  get _isPrivate() {
+    return !!this.list?.owner_id;
+  }
+
+  get _isOwner() {
+    return this.list?.owner_id === this.currentUserId;
+  }
+
+  get _canManageMembers() {
+    return this._isPrivate && (this._isOwner || this.isAdmin);
   }
 
   getColorClass() {
@@ -78,6 +94,12 @@ class SLMListCard extends LitElement {
           <div class="active-badge">Active</div>
         ` : ''}
 
+        ${this._isPrivate ? html`
+          <div class="private-badge">
+            <ha-icon icon="mdi:lock"></ha-icon>
+          </div>
+        ` : ''}
+
         <div class="card-header">
           <ha-icon icon="${this.list.icon}"></ha-icon>
           <h3>${this.list.name}</h3>
@@ -101,10 +123,12 @@ class SLMListCard extends LitElement {
                 <ha-icon icon="mdi:pencil"></ha-icon>
                 Rename
               </button>
-              <button @click=${(e) => this.handleAction('share', e)}>
-                <ha-icon icon="mdi:share-variant"></ha-icon>
-                Share
-              </button>
+              ${this._canManageMembers ? html`
+                <button @click=${(e) => this.handleAction('members', e)}>
+                  <ha-icon icon="mdi:account-multiple"></ha-icon>
+                  Manage Members
+                </button>
+              ` : ''}
               <button @click=${(e) => this.handleAction('copy', e)}>
                 <ha-icon icon="mdi:content-copy"></ha-icon>
                 Copy
@@ -179,6 +203,18 @@ class SLMListCard extends LitElement {
       border-radius: 6px;
       font-size: 10px;
       font-weight: 700;
+    }
+    .private-badge {
+      position: absolute;
+      bottom: 10px;
+      right: 44px;
+      opacity: 0.7;
+      display: flex;
+      align-items: center;
+    }
+    .private-badge ha-icon {
+      --mdc-icon-size: 16px;
+      color: white;
     }
     .card-header {
       display: flex;

@@ -623,6 +623,8 @@ class ShoppingListManagerCard extends LitElement {
             .activeList=${this.activeList}
             .items=${this.items}
             .total=${this.total}
+            .currentUserId=${this._hass?.user?.id || ''}
+            .isAdmin=${this._hass?.user?.is_admin || false}
             @list-selected=${this.handleListChange}
             @lists-updated=${() => this.loadData()}
           ></slm-lists-view>
