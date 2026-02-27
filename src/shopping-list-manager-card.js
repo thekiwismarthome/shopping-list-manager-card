@@ -717,7 +717,7 @@ class ShoppingListManagerCard extends LitElement {
       margin: 0;
       overflow: hidden;
       position: relative;
-      background: var(--card-background-color);
+      background: var(--slm-bg-surface);
     }
     .card-container {
       flex: 1;
@@ -809,6 +809,21 @@ class ShoppingListManagerCard extends LitElement {
       --slm-list-gradient-4: linear-gradient(135deg, #4dd0e1, #80deea);
       --slm-list-gradient-5: linear-gradient(135deg, #f06292, #f48fb1);
       --slm-total-bar-bg: linear-gradient(90deg, #9fa8da 0%, #c5cae9 100%);
+
+      --slm-cat-produce: #66bb6a;
+      --slm-cat-dairy: #4fc3f7;
+      --slm-cat-meat: #e57373;
+      --slm-cat-bakery: #ffb74d;
+      --slm-cat-pantry: #ff8a65;
+      --slm-cat-frozen: #4dd0e1;
+      --slm-cat-beverages: #9575cd;
+      --slm-cat-snacks: #dce775;
+      --slm-cat-household: #4db6ac;
+      --slm-cat-health: #81c784;
+      --slm-cat-pet: #a1887f;
+      --slm-cat-baby: #f06292;
+      --slm-cat-other: #90a4ae;
+      --slm-cat-recent: #9e9e9e;
     }
 
     /* ===============================
@@ -843,6 +858,21 @@ class ShoppingListManagerCard extends LitElement {
       --slm-list-gradient-4: linear-gradient(135deg, #4dd0e1, #80deea);
       --slm-list-gradient-5: linear-gradient(135deg, #f06292, #f48fb1);
       --slm-total-bar-bg: linear-gradient(90deg, #9fa8da 0%, #c5cae9 100%);
+
+      --slm-cat-produce: #66bb6a;
+      --slm-cat-dairy: #4fc3f7;
+      --slm-cat-meat: #e57373;
+      --slm-cat-bakery: #ffb74d;
+      --slm-cat-pantry: #ff8a65;
+      --slm-cat-frozen: #4dd0e1;
+      --slm-cat-beverages: #9575cd;
+      --slm-cat-snacks: #dce775;
+      --slm-cat-household: #4db6ac;
+      --slm-cat-health: #81c784;
+      --slm-cat-pet: #a1887f;
+      --slm-cat-baby: #f06292;
+      --slm-cat-other: #90a4ae;
+      --slm-cat-recent: #9e9e9e;
     }
 
     /* ===============================
@@ -877,12 +907,27 @@ class ShoppingListManagerCard extends LitElement {
       --slm-list-gradient-4: linear-gradient(135deg, #00838f, #26c6da);
       --slm-list-gradient-5: linear-gradient(135deg, #c2185b, #ec407a);
       --slm-total-bar-bg: linear-gradient(90deg, #2a2f3b 0%, #353d4a 100%);
+
+      --slm-cat-produce: #4caf50;
+      --slm-cat-dairy: #29b6f6;
+      --slm-cat-meat: #ef5350;
+      --slm-cat-bakery: #ffa726;
+      --slm-cat-pantry: #ff7043;
+      --slm-cat-frozen: #26c6da;
+      --slm-cat-beverages: #7c4dff;
+      --slm-cat-snacks: #d4e157;
+      --slm-cat-household: #26a69a;
+      --slm-cat-health: #66bb6a;
+      --slm-cat-pet: #8d6e63;
+      --slm-cat-baby: #ec407a;
+      --slm-cat-other: #78909c;
+      --slm-cat-recent: #9e9e9e;
     }
 
     /* ===============================
       DARK – Midnight Ocean
     ================================ */
-    :host([data-theme="dark"][data-theme-name="midnight"]) {
+    :host([data-theme-name="midnight"]) {
       --slm-bg-main: #0d1117;
       --slm-bg-surface: #161b22;
       --slm-bg-elevated: #1c2333;
@@ -911,12 +956,27 @@ class ShoppingListManagerCard extends LitElement {
       --slm-list-gradient-4: linear-gradient(135deg, #0d7377, #14a8b5);
       --slm-list-gradient-5: linear-gradient(135deg, #b62324, #f85149);
       --slm-total-bar-bg: linear-gradient(90deg, #1f6feb 0%, #58a6ff 100%);
+
+      --slm-cat-produce: #3fb950;
+      --slm-cat-dairy: #58a6ff;
+      --slm-cat-meat: #f85149;
+      --slm-cat-bakery: #d29922;
+      --slm-cat-pantry: #e3b341;
+      --slm-cat-frozen: #79c0ff;
+      --slm-cat-beverages: #a371f7;
+      --slm-cat-snacks: #f0d080;
+      --slm-cat-household: #39d0d8;
+      --slm-cat-health: #56d364;
+      --slm-cat-pet: #c9a46e;
+      --slm-cat-baby: #ff7b72;
+      --slm-cat-other: #8b949e;
+      --slm-cat-recent: #6e7681;
     }
 
     /* ===============================
       DARK – Ember
     ================================ */
-    :host([data-theme="dark"][data-theme-name="ember"]) {
+    :host([data-theme-name="ember"]) {
       --slm-bg-main: #111111;
       --slm-bg-surface: #1c1a17;
       --slm-bg-elevated: #242018;
@@ -945,12 +1005,27 @@ class ShoppingListManagerCard extends LitElement {
       --slm-list-gradient-4: linear-gradient(135deg, #1a5f7a, #2d9ab5);
       --slm-list-gradient-5: linear-gradient(135deg, #c23838, #e05555);
       --slm-total-bar-bg: linear-gradient(90deg, #c48c15 0%, #f0a500 100%);
+
+      --slm-cat-produce: #76c442;
+      --slm-cat-dairy: #64b5f6;
+      --slm-cat-meat: #ff4d4d;
+      --slm-cat-bakery: #f0a500;
+      --slm-cat-pantry: #ff6b35;
+      --slm-cat-frozen: #64dfdf;
+      --slm-cat-beverages: #b05ab0;
+      --slm-cat-snacks: #f9c74f;
+      --slm-cat-household: #4db6ac;
+      --slm-cat-health: #81c784;
+      --slm-cat-pet: #a1887f;
+      --slm-cat-baby: #f48fb1;
+      --slm-cat-other: #8d9e98;
+      --slm-cat-recent: #7a6a55;
     }
 
     /* ===============================
       LIGHT – Arctic
     ================================ */
-    :host([data-theme="light"][data-theme-name="arctic"]) {
+    :host([data-theme-name="arctic"]) {
       --slm-bg-main: #f0f4f8;
       --slm-bg-surface: #ffffff;
       --slm-bg-elevated: #ffffff;
@@ -979,12 +1054,27 @@ class ShoppingListManagerCard extends LitElement {
       --slm-list-gradient-4: linear-gradient(135deg, #006064, #00bcd4);
       --slm-list-gradient-5: linear-gradient(135deg, #880e4f, #e91e63);
       --slm-total-bar-bg: linear-gradient(90deg, #1a56db 0%, #2979ff 100%);
+
+      --slm-cat-produce: #00897b;
+      --slm-cat-dairy: #2979ff;
+      --slm-cat-meat: #d32f2f;
+      --slm-cat-bakery: #f57c00;
+      --slm-cat-pantry: #e64a19;
+      --slm-cat-frozen: #00bcd4;
+      --slm-cat-beverages: #673ab7;
+      --slm-cat-snacks: #f9a825;
+      --slm-cat-household: #00838f;
+      --slm-cat-health: #43a047;
+      --slm-cat-pet: #795548;
+      --slm-cat-baby: #e91e63;
+      --slm-cat-other: #607d8b;
+      --slm-cat-recent: #8097aa;
     }
 
     /* ===============================
       LIGHT – Meadow
     ================================ */
-    :host([data-theme="light"][data-theme-name="meadow"]) {
+    :host([data-theme-name="meadow"]) {
       --slm-bg-main: #f4f7f0;
       --slm-bg-surface: #fefffe;
       --slm-bg-elevated: #ffffff;
@@ -1013,12 +1103,27 @@ class ShoppingListManagerCard extends LitElement {
       --slm-list-gradient-4: linear-gradient(135deg, #006064, #26c6da);
       --slm-list-gradient-5: linear-gradient(135deg, #b71c1c, #e53935);
       --slm-total-bar-bg: linear-gradient(90deg, #2e7d32 0%, #4caf50 100%);
+
+      --slm-cat-produce: #4caf50;
+      --slm-cat-dairy: #29b6f6;
+      --slm-cat-meat: #e53935;
+      --slm-cat-bakery: #ffb300;
+      --slm-cat-pantry: #fb8c00;
+      --slm-cat-frozen: #26c6da;
+      --slm-cat-beverages: #9c27b0;
+      --slm-cat-snacks: #cddc39;
+      --slm-cat-household: #26a69a;
+      --slm-cat-health: #66bb6a;
+      --slm-cat-pet: #8d6e63;
+      --slm-cat-baby: #ec407a;
+      --slm-cat-other: #78909c;
+      --slm-cat-recent: #96a98e;
     }
 
     /* ===============================
       LIGHT – Blossom
     ================================ */
-    :host([data-theme="light"][data-theme-name="blossom"]) {
+    :host([data-theme-name="blossom"]) {
       --slm-bg-main: #fdf8fb;
       --slm-bg-surface: #ffffff;
       --slm-bg-elevated: #fff8fc;
@@ -1047,6 +1152,21 @@ class ShoppingListManagerCard extends LitElement {
       --slm-list-gradient-4: linear-gradient(135deg, #3570a0, #6aacdb);
       --slm-list-gradient-5: linear-gradient(135deg, #a03030, #e57373);
       --slm-total-bar-bg: linear-gradient(90deg, #a03a62 0%, #c2668a 100%);
+
+      --slm-cat-produce: #7cb9a3;
+      --slm-cat-dairy: #6aacdb;
+      --slm-cat-meat: #e57373;
+      --slm-cat-bakery: #e8a87c;
+      --slm-cat-pantry: #c2668a;
+      --slm-cat-frozen: #80cbc4;
+      --slm-cat-beverages: #b07abd;
+      --slm-cat-snacks: #f4d03f;
+      --slm-cat-household: #7cb9a3;
+      --slm-cat-health: #a5d6a7;
+      --slm-cat-pet: #bcaaa4;
+      --slm-cat-baby: #f48fb1;
+      --slm-cat-other: #b0bec5;
+      --slm-cat-recent: #b48fa5;
     }
 
   `;

@@ -84,8 +84,14 @@ class SLMItemList extends LitElement {
   }
 
   getCategoryColor(categoryId) {
+    const cssVal = getComputedStyle(this).getPropertyValue(`--slm-cat-${categoryId}`).trim();
+    if (cssVal) return cssVal;
     const cat = (this.categories || []).find(c => c.id === categoryId);
-    return cat?.color || '#9fa8da';
+    return cat?.color || getComputedStyle(this).getPropertyValue('--slm-accent-primary').trim() || '#9fa8da';
+  }
+
+  getRecentColor() {
+    return getComputedStyle(this).getPropertyValue('--slm-cat-recent').trim() || '#9e9e9e';
   }
 
   getCategoryEmoji(categoryId) {
@@ -330,7 +336,7 @@ class SLMItemList extends LitElement {
   }
 
   renderRecentRow(product) {
-    const recentColor = '#9e9e9e';
+    const recentColor = this.getRecentColor();
     const showPrice = this.settings?.showPriceOnTile !== false;
 
     return html`
@@ -362,7 +368,7 @@ class SLMItemList extends LitElement {
   render() {
     const { mode, sections } = this.groupItems();
     const showRecent = this.settings?.showRecentlyUsed !== false;
-    const recentColor = '#9e9e9e';
+    const recentColor = this.getRecentColor();
     const isEmpty = sections.every(s => s.items.length === 0) && (!showRecent || this._recentItems.length === 0);
 
     if (isEmpty) {

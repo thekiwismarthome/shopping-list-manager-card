@@ -91,6 +91,17 @@ class SLMItemGrid extends LitElement {
       : { r: 159, g: 168, b: 218 };
   }
 
+  getCategoryColor(categoryId, backendColor) {
+    const cssVal = getComputedStyle(this).getPropertyValue(`--slm-cat-${categoryId}`).trim();
+    if (cssVal) return cssVal;
+    if (backendColor) return backendColor;
+    return getComputedStyle(this).getPropertyValue('--slm-accent-primary').trim() || '#9fa8da';
+  }
+
+  getRecentColor() {
+    return getComputedStyle(this).getPropertyValue('--slm-cat-recent').trim() || '#9e9e9e';
+  }
+
   getCategoryHeaderStyle(color) {
     const { r, g, b } = this.hexToRgb(color);
     return `border-left: 4px solid ${color}; background: linear-gradient(to right, rgba(${r},${g},${b},0.22), rgba(${r},${g},${b},0.066)); border-radius: 0 8px 8px 0;`;
@@ -116,7 +127,7 @@ class SLMItemGrid extends LitElement {
         ` : ''}
 
         ${groupedItems.map(group => {
-          const color = group.category.color || '#9fa8da';
+          const color = this.getCategoryColor(group.category.id, group.category.color);
           return html`
             <div class="category-section">
               ${group.category.id !== '_alpha' ? html`
@@ -145,21 +156,23 @@ class SLMItemGrid extends LitElement {
 
         ${this.settings?.showRecentlyUsed !== false && this._recentItems.length > 0 ? html`
           <div class="category-section">
-            <div class="category-header" style="${this.getCategoryHeaderStyle('#9e9e9e')}">
-              <span class="emoji">⏱️</span>
-              <span class="category-name" style="color: #9e9e9e">Recently Used</span>
-            </div>
-            <div class="items-grid">
-              ${this._recentItems.map(product => html`
-                <slm-item-tile
-                  .item=${product}
-                  .categoryColor=${'#9e9e9e'}
-                  .isRecentlyUsed=${true}
-                  .settings=${this.settings}
-                  @add-item=${this.handleAddItem}
-                ></slm-item-tile>
-              `)}
-            </div>
+            ${(() => { const rc = this.getRecentColor(); return html`
+              <div class="category-header" style="${this.getCategoryHeaderStyle(rc)}">
+                <span class="emoji">⏱️</span>
+                <span class="category-name" style="color: ${rc}">Recently Used</span>
+              </div>
+              <div class="items-grid">
+                ${this._recentItems.map(product => html`
+                  <slm-item-tile
+                    .item=${product}
+                    .categoryColor=${rc}
+                    .isRecentlyUsed=${true}
+                    .settings=${this.settings}
+                    @add-item=${this.handleAddItem}
+                  ></slm-item-tile>
+                `)}
+              </div>
+            `; })()}
           </div>
         ` : ''}
       </div>
