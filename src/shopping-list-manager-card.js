@@ -762,10 +762,10 @@ class ShoppingListManagerCard extends LitElement {
       align-items: center;
       padding: 10px 16px;
       margin: 0 4px 4px 4px;
-      background: linear-gradient(90deg, #b0a8da 0%, #d4d0e8 100%);
-      color: var(--slm-bg-surface);
+      background: var(--slm-total-bar-bg, linear-gradient(90deg, #9fa8da 0%, #c5cae9 100%));
+      color: white;
       border-radius: 8px;
-      box-shadow: 0 2px 8px rgba(--slm-shadow-soft);
+      box-shadow: var(--slm-shadow-soft);
       z-index: 90;
     }
     .total-amount {
@@ -801,6 +801,14 @@ class ShoppingListManagerCard extends LitElement {
 
       --slm-shadow-soft: 0 2px 6px rgba(0,0,0,0.1);
       --slm-shadow-medium: 0 4px 12px rgba(0,0,0,0.2);
+
+      --slm-list-gradient-0: linear-gradient(135deg, #7986cb, #9fa8da);
+      --slm-list-gradient-1: linear-gradient(135deg, #81c784, #a5d6a7);
+      --slm-list-gradient-2: linear-gradient(135deg, #ffb74d, #ffcc80);
+      --slm-list-gradient-3: linear-gradient(135deg, #ba68c8, #ce93d8);
+      --slm-list-gradient-4: linear-gradient(135deg, #4dd0e1, #80deea);
+      --slm-list-gradient-5: linear-gradient(135deg, #f06292, #f48fb1);
+      --slm-total-bar-bg: linear-gradient(90deg, #9fa8da 0%, #c5cae9 100%);
     }
 
     /* ===============================
@@ -827,8 +835,16 @@ class ShoppingListManagerCard extends LitElement {
 
       --slm-shadow-soft: 0 2px 6px rgba(0,0,0,0.08);
       --slm-shadow-medium: 0 4px 12px rgba(0,0,0,0.15);
+
+      --slm-list-gradient-0: linear-gradient(135deg, #7986cb, #9fa8da);
+      --slm-list-gradient-1: linear-gradient(135deg, #81c784, #a5d6a7);
+      --slm-list-gradient-2: linear-gradient(135deg, #ffb74d, #ffcc80);
+      --slm-list-gradient-3: linear-gradient(135deg, #ba68c8, #ce93d8);
+      --slm-list-gradient-4: linear-gradient(135deg, #4dd0e1, #80deea);
+      --slm-list-gradient-5: linear-gradient(135deg, #f06292, #f48fb1);
+      --slm-total-bar-bg: linear-gradient(90deg, #9fa8da 0%, #c5cae9 100%);
     }
-    
+
     /* ===============================
       DARK – Soft Pastel Modern
     ================================ */
@@ -853,6 +869,14 @@ class ShoppingListManagerCard extends LitElement {
 
       --slm-shadow-soft: 0 2px 6px rgba(0,0,0,0.1);
       --slm-shadow-medium: 0 6px 18px rgba(0,0,0,0.6);
+
+      --slm-list-gradient-0: linear-gradient(135deg, #5c6bc0, #7986cb);
+      --slm-list-gradient-1: linear-gradient(135deg, #43a047, #66bb6a);
+      --slm-list-gradient-2: linear-gradient(135deg, #fb8c00, #ffb74d);
+      --slm-list-gradient-3: linear-gradient(135deg, #8e24aa, #ab47bc);
+      --slm-list-gradient-4: linear-gradient(135deg, #00838f, #26c6da);
+      --slm-list-gradient-5: linear-gradient(135deg, #c2185b, #ec407a);
+      --slm-total-bar-bg: linear-gradient(90deg, #2a2f3b 0%, #353d4a 100%);
     }
 
     /* ===============================
@@ -879,6 +903,14 @@ class ShoppingListManagerCard extends LitElement {
 
       --slm-shadow-soft: 0 2px 8px rgba(0,0,0,0.4);
       --slm-shadow-medium: 0 6px 20px rgba(0,0,0,0.7);
+
+      --slm-list-gradient-0: linear-gradient(135deg, #1f6feb, #58a6ff);
+      --slm-list-gradient-1: linear-gradient(135deg, #238636, #3fb950);
+      --slm-list-gradient-2: linear-gradient(135deg, #9e6a03, #d29922);
+      --slm-list-gradient-3: linear-gradient(135deg, #6e40c9, #a371f7);
+      --slm-list-gradient-4: linear-gradient(135deg, #0d7377, #14a8b5);
+      --slm-list-gradient-5: linear-gradient(135deg, #b62324, #f85149);
+      --slm-total-bar-bg: linear-gradient(90deg, #1f6feb 0%, #58a6ff 100%);
     }
 
     /* ===============================
@@ -905,6 +937,14 @@ class ShoppingListManagerCard extends LitElement {
 
       --slm-shadow-soft: 0 2px 8px rgba(0,0,0,0.5);
       --slm-shadow-medium: 0 6px 20px rgba(0,0,0,0.7);
+
+      --slm-list-gradient-0: linear-gradient(135deg, #c48c15, #f0a500);
+      --slm-list-gradient-1: linear-gradient(135deg, #5a9e34, #76c442);
+      --slm-list-gradient-2: linear-gradient(135deg, #c84815, #ff6b35);
+      --slm-list-gradient-3: linear-gradient(135deg, #8b3a8b, #b05ab0);
+      --slm-list-gradient-4: linear-gradient(135deg, #1a5f7a, #2d9ab5);
+      --slm-list-gradient-5: linear-gradient(135deg, #c23838, #e05555);
+      --slm-total-bar-bg: linear-gradient(90deg, #c48c15 0%, #f0a500 100%);
     }
 
     /* ===============================
@@ -931,6 +971,14 @@ class ShoppingListManagerCard extends LitElement {
 
       --slm-shadow-soft: 0 2px 6px rgba(26,35,50,0.08);
       --slm-shadow-medium: 0 4px 14px rgba(26,35,50,0.14);
+
+      --slm-list-gradient-0: linear-gradient(135deg, #1a56db, #2979ff);
+      --slm-list-gradient-1: linear-gradient(135deg, #00695c, #00897b);
+      --slm-list-gradient-2: linear-gradient(135deg, #bf360c, #f57c00);
+      --slm-list-gradient-3: linear-gradient(135deg, #4527a0, #673ab7);
+      --slm-list-gradient-4: linear-gradient(135deg, #006064, #00bcd4);
+      --slm-list-gradient-5: linear-gradient(135deg, #880e4f, #e91e63);
+      --slm-total-bar-bg: linear-gradient(90deg, #1a56db 0%, #2979ff 100%);
     }
 
     /* ===============================
@@ -957,6 +1005,14 @@ class ShoppingListManagerCard extends LitElement {
 
       --slm-shadow-soft: 0 2px 6px rgba(45,58,42,0.08);
       --slm-shadow-medium: 0 4px 14px rgba(45,58,42,0.13);
+
+      --slm-list-gradient-0: linear-gradient(135deg, #2e7d32, #4caf50);
+      --slm-list-gradient-1: linear-gradient(135deg, #0277bd, #29b6f6);
+      --slm-list-gradient-2: linear-gradient(135deg, #e65100, #ffb300);
+      --slm-list-gradient-3: linear-gradient(135deg, #6a1b9a, #9c27b0);
+      --slm-list-gradient-4: linear-gradient(135deg, #006064, #26c6da);
+      --slm-list-gradient-5: linear-gradient(135deg, #b71c1c, #e53935);
+      --slm-total-bar-bg: linear-gradient(90deg, #2e7d32 0%, #4caf50 100%);
     }
 
     /* ===============================
@@ -983,6 +1039,14 @@ class ShoppingListManagerCard extends LitElement {
 
       --slm-shadow-soft: 0 2px 6px rgba(61,31,53,0.07);
       --slm-shadow-medium: 0 4px 14px rgba(61,31,53,0.13);
+
+      --slm-list-gradient-0: linear-gradient(135deg, #a03a62, #c2668a);
+      --slm-list-gradient-1: linear-gradient(135deg, #4a7a6a, #7cb9a3);
+      --slm-list-gradient-2: linear-gradient(135deg, #b06040, #e8a87c);
+      --slm-list-gradient-3: linear-gradient(135deg, #7a4090, #b07abd);
+      --slm-list-gradient-4: linear-gradient(135deg, #3570a0, #6aacdb);
+      --slm-list-gradient-5: linear-gradient(135deg, #a03030, #e57373);
+      --slm-total-bar-bg: linear-gradient(90deg, #a03a62 0%, #c2668a 100%);
     }
 
   `;
