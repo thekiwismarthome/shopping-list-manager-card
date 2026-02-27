@@ -41,7 +41,7 @@ class SLMLoyaltyCardsView extends LitElement {
       logo: '',
       notes: '',
       color: '#9fa8da',
-      private: false
+      private: true
     };
     this._scannerInstance = null;
     this._loadedForUserId = null;
@@ -166,7 +166,7 @@ class SLMLoyaltyCardsView extends LitElement {
       logo: '',
       notes: '',
       color: '#9fa8da',
-      private: false
+      private: true
     };
     this.showAddDialog = true;
   }
@@ -239,7 +239,7 @@ class SLMLoyaltyCardsView extends LitElement {
       logo: card.logo,
       notes: card.notes,
       color: card.color,
-      private: false
+      private: true
     };
     try {
       const result = await this.api.addLoyaltyCard(cardData);
