@@ -159,6 +159,8 @@ class SLMListHeader extends LitElement {
     }
     ha-icon {
       --mdc-icon-size: 24px;
+      color: var(--slm-text-primary);
+      --icon-primary-color: var(--slm-text-primary);
     }
     h2 {
       margin: 0;
