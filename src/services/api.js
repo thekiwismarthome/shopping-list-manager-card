@@ -28,11 +28,12 @@ export class ShoppingListAPI {
     return await this.hass.callWS({ type: 'shopping_list_manager/lists/get_all' });
   }
 
-  async createList(name, icon = 'mdi:cart') {
-    return await this.hass.callWS({ 
+  async createList(name, icon = 'mdi:cart', isPrivate = true) {
+    return await this.hass.callWS({
       type: 'shopping_list_manager/lists/create',
       name,
-      icon
+      icon,
+      private: isPrivate
     });
   }
 
@@ -180,6 +181,84 @@ export class ShoppingListAPI {
   async getCategories() {
     return await this.hass.callWS({
       type: 'shopping_list_manager/categories/get_all'
+    });
+  }
+
+  // Integration settings
+  async getIntegrationSettings() {
+    return await this.hass.callWS({
+      type: 'shopping_list_manager/get_integration_settings'
+    });
+  }
+
+  async setCountry(country) {
+    return await this.hass.callWS({
+      type: 'shopping_list_manager/set_country',
+      country
+    });
+  }
+
+  async updateListMembers(listId, allowedUsers) {
+    return await this.hass.callWS({
+      type: 'shopping_list_manager/lists/update_members',
+      list_id: listId,
+      allowed_users: allowedUsers
+    });
+  }
+
+  async getHAUsers() {
+    return await this.hass.callWS({
+      type: 'shopping_list_manager/users/get_all'
+    });
+  }
+
+  async exportData() {
+    return await this.hass.callWS({
+      type: 'shopping_list_manager/export_data'
+    });
+  }
+
+  async importData(data) {
+    return await this.hass.callWS({
+      type: 'shopping_list_manager/import_data',
+      data
+    });
+  }
+
+  // Loyalty cards
+  async getLoyaltyCards() {
+    return await this.hass.callWS({
+      type: 'shopping_list_manager/loyalty/get_all'
+    });
+  }
+
+  async addLoyaltyCard(cardData) {
+    return await this.hass.callWS({
+      type: 'shopping_list_manager/loyalty/add',
+      ...cardData
+    });
+  }
+
+  async updateLoyaltyCard(cardId, cardData) {
+    return await this.hass.callWS({
+      type: 'shopping_list_manager/loyalty/update',
+      card_id: cardId,
+      ...cardData
+    });
+  }
+
+  async deleteLoyaltyCard(cardId) {
+    return await this.hass.callWS({
+      type: 'shopping_list_manager/loyalty/delete',
+      card_id: cardId
+    });
+  }
+
+  async updateLoyaltyCardMembers(cardId, allowedUsers) {
+    return await this.hass.callWS({
+      type: 'shopping_list_manager/loyalty/update_members',
+      card_id: cardId,
+      allowed_users: allowedUsers
     });
   }
 }

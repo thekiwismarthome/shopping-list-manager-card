@@ -8,6 +8,8 @@ class SLMListCard extends LitElement {
     totalCost: { type: Number },
     currency: { type: String },
     emoji: { type: String },
+    currentUserId: { type: String },
+    isAdmin: { type: Boolean },
     showMenu: { type: Boolean },
     menuX: { type: Number },
     menuY: { type: Number }
@@ -19,8 +21,22 @@ class SLMListCard extends LitElement {
     this.itemCount = 0;
     this.totalCost = 0;
     this.currency = 'NZD';
+    this.currentUserId = '';
+    this.isAdmin = false;
     this.menuX = 0;
     this.menuY = 0;
+  }
+
+  get _isPrivate() {
+    return !!this.list?.owner_id;
+  }
+
+  get _isOwner() {
+    return this.list?.owner_id === this.currentUserId;
+  }
+
+  get _canManageMembers() {
+    return this._isPrivate && (this._isOwner || this.isAdmin);
   }
 
   getColorClass() {
@@ -69,13 +85,19 @@ class SLMListCard extends LitElement {
 
   render() {
     return html`
-      <div 
+      <div
         class="list-card ${this.isActive ? 'active' : 'inactive'} ${this.getColorClass()}"
         @click=${this.handleCardClick}
       >
 
         ${this.isActive ? html`
           <div class="active-badge">Active</div>
+        ` : ''}
+
+        ${this._isPrivate ? html`
+          <div class="private-badge">
+            <ha-icon icon="mdi:lock"></ha-icon>
+          </div>
         ` : ''}
 
         <div class="card-header">
@@ -89,34 +111,35 @@ class SLMListCard extends LitElement {
           <span>${this.currency} $${this.totalCost.toFixed(2)}</span>
         </div>
 
-
         <button class="menu-btn" @click=${this.handleMenuClick}>
           <ha-icon icon="mdi:dots-vertical"></ha-icon>
         </button>
-
-        ${this.showMenu ? html`
-          <div class="menu-overlay" @click=${(e) => { e.stopPropagation(); this.showMenu = false; }}>
-            <div class="menu-popup" style="left: ${this.menuX}px; top: ${this.menuY}px;">
-              <button @click=${(e) => this.handleAction('rename', e)}>
-                <ha-icon icon="mdi:pencil"></ha-icon>
-                Rename
-              </button>
-              <button @click=${(e) => this.handleAction('share', e)}>
-                <ha-icon icon="mdi:share-variant"></ha-icon>
-                Share
-              </button>
-              <button @click=${(e) => this.handleAction('copy', e)}>
-                <ha-icon icon="mdi:content-copy"></ha-icon>
-                Copy
-              </button>
-              <button class="danger" @click=${(e) => this.handleAction('delete', e)}>
-                <ha-icon icon="mdi:delete"></ha-icon>
-                Delete
-              </button>
-            </div>
-          </div>
-        ` : ''}
       </div>
+
+      ${this.showMenu ? html`
+        <div class="menu-overlay" @click=${(e) => { e.stopPropagation(); this.showMenu = false; }}>
+          <div class="menu-popup" style="left: ${this.menuX}px; top: ${this.menuY}px;">
+            <button @click=${(e) => this.handleAction('rename', e)}>
+              <ha-icon icon="mdi:pencil"></ha-icon>
+              Rename
+            </button>
+            ${this._canManageMembers ? html`
+              <button @click=${(e) => this.handleAction('members', e)}>
+                <ha-icon icon="mdi:account-multiple"></ha-icon>
+                Manage Members
+              </button>
+            ` : ''}
+            <button @click=${(e) => this.handleAction('copy', e)}>
+              <ha-icon icon="mdi:content-copy"></ha-icon>
+              Copy
+            </button>
+            <button class="danger" @click=${(e) => this.handleAction('delete', e)}>
+              <ha-icon icon="mdi:delete"></ha-icon>
+              Delete
+            </button>
+          </div>
+        </div>
+      ` : ''}
     `;
   }
 
@@ -179,6 +202,18 @@ class SLMListCard extends LitElement {
       border-radius: 6px;
       font-size: 10px;
       font-weight: 700;
+    }
+    .private-badge {
+      position: absolute;
+      bottom: 10px;
+      right: 44px;
+      opacity: 0.7;
+      display: flex;
+      align-items: center;
+    }
+    .private-badge ha-icon {
+      --mdc-icon-size: 16px;
+      color: white;
     }
     .card-header {
       display: flex;

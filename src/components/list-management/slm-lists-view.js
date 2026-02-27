@@ -8,10 +8,18 @@ class SLMListsView extends LitElement {
     activeList: { type: Object },
     items: { type: Array },
     total: { type: Object },
-    listTotals: { type: Object }, 
+    listTotals: { type: Object },
+    currentUserId: { type: String },
+    isAdmin: { type: Boolean },
     showCreateDialog: { type: Boolean },
     newListName: { type: String },
-    newListIcon: { type: String }
+    newListIcon: { type: String },
+    _newListPrivate: { type: Boolean, state: true },
+    _showMembersDialog: { type: Boolean, state: true },
+    _managingListId: { type: String, state: true },
+    _haUsers: { type: Array, state: true },
+    _membersLoading: { type: Boolean, state: true },
+    _membersSaving: { type: Boolean, state: true },
   };
 
   constructor() {
@@ -21,6 +29,14 @@ class SLMListsView extends LitElement {
     this.listTotals = {};
     this.newListName = '';
     this.newListIcon = 'mdi:cart';
+    this.currentUserId = '';
+    this.isAdmin = false;
+    this._newListPrivate = true;
+    this._showMembersDialog = false;
+    this._managingListId = null;
+    this._haUsers = [];
+    this._membersLoading = false;
+    this._membersSaving = false;
   }
 
   handleCreateList() {
@@ -48,15 +64,65 @@ class SLMListsView extends LitElement {
 
   async handleSaveNewList() {
     if (this.newListName.trim()) {
-      await this.api.createList(this.newListName, this.newListIcon);
+      await this.api.createList(this.newListName, this.newListIcon, this._newListPrivate);
       this.showCreateDialog = false;
       this.newListName = '';
       this.newListIcon = 'mdi:cart';
-      
+      this._newListPrivate = true;
+
       this.dispatchEvent(new CustomEvent('lists-updated', {
         bubbles: true,
         composed: true
       }));
+    }
+  }
+
+  async _openMembersDialog(listId) {
+    this._managingListId = listId;
+    this._showMembersDialog = true;
+    this._membersLoading = true;
+    try {
+      const result = await this.api.getHAUsers();
+      this._haUsers = result.users || [];
+    } catch (err) {
+      console.error('[SLM] Failed to load HA users:', err);
+      this._haUsers = [];
+    } finally {
+      this._membersLoading = false;
+    }
+  }
+
+  _closeMembersDialog() {
+    this._showMembersDialog = false;
+    this._managingListId = null;
+    this._haUsers = [];
+  }
+
+  get _managingList() {
+    return this.lists.find(l => l.id === this._managingListId) || null;
+  }
+
+  _isMember(userId) {
+    const lst = this._managingList;
+    return lst ? (lst.allowed_users || []).includes(userId) : false;
+  }
+
+  async _toggleMember(userId) {
+    const lst = this._managingList;
+    if (!lst) return;
+    const current = lst.allowed_users || [];
+    const updated = current.includes(userId)
+      ? current.filter(id => id !== userId)
+      : [...current, userId];
+
+    this._membersSaving = true;
+    try {
+      await this.api.updateListMembers(lst.id, updated);
+      this.dispatchEvent(new CustomEvent('lists-updated', { bubbles: true, composed: true }));
+    } catch (err) {
+      console.error('[SLM] Failed to update members:', err);
+    } finally {
+      this._membersSaving = false;
     }
   }
 
@@ -93,8 +159,8 @@ class SLMListsView extends LitElement {
         }
         break;
 
-      case 'share':
-        alert('Share feature coming soon!');
+      case 'members':
+        await this._openMembersDialog(listId);
         break;
 
       case 'copy':
@@ -158,12 +224,50 @@ class SLMListsView extends LitElement {
                 .currency=${this.listTotals[list.id]?.currency || this.total?.currency || 'NZD'}
 
                 .emoji=${this.getListEmoji(list.icon)}
+                .currentUserId=${this.currentUserId}
+                .isAdmin=${this.isAdmin}
                 @list-select=${this.handleListSelect}
                 @list-action=${this.handleListAction}
               ></slm-list-card>
             `)}
           </div>
         `}
+
+        ${this._showMembersDialog ? html`
+          <div class="overlay" @click=${this._closeMembersDialog}>
+            <div class="dialog" @click=${(e) => e.stopPropagation()}>
+              <div class="dialog-header">
+                <h3>Manage Members</h3>
+                <button @click=${this._closeMembersDialog}><span class="emoji">✖️</span></button>
+              </div>
+              <div class="dialog-content members-content">
+                <p class="members-hint">Select who else can see and edit this list.</p>
+                ${this._membersLoading ? html`
+                  <div class="members-loading">Loading users…</div>
+                ` : this._haUsers.filter(u => u.id !== this._managingList?.owner_id).length === 0 ? html`
+                  <div class="members-loading">No other users found.</div>
+                ` : this._haUsers
+                  .filter(u => u.id !== this._managingList?.owner_id)
+                  .map(user => html`
+                    <label class="member-row ${this._membersSaving ? 'disabled' : ''}">
+                      <input
+                        type="checkbox"
+                        .checked=${this._isMember(user.id)}
+                        ?disabled=${this._membersSaving}
+                        @change=${() => this._toggleMember(user.id)}
+                      />
+                      <ha-icon icon="mdi:account"></ha-icon>
+                      <span>${user.name || user.id}</span>
+                    </label>
+                  `)
+                }
+              </div>
+              <div class="dialog-footer">
+                <button class="save-btn" @click=${this._closeMembersDialog}>Done</button>
+              </div>
+            </div>
+          </div>
+        ` : ''}
 
         ${this.showCreateDialog ? html`
           <div class="overlay" @click=${() => this.showCreateDialog = false}>
@@ -195,6 +299,16 @@ class SLMListsView extends LitElement {
                     </button>
                   `)}
                 </div>
+
+                <label class="privacy-label">
+                  <input
+                    type="checkbox"
+                    .checked=${this._newListPrivate}
+                    @change=${(e) => this._newListPrivate = e.target.checked}
+                  />
+                  <ha-icon icon="mdi:lock"></ha-icon>
+                  Private — only visible to me (and members I add)
+                </label>
               </div>
               <div class="dialog-footer">
                 <button class="cancel-btn" @click=${() => this.showCreateDialog = false}>Cancel</button>
@@ -386,6 +500,65 @@ class SLMListsView extends LitElement {
     .save-btn {
       background: var(--primary-color);
       color: white;
+    }
+    .privacy-label {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--secondary-text-color);
+      cursor: pointer;
+      margin-top: 4px;
+    }
+    .privacy-label input[type="checkbox"] {
+      width: 16px;
+      height: 16px;
+      cursor: pointer;
+      accent-color: var(--primary-color);
+    }
+    .privacy-label ha-icon {
+      --mdc-icon-size: 16px;
+      color: var(--secondary-text-color);
+    }
+    .members-content {
+      max-height: 300px;
+      overflow-y: auto;
+    }
+    .members-hint {
+      margin: 0 0 12px;
+      font-size: 13px;
+      color: var(--secondary-text-color);
+    }
+    .members-loading {
+      padding: 16px 0;
+      text-align: center;
+      color: var(--secondary-text-color);
+      font-size: 13px;
+    }
+    .member-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 0;
+      border-bottom: 1px solid var(--divider-color);
+      font-size: 14px;
+      color: var(--primary-text-color);
+      cursor: pointer;
+    }
+    .member-row.disabled {
+      opacity: 0.5;
+      pointer-events: none;
+    }
+    .member-row input[type="checkbox"] {
+      width: 18px;
+      height: 18px;
+      cursor: pointer;
+      accent-color: var(--primary-color);
+    }
+    .member-row ha-icon {
+      --mdc-icon-size: 20px;
+      color: var(--secondary-text-color);
     }
   `;
 }
