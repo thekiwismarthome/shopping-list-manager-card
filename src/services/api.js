@@ -224,4 +224,41 @@ export class ShoppingListAPI {
       data
     });
   }
+
+  // Loyalty cards
+  async getLoyaltyCards() {
+    return await this.hass.callWS({
+      type: 'shopping_list_manager/loyalty/get_all'
+    });
+  }
+
+  async addLoyaltyCard(cardData) {
+    return await this.hass.callWS({
+      type: 'shopping_list_manager/loyalty/add',
+      ...cardData
+    });
+  }
+
+  async updateLoyaltyCard(cardId, cardData) {
+    return await this.hass.callWS({
+      type: 'shopping_list_manager/loyalty/update',
+      card_id: cardId,
+      ...cardData
+    });
+  }
+
+  async deleteLoyaltyCard(cardId) {
+    return await this.hass.callWS({
+      type: 'shopping_list_manager/loyalty/delete',
+      card_id: cardId
+    });
+  }
+
+  async updateLoyaltyCardMembers(cardId, allowedUsers) {
+    return await this.hass.callWS({
+      type: 'shopping_list_manager/loyalty/update_members',
+      card_id: cardId,
+      allowed_users: allowedUsers
+    });
+  }
 }
