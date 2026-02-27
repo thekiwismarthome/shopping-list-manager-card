@@ -189,6 +189,12 @@ class ShoppingListManagerCard extends LitElement {
     super.disconnectedCallback();
     this.releaseWakeLock();
     document.removeEventListener('visibilitychange', this._visibilityHandler);
+
+    // Decrement instance counter so position slots are correctly reclaimed
+    if (this._baseCardId) {
+      const count = _slmInstanceCounters.get(this._baseCardId) ?? 1;
+      _slmInstanceCounters.set(this._baseCardId, Math.max(0, count - 1));
+    }
   }
 
   async acquireWakeLock() {
@@ -243,13 +249,13 @@ class ShoppingListManagerCard extends LitElement {
 
       const listsResult = await this.api.getLists();
       this.lists = listsResult.lists || [];
-      
+
       const lastListKey = `slm_last_list_${this._settingsUserId || 'default'}`;
       if (this.settings.openLastUsedList) {
         const lastListId = localStorage.getItem(lastListKey);
-        this.activeList = this.lists.find(l => l.id === lastListId) || 
-                         this.lists.find(l => l.active) || 
-                         this.lists[0];
+        this.activeList = this.lists.find(l => l.id === lastListId) ||
+          this.lists.find(l => l.active) ||
+          this.lists[0];
       } else {
         this.activeList = this.lists.find(l => l.active) || this.lists[0];
       }
@@ -296,7 +302,7 @@ class ShoppingListManagerCard extends LitElement {
     const item = this.items.find(i => i.id === itemId);
 
     if (item && !item.checked) {
-      await this.api.incrementItem(itemId, 1);
+      this.api.incrementItem(itemId, 1);
       this.loadActiveListData();
     }
   }
@@ -395,15 +401,15 @@ class ShoppingListManagerCard extends LitElement {
 
   trackRecentlyUsed(productId) {
     if (!productId) return;
-    
+
     const recentKey = 'slm_recent_products';
     const saved = localStorage.getItem(recentKey);
     const recent = saved ? JSON.parse(saved) : [];
-    
+
     // Remove if exists, add to front
     const filtered = recent.filter(id => id !== productId);
     filtered.unshift(productId);
-    
+
     // Keep only last 50
     const trimmed = filtered.slice(0, 50);
     localStorage.setItem(recentKey, JSON.stringify(trimmed));
@@ -497,9 +503,9 @@ class ShoppingListManagerCard extends LitElement {
       .filter(i => !i.checked)
       .map(i => `${i.quantity} ${i.unit} ${i.name}`)
       .join('\n');
-    
+
     const shareText = `${listName}\n\n${itemsList}`;
-    
+
     if (navigator.share) {
       try {
         await navigator.share({
@@ -520,7 +526,7 @@ class ShoppingListManagerCard extends LitElement {
 
   async subscribeToUpdates() {
     if (!this.hass?.connection) return;
-    
+
     try {
       // Use our custom WebSocket subscription instead of direct HA event subscription
       // This bypasses HA's non-admin restriction on custom events
@@ -531,10 +537,10 @@ class ShoppingListManagerCard extends LitElement {
         },
         { type: 'shopping_list_manager/subscribe' }
       );
-      
+
       this._unsubscribers = [unsubscribe];
       console.log('[SLM] ✅ Subscribed to shopping list updates');
-      
+
     } catch (err) {
       console.error('[SLM] ❌ Failed to subscribe:', err);
     }
@@ -542,25 +548,6 @@ class ShoppingListManagerCard extends LitElement {
 
   disconnectedCallback() {
     super.disconnectedCallback();
-
-    // Decrement instance counter so position slots are correctly reclaimed
-    if (this._baseCardId) {
-      const count = _slmInstanceCounters.get(this._baseCardId) ?? 1;
-      _slmInstanceCounters.set(this._baseCardId, Math.max(0, count - 1));
-    }
-
-    // Clean up event subscriptions when card is removed
-    if (this._unsubscribers) {
-      console.log('[SLM] Cleaning up event subscriptions');
-      this._unsubscribers.forEach(unsub => {
-        try {
-          unsub();
-        } catch (err) {
-          console.error('[SLM] Error unsubscribing:', err);
-        }
-      });
-      this._unsubscribers = [];
-    }
   }
 
   renderCurrentView() {
@@ -1167,6 +1154,86 @@ class ShoppingListManagerCard extends LitElement {
       --slm-cat-baby: #f48fb1;
       --slm-cat-other: #b0bec5;
       --slm-cat-recent: #b48fa5;
+    }
+
+    /* ===============================
+      DARK – Neon (Purple & Cyan)
+    ================================ */
+    :host([data-theme-name="neon"]) {
+      --slm-bg-main: #0a0b10;
+      --slm-bg-surface: #121420;
+      --slm-bg-elevated: #1a1d2e;
+
+      --slm-text-primary: #e0e0f0;
+      --slm-text-secondary: #a0a5c0;
+      --slm-text-muted: #6a6f8e;
+
+      --slm-border-subtle: #2a2d45;
+
+      --slm-accent-primary: #bb86fc;
+      --slm-accent-secondary: #03dac6;
+      --slm-accent-warning: #ffb74d;
+      --slm-accent-danger: #cf6679;
+
+      --slm-tile-bg: #1a1d2e;
+      --slm-tile-checked-opacity: 0.3;
+
+      --slm-shadow-soft: 0 4px 10px rgba(0,0,0,0.4);
+      --slm-shadow-medium: 0 8px 25px rgba(0,0,0,0.7);
+
+      --slm-list-gradient-0: linear-gradient(135deg, #6200ee, #bb86fc);
+      --slm-list-gradient-1: linear-gradient(135deg, #018786, #03dac6);
+      --slm-list-gradient-2: linear-gradient(135deg, #f57c00, #ffb74d);
+      --slm-list-gradient-3: linear-gradient(135deg, #7b1fa2, #ab47bc);
+      --slm-list-gradient-4: linear-gradient(135deg, #00796b, #009688);
+      --slm-list-gradient-5: linear-gradient(135deg, #c2185b, #ec407a);
+      --slm-total-bar-bg: linear-gradient(90deg, #6200ee 0%, #bb86fc 100%);
+
+      --slm-cat-produce: #03dac6;
+      --slm-cat-dairy: #bb86fc;
+      --slm-cat-meat: #cf6679;
+      --slm-cat-other: #6a6f8e;
+      --slm-cat-recent: #a0a5c0;
+    }
+
+    /* ===============================
+      LIGHT – Ocean (Ocean Blue)
+    ================================ */
+    :host([data-theme-name="ocean"]) {
+      --slm-bg-main: #f0f7ff;
+      --slm-bg-surface: #ffffff;
+      --slm-bg-elevated: #f9fbff;
+
+      --slm-text-primary: #1a3a5f;
+      --slm-text-secondary: #4a6b8c;
+      --slm-text-muted: #7a9bbd;
+
+      --slm-border-subtle: #d0e1f2;
+
+      --slm-accent-primary: #0077ff;
+      --slm-accent-secondary: #4c51bf;
+      --slm-accent-warning: #f6ad55;
+      --slm-accent-danger: #e53e3e;
+
+      --slm-tile-bg: #ffffff;
+      --slm-tile-checked-opacity: 0.4;
+
+      --slm-shadow-soft: 0 2px 8px rgba(26,58,95,0.08);
+      --slm-shadow-medium: 0 6px 18px rgba(26,58,95,0.15);
+
+      --slm-list-gradient-0: linear-gradient(135deg, #0077ff, #3182ce);
+      --slm-list-gradient-1: linear-gradient(135deg, #2c5282, #4c51bf);
+      --slm-list-gradient-2: linear-gradient(135deg, #c05621, #f6ad55);
+      --slm-list-gradient-3: linear-gradient(135deg, #6b46c1, #9f7aea);
+      --slm-list-gradient-4: linear-gradient(135deg, #2c7a7b, #38b2ac);
+      --slm-list-gradient-5: linear-gradient(135deg, #9b2c2c, #e53e3e);
+      --slm-total-bar-bg: linear-gradient(90deg, #0077ff 0%, #4c51bf 100%);
+
+      --slm-cat-produce: #38b2ac;
+      --slm-cat-dairy: #4c51bf;
+      --slm-cat-meat: #e53e3e;
+      --slm-cat-other: #7a9bbd;
+      --slm-cat-recent: #4a6b8c;
     }
 
   `;

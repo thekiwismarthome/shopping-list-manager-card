@@ -285,8 +285,7 @@ class SLMSettingsView extends LitElement {
     }
     .chevron {
       font-size: 14px;
-      color: var(--slm-text-muted);
-      opacity: 0.7;
+      opacity: 0.4;
     }
     .toggle {
       position: relative;

@@ -18,7 +18,8 @@ class SLMAppearanceSettings extends LitElement {
   _themeLabel(theme) {
     const labels = {
       soft: 'Soft Pastel', arctic: '🧊 Arctic', meadow: '🌿 Meadow',
-      blossom: '🌸 Blossom', midnight: '🌊 Midnight Ocean', ember: '🔥 Ember'
+      blossom: '🌸 Blossom', midnight: '🌊 Midnight Ocean', ember: '🔥 Ember',
+      neon: '🍇 Neon', ocean: '🌊 Ocean'
     };
     return labels[theme] || 'Soft Pastel';
   }
@@ -61,7 +62,7 @@ class SLMAppearanceSettings extends LitElement {
             <select
               class="theme-select"
               @change=${(e) =>
-                this.handleSettingChange('theme', e.target.value)}
+        this.handleSettingChange('theme', e.target.value)}
             >
               <optgroup label="All Modes">
                 <option value="soft" ?selected=${!this.settings.theme || this.settings.theme === 'soft'}>
@@ -78,6 +79,9 @@ class SLMAppearanceSettings extends LitElement {
                 <option value="blossom" ?selected=${this.settings.theme === 'blossom'}>
                   🌸 Blossom
                 </option>
+                <option value="ocean" ?selected=${this.settings.theme === 'ocean'}>
+                  🌊 Ocean
+                </option>
               </optgroup>
               <optgroup label="Dark Themes">
                 <option value="midnight" ?selected=${this.settings.theme === 'midnight'}>
@@ -85,6 +89,9 @@ class SLMAppearanceSettings extends LitElement {
                 </option>
                 <option value="ember" ?selected=${this.settings.theme === 'ember'}>
                   🔥 Ember
+                </option>
+                <option value="neon" ?selected=${this.settings.theme === 'neon'}>
+                  🍇 Neon
                 </option>
               </optgroup>
             </select>
@@ -217,9 +224,9 @@ class SLMAppearanceSettings extends LitElement {
           <slm-dark-mode-popup
             .currentMode=${this.settings.darkMode}
             @mode-selected=${(e) => {
-              this.handleSettingChange('darkMode', e.detail.mode);
-              this.showDarkModePopup = false;
-            }}
+          this.handleSettingChange('darkMode', e.detail.mode);
+          this.showDarkModePopup = false;
+        }}
             @close=${() => this.showDarkModePopup = false}
           ></slm-dark-mode-popup>
         ` : ''}
@@ -228,9 +235,9 @@ class SLMAppearanceSettings extends LitElement {
           <slm-font-settings
             .currentFont=${this.settings.fontFamily}
             @font-selected=${(e) => {
-              this.handleSettingChange('fontFamily', e.detail.font);
-              this.showFontSettings = false;
-            }}
+          this.handleSettingChange('fontFamily', e.detail.font);
+          this.showFontSettings = false;
+        }}
             @close=${() => this.showFontSettings = false}
           ></slm-font-settings>
         ` : ''}
