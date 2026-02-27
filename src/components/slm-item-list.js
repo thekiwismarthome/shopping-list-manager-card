@@ -384,17 +384,20 @@ class SLMItemList extends LitElement {
     return html`
       <div class="list-container">
 
-        ${sections.map(section => html`
+        ${sections.map(section => {
+          const catColor = this.getCategoryColor(section.category.id);
+          return html`
           <div class="list-section">
             ${mode === 'category' ? html`
-              <div class="category-header" style="${this.getCategoryHeaderStyle(section.category.color || '#9fa8da')}">
+              <div class="category-header" style="${this.getCategoryHeaderStyle(catColor)}">
                 <span class="cat-emoji">${this.getCategoryEmoji(section.category.id)}</span>
-                <span class="cat-name" style="color: ${section.category.color || '#9fa8da'}">${section.category.name}</span>
+                <span class="cat-name" style="color: ${catColor}">${section.category.name}</span>
               </div>
             ` : ''}
             ${section.items.map(item => this.renderRow(item))}
           </div>
-        `)}
+        `;})}
+
 
         ${showRecent && this._recentItems.length > 0 ? html`
           <div class="list-section">

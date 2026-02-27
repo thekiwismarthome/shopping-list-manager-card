@@ -275,7 +275,12 @@ class SLMAppearanceSettings extends LitElement {
       cursor: pointer;
       display: flex;
       align-items: center;
+      color: var(--slm-text-primary);
       -webkit-tap-highlight-color: transparent;
+    }
+    ha-icon {
+      color: var(--slm-text-primary);
+      --icon-primary-color: var(--slm-text-primary);
     }
     .header h2 {
       margin: 0;
