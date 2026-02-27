@@ -15,6 +15,14 @@ class SLMAppearanceSettings extends LitElement {
     this.showFontSettings = false;
   }
 
+  _themeLabel(theme) {
+    const labels = {
+      soft: 'Soft Pastel', arctic: '🧊 Arctic', meadow: '🌿 Meadow',
+      blossom: '🌸 Blossom', midnight: '🌊 Midnight Ocean', ember: '🔥 Ember'
+    };
+    return labels[theme] || 'Soft Pastel';
+  }
+
   handleSettingChange(key, value) {
     this.dispatchEvent(new CustomEvent('settings-changed', {
       detail: { [key]: value },
@@ -44,9 +52,9 @@ class SLMAppearanceSettings extends LitElement {
 
           <div class="settings-item">
             <div class="item-content">
-              <div class="item-title">Theme Style</div>
+              <div class="item-title">Theme</div>
               <div class="item-subtitle">
-                ${this.settings.theme || 'soft'}
+                ${this._themeLabel(this.settings.theme)}
               </div>
             </div>
 
@@ -55,15 +63,30 @@ class SLMAppearanceSettings extends LitElement {
               @change=${(e) =>
                 this.handleSettingChange('theme', e.target.value)}
             >
-              <option value="soft" ?selected=${this.settings.theme === 'soft'}>
-                Soft Pastel
-              </option>
-              <option value="minimal" ?selected=${this.settings.theme === 'minimal'}>
-                Minimal
-              </option>
-              <option value="vibrant" ?selected=${this.settings.theme === 'vibrant'}>
-                Vibrant
-              </option>
+              <optgroup label="All Modes">
+                <option value="soft" ?selected=${!this.settings.theme || this.settings.theme === 'soft'}>
+                  Soft Pastel
+                </option>
+              </optgroup>
+              <optgroup label="Light Themes">
+                <option value="arctic" ?selected=${this.settings.theme === 'arctic'}>
+                  🧊 Arctic
+                </option>
+                <option value="meadow" ?selected=${this.settings.theme === 'meadow'}>
+                  🌿 Meadow
+                </option>
+                <option value="blossom" ?selected=${this.settings.theme === 'blossom'}>
+                  🌸 Blossom
+                </option>
+              </optgroup>
+              <optgroup label="Dark Themes">
+                <option value="midnight" ?selected=${this.settings.theme === 'midnight'}>
+                  🌊 Midnight Ocean
+                </option>
+                <option value="ember" ?selected=${this.settings.theme === 'ember'}>
+                  🔥 Ember
+                </option>
+              </optgroup>
             </select>
           </div>
 

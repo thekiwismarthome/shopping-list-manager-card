@@ -217,6 +217,14 @@ class ShoppingListManagerCard extends LitElement {
       this.removeAttribute('data-theme');
     }
 
+    // Apply named theme (layered on top of dark/light)
+    const themeName = this.settings.theme;
+    if (themeName && themeName !== 'soft') {
+      this.setAttribute('data-theme-name', themeName);
+    } else {
+      this.removeAttribute('data-theme-name');
+    }
+
     // Apply font size as a CSS custom property (cascades through shadow DOM)
     if (!this.settings.useSystemTextSize) {
       this.style.setProperty('--slm-font-size-base', `${this.settings.fontSize}px`);
@@ -845,6 +853,136 @@ class ShoppingListManagerCard extends LitElement {
 
       --slm-shadow-soft: 0 2px 6px rgba(0,0,0,0.1);
       --slm-shadow-medium: 0 6px 18px rgba(0,0,0,0.6);
+    }
+
+    /* ===============================
+      DARK – Midnight Ocean
+    ================================ */
+    :host([data-theme="dark"][data-theme-name="midnight"]) {
+      --slm-bg-main: #0d1117;
+      --slm-bg-surface: #161b22;
+      --slm-bg-elevated: #1c2333;
+
+      --slm-text-primary: #c9d1d9;
+      --slm-text-secondary: #8b949e;
+      --slm-text-muted: #6e7681;
+
+      --slm-border-subtle: #21262d;
+
+      --slm-accent-primary: #58a6ff;
+      --slm-accent-secondary: #3fb950;
+      --slm-accent-warning: #d29922;
+      --slm-accent-danger: #f85149;
+
+      --slm-tile-bg: #161b22;
+      --slm-tile-checked-opacity: 0.3;
+
+      --slm-shadow-soft: 0 2px 8px rgba(0,0,0,0.4);
+      --slm-shadow-medium: 0 6px 20px rgba(0,0,0,0.7);
+    }
+
+    /* ===============================
+      DARK – Ember
+    ================================ */
+    :host([data-theme="dark"][data-theme-name="ember"]) {
+      --slm-bg-main: #111111;
+      --slm-bg-surface: #1c1a17;
+      --slm-bg-elevated: #242018;
+
+      --slm-text-primary: #f5f0e8;
+      --slm-text-secondary: #a89880;
+      --slm-text-muted: #7a6a55;
+
+      --slm-border-subtle: #2a2520;
+
+      --slm-accent-primary: #f0a500;
+      --slm-accent-secondary: #76c442;
+      --slm-accent-warning: #ff6b35;
+      --slm-accent-danger: #ff4d4d;
+
+      --slm-tile-bg: #1c1a17;
+      --slm-tile-checked-opacity: 0.3;
+
+      --slm-shadow-soft: 0 2px 8px rgba(0,0,0,0.5);
+      --slm-shadow-medium: 0 6px 20px rgba(0,0,0,0.7);
+    }
+
+    /* ===============================
+      LIGHT – Arctic
+    ================================ */
+    :host([data-theme="light"][data-theme-name="arctic"]) {
+      --slm-bg-main: #f0f4f8;
+      --slm-bg-surface: #ffffff;
+      --slm-bg-elevated: #ffffff;
+
+      --slm-text-primary: #1a2332;
+      --slm-text-secondary: #526070;
+      --slm-text-muted: #8097aa;
+
+      --slm-border-subtle: #d1dce8;
+
+      --slm-accent-primary: #2979ff;
+      --slm-accent-secondary: #00897b;
+      --slm-accent-warning: #f57c00;
+      --slm-accent-danger: #d32f2f;
+
+      --slm-tile-bg: #ffffff;
+      --slm-tile-checked-opacity: 0.4;
+
+      --slm-shadow-soft: 0 2px 6px rgba(26,35,50,0.08);
+      --slm-shadow-medium: 0 4px 14px rgba(26,35,50,0.14);
+    }
+
+    /* ===============================
+      LIGHT – Meadow
+    ================================ */
+    :host([data-theme="light"][data-theme-name="meadow"]) {
+      --slm-bg-main: #f4f7f0;
+      --slm-bg-surface: #fefffe;
+      --slm-bg-elevated: #ffffff;
+
+      --slm-text-primary: #2d3a2a;
+      --slm-text-secondary: #6b7c64;
+      --slm-text-muted: #96a98e;
+
+      --slm-border-subtle: #d4e0cb;
+
+      --slm-accent-primary: #4caf50;
+      --slm-accent-secondary: #29b6f6;
+      --slm-accent-warning: #ffb300;
+      --slm-accent-danger: #e53935;
+
+      --slm-tile-bg: #fefffe;
+      --slm-tile-checked-opacity: 0.4;
+
+      --slm-shadow-soft: 0 2px 6px rgba(45,58,42,0.08);
+      --slm-shadow-medium: 0 4px 14px rgba(45,58,42,0.13);
+    }
+
+    /* ===============================
+      LIGHT – Blossom
+    ================================ */
+    :host([data-theme="light"][data-theme-name="blossom"]) {
+      --slm-bg-main: #fdf8fb;
+      --slm-bg-surface: #ffffff;
+      --slm-bg-elevated: #fff8fc;
+
+      --slm-text-primary: #3d1f35;
+      --slm-text-secondary: #8c5e79;
+      --slm-text-muted: #b48fa5;
+
+      --slm-border-subtle: #f0d6e8;
+
+      --slm-accent-primary: #c2668a;
+      --slm-accent-secondary: #7cb9a3;
+      --slm-accent-warning: #e8a87c;
+      --slm-accent-danger: #e57373;
+
+      --slm-tile-bg: #ffffff;
+      --slm-tile-checked-opacity: 0.4;
+
+      --slm-shadow-soft: 0 2px 6px rgba(61,31,53,0.07);
+      --slm-shadow-medium: 0 4px 14px rgba(61,31,53,0.13);
     }
 
   `;
