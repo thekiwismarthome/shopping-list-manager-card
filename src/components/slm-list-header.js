@@ -135,8 +135,8 @@ class SLMListHeader extends LitElement {
       align-items: center;
       justify-content: space-between;
       padding: 6px 8px;
-      background: var(--card-background-color);
-      border-bottom: 1px solid var(--divider-color);
+      background: var(--slm-bg-surface);
+      border-bottom: 1px solid var(--slm-border-subtle);
       z-index: 100;
       min-height: 40px;
       max-height: 40px;
@@ -147,7 +147,7 @@ class SLMListHeader extends LitElement {
       border: none;
       padding: 4px 8px;
       cursor: pointer;
-      color: var(--primary-text-color);
+      color: var(--slm-text-primary);
       -webkit-tap-highlight-color: transparent;
       display: flex;
       align-items: center;
@@ -164,7 +164,7 @@ class SLMListHeader extends LitElement {
       margin: 0;
       font-size: 16px;
       font-weight: 600;
-      color: var(--primary-text-color);
+      color: var(--slm-text-primary);
       flex: 1;
       text-align: center;
       white-space: nowrap;
@@ -184,10 +184,10 @@ class SLMListHeader extends LitElement {
       position: absolute;
       top: calc(100% + 4px);
       right: 0;
-      background: var(--card-background-color);
-      border: 1px solid var(--divider-color);
+      background: var(--slm-bg-surface);
+      border: 1px solid var(--slm-border-subtle);
       border-radius: 12px;
-      box-shadow: 0 4px 20px rgba(0,0,0,0.25);
+      box-shadow: var(--slm-shadow-medium);
       z-index: 200;
       min-width: 190px;
       padding: 8px 0;
@@ -198,7 +198,7 @@ class SLMListHeader extends LitElement {
       font-weight: 700;
       text-transform: uppercase;
       letter-spacing: 0.05em;
-      color: var(--secondary-text-color);
+      color: var(--slm-text-secondary);
       padding: 6px 14px 2px;
     }
     .menu-toggle-row {
@@ -209,24 +209,24 @@ class SLMListHeader extends LitElement {
     .toggle-btn {
       flex: 1;
       padding: 6px 4px;
-      border: 1px solid var(--divider-color);
+      border: 1px solid var(--slm-border-subtle);
       border-radius: 8px;
       background: transparent;
-      color: var(--primary-text-color);
+      color: var(--slm-text-primary);
       font-size: 13px;
       cursor: pointer;
       transition: all 0.15s;
       -webkit-tap-highlight-color: transparent;
     }
     .toggle-btn.active {
-      background: var(--primary-color);
-      border-color: var(--primary-color);
+      background: var(--slm-accent-primary);
+      border-color: var(--slm-accent-primary);
       color: white;
       font-weight: 600;
     }
     .menu-divider {
       height: 1px;
-      background: var(--divider-color);
+      background: var(--slm-border-subtle);
       margin: 4px 0;
     }
     .menu-switch-row {
@@ -241,11 +241,11 @@ class SLMListHeader extends LitElement {
       -webkit-tap-highlight-color: transparent;
     }
     .menu-switch-row:active {
-      background: var(--secondary-background-color);
+      background: var(--slm-bg-elevated);
     }
     .menu-switch-label {
       font-size: 14px;
-      color: var(--primary-text-color);
+      color: var(--slm-text-primary);
     }
     .switch {
       width: 28px;
@@ -258,12 +258,12 @@ class SLMListHeader extends LitElement {
       font-weight: 700;
     }
     .switch.on {
-      background: var(--primary-color);
+      background: var(--slm-accent-primary);
       color: white;
     }
     .switch.off {
-      background: var(--divider-color);
-      color: var(--secondary-text-color);
+      background: var(--slm-border-subtle);
+      color: var(--slm-text-secondary);
     }
   `;
 }

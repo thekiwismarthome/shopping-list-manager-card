@@ -486,7 +486,7 @@ class SLMEditItemDialog extends LitElement {
       transition: all 0.2s;
     }
     .action-btn.primary {
-      background: linear-gradient(135deg, #9fa8da 0%, #c5cae9 100%);
+      background: var(--slm-accent-primary, #9fa8da);
       color: white;
     }
     .action-btn.danger {

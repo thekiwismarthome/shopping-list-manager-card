@@ -470,7 +470,7 @@ class SLMItemTile extends LitElement {
       left: 0;
       right: 0;
       bottom: 0;
-      background: rgba(159, 168, 218, 0.9);
+      background: color-mix(in srgb, var(--slm-accent-primary, #9fa8da) 88%, transparent);
       border-radius: 14px;
       display: flex;
       align-items: center;

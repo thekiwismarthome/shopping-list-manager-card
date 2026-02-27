@@ -88,9 +88,14 @@ class SupportSettings extends LitElement {
       padding: 8px;
       cursor: pointer;
       border-radius: 50%;
+      color: var(--slm-text-primary);
     }
     .back-btn:hover {
-      background: var(--primary-background-color);
+      background: var(--slm-bg-elevated);
+    }
+    ha-icon {
+      color: var(--slm-text-primary);
+      --icon-primary-color: var(--slm-text-primary);
     }
     .header h2 {
       margin: 0;

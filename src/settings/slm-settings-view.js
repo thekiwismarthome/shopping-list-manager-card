@@ -230,16 +230,16 @@ class SLMSettingsView extends LitElement {
       margin: 0;
       font-size: 24px;
       font-weight: 700;
-      color: var(var(--slm-text-primary)
-);
+      color: var(--slm-text-primary);
     }
     .section-header {
       padding: 14px 16px 6px;
-      font-size: 12px;
+      font-size: 11px;
       font-weight: 700;
-      color: var(--slm-text-secondary);
+      color: var(--slm-text-primary);
+      opacity: 0.55;
       text-transform: uppercase;
-      letter-spacing: 0.5px;
+      letter-spacing: 0.06em;
     }
     .settings-item {
       display: flex;
@@ -251,22 +251,24 @@ class SLMSettingsView extends LitElement {
       width: 100%;
       text-align: left;
       cursor: pointer;
+      color: var(--slm-text-primary);
       border-bottom: 1px solid var(--slm-border-subtle);
       transition: background 0.2s;
       -webkit-tap-highlight-color: transparent;
     }
     .settings-item:active {
-      background: var(--surface-pastel, #fafbfc);
+      background: var(--slm-bg-elevated);
     }
     .item-icon {
       width: 36px;
       height: 36px;
       border-radius: 50%;
-      background: linear-gradient(135deg, #c5cae9 0%, #e1e8f0 100%);
+      background: color-mix(in srgb, var(--slm-accent-primary) 18%, var(--slm-bg-elevated));
       display: flex;
       align-items: center;
       justify-content: center;
       font-size: 20px;
+      flex-shrink: 0;
     }
     .item-content {
       flex: 1;
@@ -275,8 +277,7 @@ class SLMSettingsView extends LitElement {
       font-weight: 600;
       font-size: 14px;
       margin-bottom: 2px;
-      color: var(var(--slm-text-primary)
-);
+      color: var(--slm-text-primary);
     }
     .item-subtitle {
       font-size: 12px;
@@ -291,6 +292,7 @@ class SLMSettingsView extends LitElement {
       display: inline-block;
       width: 50px;
       height: 28px;
+      flex-shrink: 0;
     }
     .toggle input {
       opacity: 0;
@@ -304,7 +306,7 @@ class SLMSettingsView extends LitElement {
       left: 0;
       right: 0;
       bottom: 0;
-      background-color: #e0e0e0;
+      background: var(--slm-border-subtle);
       transition: 0.3s;
       border-radius: 28px;
     }
@@ -315,12 +317,13 @@ class SLMSettingsView extends LitElement {
       width: 20px;
       left: 4px;
       bottom: 4px;
-      background-color: white;
+      background: var(--slm-bg-surface);
+      box-shadow: 0 1px 4px rgba(0,0,0,0.25);
       transition: 0.3s;
       border-radius: 50%;
     }
     input:checked + .slider {
-      background: linear-gradient(135deg, #9fa8da 0%, #c5cae9 100%);
+      background: var(--slm-accent-primary);
     }
     input:checked + .slider:before {
       transform: translateX(22px);

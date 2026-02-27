@@ -249,7 +249,7 @@ class SLMSearchBar extends LitElement {
     .search-container {
       padding: 8px;
       position: relative;
-      background: var(--card-background-color);
+      background: var(--slm-bg-surface);
       z-index: 50;
     }
     .search-box {
@@ -257,9 +257,9 @@ class SLMSearchBar extends LitElement {
       align-items: center;
       gap: 8px;
       padding: 8px 12px;
-      background: var(--primary-background-color);
+      background: var(--slm-bg-main);
       border-radius: 12px;
-      border: 1px solid var(--divider-color);
+      border: 1px solid var(--slm-border-subtle);
     }
     .search-icon {
       font-size: 16px;
@@ -271,10 +271,10 @@ class SLMSearchBar extends LitElement {
       background: transparent;
       outline: none;
       font-size: 15px;
-      color: var(--primary-text-color);
+      color: var(--slm-text-primary);
     }
     input::placeholder {
-      color: var(--secondary-text-color);
+      color: var(--slm-text-muted);
     }
     .clear-btn {
       background: none;
@@ -282,7 +282,8 @@ class SLMSearchBar extends LitElement {
       padding: 4px;
       cursor: pointer;
       font-size: 14px;
-      opacity: 0.5;
+      color: var(--slm-text-muted);
+      opacity: 0.7;
       -webkit-tap-highlight-color: transparent;
     }
     .results-dropdown {
@@ -290,13 +291,13 @@ class SLMSearchBar extends LitElement {
       top: calc(100% - 4px);
       left: 8px;
       right: 8px;
-      background: var(--card-background-color);
+      background: var(--slm-bg-surface);
       border-radius: 0 0 12px 12px;
-      box-shadow: 0 4px 16px rgba(0,0,0,0.2);
+      box-shadow: var(--slm-shadow-medium);
       max-height: 400px;
       overflow-y: auto;
       z-index: 100;
-      border: 1px solid var(--divider-color);
+      border: 1px solid var(--slm-border-subtle);
       border-top: none;
     }
     .result-item {
@@ -308,7 +309,7 @@ class SLMSearchBar extends LitElement {
       border: none;
       background: transparent;
       cursor: pointer;
-      border-bottom: 1px solid var(--divider-color);
+      border-bottom: 1px solid var(--slm-border-subtle);
       text-align: left;
       -webkit-tap-highlight-color: transparent;
     }
@@ -316,7 +317,7 @@ class SLMSearchBar extends LitElement {
       border-bottom: none;
     }
     .result-item:active {
-      background: var(--secondary-background-color);
+      background: var(--slm-bg-elevated);
     }
     .result-item img,
     .no-image {
@@ -330,7 +331,7 @@ class SLMSearchBar extends LitElement {
       display: flex;
       align-items: center;
       justify-content: center;
-      background: var(--secondary-background-color);
+      background: var(--slm-bg-elevated);
       font-size: 20px;
     }
     .result-info {
@@ -339,28 +340,28 @@ class SLMSearchBar extends LitElement {
     .result-name {
       font-weight: 600;
       font-size: 14px;
-      color: var(--primary-text-color);
+      color: var(--slm-text-primary);
       margin-bottom: 2px;
     }
     .result-price {
       font-size: 13px;
-      color: var(--primary-color);
+      color: var(--slm-accent-primary);
       font-weight: 600;
     }
     .result-subtitle {
       font-size: 12px;
-      color: var(--secondary-text-color);
+      color: var(--slm-text-secondary);
     }
     .add-icon {
       font-size: 20px;
-      color: var(--primary-color);
+      color: var(--slm-accent-primary);
     }
     .add-quick {
-      background: var(--secondary-background-color);
-      border-bottom: 2px solid var(--divider-color);
+      background: var(--slm-bg-elevated);
+      border-bottom: 2px solid var(--slm-border-subtle);
     }
     .add-plus {
-      background: var(--primary-color);
+      background: var(--slm-accent-primary);
       color: white;
       font-size: 18px;
     }
@@ -369,15 +370,15 @@ class SLMSearchBar extends LitElement {
       font-weight: 700;
       text-transform: uppercase;
       letter-spacing: 0.05em;
-      color: var(--secondary-text-color);
+      color: var(--slm-text-muted);
       padding: 6px 12px 2px;
-      opacity: 0.7;
+      opacity: 0.8;
     }
     .add-custom {
-      background: rgba(0,0,0,0.02);
+      background: transparent;
     }
     .create-product {
-      background: rgba(0,0,0,0.02);
+      background: transparent;
     }
 
     /* Inline create form */
@@ -390,7 +391,7 @@ class SLMSearchBar extends LitElement {
     .create-form-title {
       font-weight: 700;
       font-size: 13px;
-      color: var(--secondary-text-color);
+      color: var(--slm-text-secondary);
       text-transform: uppercase;
       letter-spacing: 0.04em;
     }
@@ -399,17 +400,17 @@ class SLMSearchBar extends LitElement {
       box-sizing: border-box;
       width: 100%;
       padding: 9px 12px;
-      border: 1px solid var(--divider-color);
+      border: 1px solid var(--slm-border-subtle);
       border-radius: 8px;
       font-size: 14px;
       font-family: inherit;
-      color: var(--primary-text-color);
-      background: var(--primary-background-color);
+      color: var(--slm-text-primary);
+      background: var(--slm-bg-main);
       outline: none;
     }
     .create-input:focus,
     .create-select:focus {
-      border-color: var(--primary-color);
+      border-color: var(--slm-accent-primary);
     }
     .create-actions {
       display: flex;
@@ -425,12 +426,12 @@ class SLMSearchBar extends LitElement {
       cursor: pointer;
     }
     .create-btn.primary {
-      background: var(--primary-color);
+      background: var(--slm-accent-primary);
       color: white;
     }
     .create-btn.secondary {
-      background: var(--secondary-background-color);
-      color: var(--primary-text-color);
+      background: var(--slm-bg-elevated);
+      color: var(--slm-text-primary);
     }
   `;
 }

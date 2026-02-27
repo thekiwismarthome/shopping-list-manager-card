@@ -133,6 +133,11 @@ class CategorySettings extends LitElement {
       padding: 8px;
       cursor: pointer;
       border-radius: 50%;
+      color: var(--slm-text-primary);
+    }
+    ha-icon {
+      color: var(--slm-text-primary);
+      --icon-primary-color: var(--slm-text-primary);
     }
     .header h2 {
       margin: 0;

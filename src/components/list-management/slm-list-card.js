@@ -174,24 +174,15 @@ class SLMListCard extends LitElement {
     }
 
     /* ===============================
-      Color Gradients
+      Color Gradients — driven by theme CSS variables
     ================================ */
 
-    .color-0 { background: linear-gradient(135deg, #7986cb, #9fa8da); }
-    .color-1 { background: linear-gradient(135deg, #81c784, #a5d6a7); }
-    .color-2 { background: linear-gradient(135deg, #ffb74d, #ffcc80); }
-    .color-3 { background: linear-gradient(135deg, #ba68c8, #ce93d8); }
-    .color-4 { background: linear-gradient(135deg, #4dd0e1, #80deea); }
-    .color-5 { background: linear-gradient(135deg, #f06292, #f48fb1); }
-
-    /* Dark Mode Adjustments */
-
-    :host([data-theme="dark"]) .color-0 { background: linear-gradient(135deg, #5c6bc0, #7986cb); }
-    :host([data-theme="dark"]) .color-1 { background: linear-gradient(135deg, #43a047, #66bb6a); }
-    :host([data-theme="dark"]) .color-2 { background: linear-gradient(135deg, #fb8c00, #ffb74d); }
-    :host([data-theme="dark"]) .color-3 { background: linear-gradient(135deg, #8e24aa, #ab47bc); }
-    :host([data-theme="dark"]) .color-4 { background: linear-gradient(135deg, #00838f, #26c6da); }
-    :host([data-theme="dark"]) .color-5 { background: linear-gradient(135deg, #c2185b, #ec407a); }
+    .color-0 { background: var(--slm-list-gradient-0, linear-gradient(135deg, #7986cb, #9fa8da)); }
+    .color-1 { background: var(--slm-list-gradient-1, linear-gradient(135deg, #81c784, #a5d6a7)); }
+    .color-2 { background: var(--slm-list-gradient-2, linear-gradient(135deg, #ffb74d, #ffcc80)); }
+    .color-3 { background: var(--slm-list-gradient-3, linear-gradient(135deg, #ba68c8, #ce93d8)); }
+    .color-4 { background: var(--slm-list-gradient-4, linear-gradient(135deg, #4dd0e1, #80deea)); }
+    .color-5 { background: var(--slm-list-gradient-5, linear-gradient(135deg, #f06292, #f48fb1)); }
 
     .active-badge {
       position: absolute;
@@ -299,7 +290,7 @@ class SLMListCard extends LitElement {
       color: var(--slm-accent-danger);
     }
     .menu-popup button.danger:active {
-      background: #ef5350;
+      background: var(--slm-accent-danger, #ef5350);
       color: white;
     }
     .menu-popup ha-icon {
