@@ -1,7 +1,7 @@
 import { LitElement, html, css } from 'lit';
 import JsBarcode from 'jsbarcode';
 import { Html5Qrcode } from 'html5-qrcode';
-import QRCode from 'qrcode';
+import qrcode from 'qrcode-generator';
 
 class SLMLoyaltyCardsView extends LitElement {
   static properties = {
@@ -69,11 +69,18 @@ class SLMLoyaltyCardsView extends LitElement {
       if (isQR) {
         const canvas = this.shadowRoot.getElementById('qrcode-canvas');
         if (canvas) {
-          QRCode.toCanvas(canvas, this.fullscreenCard.barcode, {
-            width: 260,
-            margin: 2,
-            color: { dark: '#000000', light: '#ffffff' }
-          }).catch(e => console.warn('QR code generation failed:', e));
+          try {
+            const qr = qrcode(0, 'L');
+            qr.addData(this.fullscreenCard.barcode);
+            qr.make();
+            const cellSize = Math.floor(260 / qr.getModuleCount());
+            const size = cellSize * qr.getModuleCount();
+            canvas.width = size;
+            canvas.height = size;
+            qr.renderTo2dContext(canvas.getContext('2d'), cellSize);
+          } catch (e) {
+            console.warn('QR code generation failed:', e);
+          }
         }
       } else {
         const svg = this.shadowRoot.getElementById('barcode-svg');
