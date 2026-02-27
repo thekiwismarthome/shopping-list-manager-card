@@ -1,6 +1,7 @@
 import { LitElement, html, css } from 'lit';
 import JsBarcode from 'jsbarcode';
 import { Html5Qrcode } from 'html5-qrcode';
+import QRCode from 'qrcode';
 
 class SLMLoyaltyCardsView extends LitElement {
   static properties = {
@@ -46,6 +47,7 @@ class SLMLoyaltyCardsView extends LitElement {
       name: '',
       number: '',
       barcode: '',
+      barcode_type: 'barcode',
       logo: '',
       notes: '',
       color: '#9fa8da',
@@ -63,20 +65,32 @@ class SLMLoyaltyCardsView extends LitElement {
       }
     }
     if (this.showFullscreenCard && this.fullscreenCard?.barcode) {
-      const svg = this.shadowRoot.getElementById('barcode-svg');
-      if (svg) {
-        try {
-          JsBarcode(svg, this.fullscreenCard.barcode, {
-            format: 'CODE128',
-            width: 2,
-            height: 80,
-            displayValue: true,
-            fontSize: 20,
-            background: '#ffffff',
-            lineColor: '#000000'
-          });
-        } catch (e) {
-          console.warn('Barcode generation failed:', e);
+      const isQR = this.fullscreenCard.barcode_type === 'qrcode';
+      if (isQR) {
+        const canvas = this.shadowRoot.getElementById('qrcode-canvas');
+        if (canvas) {
+          QRCode.toCanvas(canvas, this.fullscreenCard.barcode, {
+            width: 260,
+            margin: 2,
+            color: { dark: '#000000', light: '#ffffff' }
+          }).catch(e => console.warn('QR code generation failed:', e));
+        }
+      } else {
+        const svg = this.shadowRoot.getElementById('barcode-svg');
+        if (svg) {
+          try {
+            JsBarcode(svg, this.fullscreenCard.barcode, {
+              format: 'CODE128',
+              width: 2,
+              height: 80,
+              displayValue: true,
+              fontSize: 20,
+              background: '#ffffff',
+              lineColor: '#000000'
+            });
+          } catch (e) {
+            console.warn('Barcode generation failed:', e);
+          }
         }
       }
     }
@@ -187,6 +201,7 @@ class SLMLoyaltyCardsView extends LitElement {
       name: '',
       number: '',
       barcode: '',
+      barcode_type: 'barcode',
       logo: '',
       notes: '',
       color: '#9fa8da',
@@ -202,6 +217,7 @@ class SLMLoyaltyCardsView extends LitElement {
       name: formData.get('name'),
       number: formData.get('number'),
       barcode: formData.get('barcode') || formData.get('number').replace(/\D/g, ''),
+      barcode_type: this.newCard.barcode_type,
       logo: formData.get('logo') || '',
       notes: formData.get('notes') || '',
       color: formData.get('color') || '#9fa8da',
@@ -228,6 +244,7 @@ class SLMLoyaltyCardsView extends LitElement {
       name: formData.get('name'),
       number: formData.get('number'),
       barcode: formData.get('barcode') || formData.get('number').replace(/\D/g, ''),
+      barcode_type: this.editingCard.barcode_type,
       logo: formData.get('logo') || '',
       notes: formData.get('notes') || '',
       color: formData.get('color')
@@ -362,7 +379,7 @@ class SLMLoyaltyCardsView extends LitElement {
               <div class="card-number">${card.number}</div>
               ${card.barcode ? html`
                 <div class="barcode-preview">
-                  <ha-icon icon="mdi:barcode"></ha-icon>
+                  <ha-icon icon="${card.barcode_type === 'qrcode' ? 'mdi:qrcode' : 'mdi:barcode'}"></ha-icon>
                   <span>${card.barcode}</span>
                 </div>
               ` : ''}
@@ -441,8 +458,27 @@ class SLMLoyaltyCardsView extends LitElement {
               </div>
             </label>
             <label>
-              Barcode
+              Code Value
               <input type="text" name="barcode" placeholder="Auto-generated from number" .value=${card.barcode} />
+            </label>
+            <label>
+              Code Type
+              <div class="type-row">
+                <label class="type-option">
+                  <input type="radio" name="barcode_type_add" value="barcode"
+                    .checked=${card.barcode_type !== 'qrcode'}
+                    @change=${() => this.newCard = { ...this.newCard, barcode_type: 'barcode' }} />
+                  <ha-icon icon="mdi:barcode"></ha-icon>
+                  Barcode
+                </label>
+                <label class="type-option">
+                  <input type="radio" name="barcode_type_add" value="qrcode"
+                    .checked=${card.barcode_type === 'qrcode'}
+                    @change=${() => this.newCard = { ...this.newCard, barcode_type: 'qrcode' }} />
+                  <ha-icon icon="mdi:qrcode"></ha-icon>
+                  QR Code
+                </label>
+              </div>
             </label>
             <label>
               Shop Logo URL (optional)
@@ -491,8 +527,27 @@ class SLMLoyaltyCardsView extends LitElement {
               </div>
             </label>
             <label>
-              Barcode
+              Code Value
               <input type="text" name="barcode" placeholder="Auto-generated from number" .value=${card.barcode} />
+            </label>
+            <label>
+              Code Type
+              <div class="type-row">
+                <label class="type-option">
+                  <input type="radio" name="barcode_type_edit" value="barcode"
+                    .checked=${card.barcode_type !== 'qrcode'}
+                    @change=${() => this.editingCard = { ...this.editingCard, barcode_type: 'barcode' }} />
+                  <ha-icon icon="mdi:barcode"></ha-icon>
+                  Barcode
+                </label>
+                <label class="type-option">
+                  <input type="radio" name="barcode_type_edit" value="qrcode"
+                    .checked=${card.barcode_type === 'qrcode'}
+                    @change=${() => this.editingCard = { ...this.editingCard, barcode_type: 'qrcode' }} />
+                  <ha-icon icon="mdi:qrcode"></ha-icon>
+                  QR Code
+                </label>
+              </div>
             </label>
             <label>
               Shop Logo URL (optional)
@@ -569,9 +624,13 @@ class SLMLoyaltyCardsView extends LitElement {
           <div class="fullscreen-number">${card.number}</div>
           ${card.barcode ? html`
             <div class="fullscreen-barcode">
-              <div class="barcode-display">
-                <svg id="barcode-svg"></svg>
-              </div>
+              ${card.barcode_type === 'qrcode' ? html`
+                <canvas id="qrcode-canvas"></canvas>
+              ` : html`
+                <div class="barcode-display">
+                  <svg id="barcode-svg"></svg>
+                </div>
+              `}
             </div>
           ` : ''}
           <p class="tap-hint">Tap anywhere to close</p>
@@ -962,6 +1021,40 @@ class SLMLoyaltyCardsView extends LitElement {
       -webkit-tap-highlight-color: transparent;
     }
     .scan-btn:active { background: var(--slm-border-subtle); }
+    .type-row {
+      display: flex;
+      gap: 10px;
+      margin-top: 8px;
+    }
+    .type-option {
+      flex: 1;
+      display: flex !important;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      padding: 10px;
+      border: 2px solid var(--slm-border-subtle);
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: 500 !important;
+      font-size: 14px !important;
+      color: var(--slm-text-primary) !important;
+      background: var(--slm-bg-main, #fafbfc);
+      margin-bottom: 0 !important;
+      transition: border-color 0.15s, background 0.15s;
+    }
+    .type-option input[type="radio"] {
+      display: none;
+      width: auto;
+      margin-top: 0;
+    }
+    .type-option:has(input:checked) {
+      border-color: var(--primary-color);
+      background: color-mix(in srgb, var(--primary-color) 10%, transparent);
+    }
+    .type-option ha-icon {
+      --mdc-icon-size: 20px;
+    }
     .members-hint {
       margin: 0 0 16px 0;
       font-size: 14px;
@@ -1053,6 +1146,12 @@ class SLMLoyaltyCardsView extends LitElement {
       max-width: 400px;
     }
     .barcode-display { margin-bottom: 20px; }
+    #qrcode-canvas {
+      display: block;
+      width: 260px !important;
+      height: 260px !important;
+      border-radius: 8px;
+    }
     .tap-hint {
       margin-top: 40px;
       opacity: 0.7;
