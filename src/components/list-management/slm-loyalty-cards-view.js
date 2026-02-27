@@ -313,11 +313,11 @@ class SLMLoyaltyCardsView extends LitElement {
         <div class="header">
           <h2>Loyalty Cards</h2>
           <div class="header-actions">
-            <button class="icon-btn" @click=${this.handleViewMenuClick} title="View options">
-              <ha-icon icon="mdi:dots-vertical"></ha-icon>
-            </button>
             <button class="add-btn" @click=${this.handleAddCard} title="Add card">
               <ha-icon icon="mdi:plus"></ha-icon>
+            </button>
+            <button class="icon-btn" @click=${this.handleViewMenuClick} title="View options">
+              <ha-icon icon="mdi:dots-vertical"></ha-icon>
             </button>
           </div>
         </div>
@@ -790,7 +790,7 @@ class SLMLoyaltyCardsView extends LitElement {
     /* ── Tile view ───────────────────────────────── */
     .tiles-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+      grid-template-columns: repeat(2, 1fr);
       gap: 10px;
     }
     .loyalty-tile {

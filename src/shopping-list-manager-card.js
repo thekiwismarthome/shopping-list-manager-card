@@ -632,11 +632,13 @@ class ShoppingListManagerCard extends LitElement {
 
       case 'loyalty':
         return html`
-          <slm-loyalty-cards-view
-            .api=${this.api}
-            .userId=${this._hass?.user?.id || null}
-            .isAdmin=${this._hass?.user?.is_admin || false}
-          ></slm-loyalty-cards-view>
+          <div class="content-area">
+            <slm-loyalty-cards-view
+              .api=${this.api}
+              .userId=${this._hass?.user?.id || null}
+              .isAdmin=${this._hass?.user?.is_admin || false}
+            ></slm-loyalty-cards-view>
+          </div>
         `;
 
       case 'settings':
