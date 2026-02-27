@@ -19,7 +19,7 @@ class SLMAppearanceSettings extends LitElement {
     const labels = {
       soft: 'Soft Pastel', arctic: '🧊 Arctic', meadow: '🌿 Meadow',
       blossom: '🌸 Blossom', midnight: '🌊 Midnight Ocean', ember: '🔥 Ember',
-      neon: '🍇 Neon', ocean: '🌊 Ocean'
+      neon: '🍇 Purple & Cyan', ocean: '🌊 Ocean Blue'
     };
     return labels[theme] || 'Soft Pastel';
   }
@@ -80,7 +80,7 @@ class SLMAppearanceSettings extends LitElement {
                   🌸 Blossom
                 </option>
                 <option value="ocean" ?selected=${this.settings.theme === 'ocean'}>
-                  🌊 Ocean
+                  🌊 Ocean Blue
                 </option>
               </optgroup>
               <optgroup label="Dark Themes">
@@ -91,7 +91,7 @@ class SLMAppearanceSettings extends LitElement {
                   🔥 Ember
                 </option>
                 <option value="neon" ?selected=${this.settings.theme === 'neon'}>
-                  🍇 Neon
+                  🍇 Purple & Cyan
                 </option>
               </optgroup>
             </select>
