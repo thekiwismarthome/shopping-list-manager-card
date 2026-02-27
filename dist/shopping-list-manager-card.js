@@ -184,8 +184,6 @@ const C=globalThis,A=t=>t,I=C.trustedTypes,S=I?I.createPolicy("lit-html",{create
     }
     ha-icon {
       --mdc-icon-size: 24px;
-      color: var(--slm-text-primary);
-      --icon-primary-color: var(--slm-text-primary);
     }
     h2 {
       margin: 0;
@@ -3414,7 +3412,7 @@ const C=globalThis,A=t=>t,I=C.trustedTypes,S=I?I.createPolicy("lit-html",{create
     .font-option span {
       font-weight: 600;
     }
-  `}customElements.define("font-settings",_s);class $s extends st{static properties={settings:{type:Object},showDarkModePopup:{type:Boolean},showFontSettings:{type:Boolean}};constructor(){super(),this.showDarkModePopup=!1,this.showFontSettings=!1}_themeLabel(t){return{soft:"Soft Pastel",arctic:"🧊 Arctic",meadow:"🌿 Meadow",blossom:"🌸 Blossom",midnight:"🌊 Midnight Ocean",ember:"🔥 Ember"}[t]||"Soft Pastel"}handleSettingChange(t,e){this.dispatchEvent(new CustomEvent("settings-changed",{detail:{[t]:e},bubbles:!0,composed:!0}))}render(){return G`
+  `}customElements.define("font-settings",_s);class $s extends st{static properties={settings:{type:Object},showDarkModePopup:{type:Boolean},showFontSettings:{type:Boolean}};constructor(){super(),this.showDarkModePopup=!1,this.showFontSettings=!1}_themeLabel(t){return{soft:"Soft Pastel",arctic:"🧊 Arctic",meadow:"🌿 Meadow",blossom:"🌸 Blossom",midnight:"🌊 Midnight Ocean",ember:"🔥 Ember",neon:"🍇 Purple & Cyan",ocean:"🌊 Ocean Blue"}[t]||"Soft Pastel"}handleSettingChange(t,e){this.dispatchEvent(new CustomEvent("settings-changed",{detail:{[t]:e},bubbles:!0,composed:!0}))}render(){return G`
       <div class="appearance-settings">
         <div class="header">
           <button class="back-btn" @click=${()=>this.dispatchEvent(new Event("back"))}>
@@ -3459,6 +3457,9 @@ const C=globalThis,A=t=>t,I=C.trustedTypes,S=I?I.createPolicy("lit-html",{create
                 <option value="blossom" ?selected=${"blossom"===this.settings.theme}>
                   🌸 Blossom
                 </option>
+                <option value="ocean" ?selected=${"ocean"===this.settings.theme}>
+                  🌊 Ocean Blue
+                </option>
               </optgroup>
               <optgroup label="Dark Themes">
                 <option value="midnight" ?selected=${"midnight"===this.settings.theme}>
@@ -3466,6 +3467,9 @@ const C=globalThis,A=t=>t,I=C.trustedTypes,S=I?I.createPolicy("lit-html",{create
                 </option>
                 <option value="ember" ?selected=${"ember"===this.settings.theme}>
                   🔥 Ember
+                </option>
+                <option value="neon" ?selected=${"neon"===this.settings.theme}>
+                  🍇 Purple & Cyan
                 </option>
               </optgroup>
             </select>
@@ -4745,8 +4749,7 @@ const C=globalThis,A=t=>t,I=C.trustedTypes,S=I?I.createPolicy("lit-html",{create
     }
     .chevron {
       font-size: 14px;
-      color: var(--slm-text-muted);
-      opacity: 0.7;
+      opacity: 0.4;
     }
     .toggle {
       position: relative;
@@ -4789,7 +4792,7 @@ const C=globalThis,A=t=>t,I=C.trustedTypes,S=I?I.createPolicy("lit-html",{create
     input:checked + .slider:before {
       transform: translateX(22px);
     }
-  `}customElements.define("slm-settings-view",na);const oa=new Map;class sa extends st{static properties={hass:{type:Object},config:{type:Object},currentView:{type:String},lists:{type:Array},activeList:{type:Object},items:{type:Array},categories:{type:Array},total:{type:Object},loading:{type:Boolean},showAddDialog:{type:Boolean},showEditDialog:{type:Boolean},editingItem:{type:Object},settings:{type:Object}};set hass(t){this._hass=t,this.api&&(this.api.hass=t),t?.config?.currency&&!this.total.currency&&(this.total={...this.total,currency:t.config.currency});const e=t?.user?.id;e&&this._settingsUserId!==e&&(this._settingsUserId=e,this.settings=this.loadSettings()),!this._subscribed&&t?.connection&&(this._subscribed=!0,this.subscribeToUpdates())}get hass(){return this._hass}constructor(){super(),this.currentView="shopping",this.lists=[],this.activeList=null,this.recentItems=[],this.items=[],this.categories=[],this.total={total:0,currency:"",item_count:0},this.loading=!0,this.showAddDialog=!1,this.showEditDialog=!1,this.editingItem=null,this._settingsUserId=null,this._baseCardId=null,this._cardId=null,this._assignedCardId=null,this.settings=this.loadSettings(),this._subscribed=!1}connectedCallback(){if(super.connectedCallback(),!this._assignedCardId&&this._baseCardId){const t=oa.get(this._baseCardId)??0;oa.set(this._baseCardId,t+1),this._assignedCardId=0===t?this._baseCardId:`${this._baseCardId}_${t}`}else if(this._assignedCardId&&this._baseCardId){const t=oa.get(this._baseCardId)??0;oa.set(this._baseCardId,t+1)}if(this._assignedCardId){const t=this._cardId;this._cardId=this._assignedCardId,this._cardId!==t&&this._settingsUserId&&(this.settings=this.loadSettings(),this.applyColorScheme(),this.requestUpdate())}}_hashConfig(t){const e=JSON.stringify(t);let r=0;for(let t=0;t<e.length;t++)r=(r<<5)-r+e.charCodeAt(t),r|=0;return Math.abs(r).toString(36)}_getSettingsKey(){const t=["slm_settings"];return this._settingsUserId&&t.push(this._settingsUserId),this._cardId&&t.push(this._cardId),t.join("_")}loadSettings(){const t={theme:"auto",darkMode:"system",fontSize:16,fontFamily:"system",useSystemTextSize:!0,openLastUsedList:!0,keepScreenOn:!1,notifications:{listSharing:!0,emails:!0},recentProductsCount:8,tilesPerRow:3,useEmojis:!0,colorScheme:"pastel",viewMode:"tile",sortMode:"category",showRecentlyUsed:!0,showPriceOnTile:!0,localImagePath:"/local/images/groceries",fontWeight:"normal"},e=this._getSettingsKey(),r=localStorage.getItem(e);if(r)return{...t,...JSON.parse(r)};if(this._cardId&&this._settingsUserId){const r=`slm_settings_${this._settingsUserId}`,i=localStorage.getItem(r);if(i){const r={...t,...JSON.parse(i)};return localStorage.setItem(e,JSON.stringify(r)),r}}return t}saveSettings(){const t=this._getSettingsKey();localStorage.setItem(t,JSON.stringify(this.settings))}async firstUpdated(){this.api=new lt(this.hass),await this.loadData(),this.applyColorScheme(),this.settings.keepScreenOn&&this.acquireWakeLock(),this._visibilityHandler=()=>{this.settings.keepScreenOn&&"visible"===document.visibilityState&&this.acquireWakeLock()},document.addEventListener("visibilitychange",this._visibilityHandler)}disconnectedCallback(){super.disconnectedCallback(),this.releaseWakeLock(),document.removeEventListener("visibilitychange",this._visibilityHandler)}async acquireWakeLock(){if("wakeLock"in navigator)try{this._wakeLock=await navigator.wakeLock.request("screen"),this._wakeLock.addEventListener("release",()=>{this._wakeLock=null})}catch(t){console.warn("[SLM] Wake lock failed:",t.message)}}releaseWakeLock(){this._wakeLock?.release(),this._wakeLock=null}applyColorScheme(){const t=this.settings.darkMode;"on"===t?this.setAttribute("data-theme","dark"):"off"===t?this.setAttribute("data-theme","light"):this.removeAttribute("data-theme");const e=this.settings.theme;e&&"soft"!==e?this.setAttribute("data-theme-name",e):this.removeAttribute("data-theme-name"),this.settings.useSystemTextSize?this.style.removeProperty("--slm-font-size-base"):this.style.setProperty("--slm-font-size-base",`${this.settings.fontSize}px`);this.style.setProperty("--slm-font-weight-base",{light:"300",normal:"400",bold:"700"}[this.settings.fontWeight]||"400")}async loadData(){try{this.loading=!0;const t=await this.api.getLists();this.lists=t.lists||[];const e=`slm_last_list_${this._settingsUserId||"default"}`;if(this.settings.openLastUsedList){const t=localStorage.getItem(e);this.activeList=this.lists.find(e=>e.id===t)||this.lists.find(t=>t.active)||this.lists[0]}else this.activeList=this.lists.find(t=>t.active)||this.lists[0];const r=await this.api.getCategories();this.categories=r.categories,this.activeList&&await this.loadActiveListData()}catch(t){console.error("Failed to load data:",t)}finally{this.loading=!1}}async loadActiveListData(){if(!this.activeList)return;const t=await this.api.getItems(this.activeList.id);this.items=t.items;const e=await this.api.getListTotal(this.activeList.id);this.total=e;const r=`slm_last_list_${this._settingsUserId||"default"}`;localStorage.setItem(r,this.activeList.id)}async handleListChange(t){const e=t.detail.listId;await this.api.setActiveList(e),this.activeList=this.lists.find(t=>t.id===e),await this.loadActiveListData(),this.currentView="shopping"}async handleItemClick(t){console.log("HANDLE ITEM CLICK",t.detail);const{itemId:e}=t.detail,r=this.items.find(t=>t.id===e);r&&!r.checked&&(await this.api.incrementItem(e,1),this.loadActiveListData())}async handleItemDecrease(t){const{itemId:e}=t.detail,r=this.items.find(t=>t.id===e);r&&(r.quantity>1?await this.api.incrementItem(e,-1):await this.api.deleteItem(e),this.loadActiveListData())}async handleItemCheck(t){const{itemId:e,checked:r}=t.detail;if(await this.api.checkItem(e,r),r){const t=this.items.find(t=>t.id===e);t?.product_id&&this.trackRecentlyUsed(t.product_id)}await this.loadActiveListData()}async handleItemLongPress(t){this.editingItem=t.detail.item,this.showEditDialog=!0}async handleItemSwipeDelete(t){const{itemId:e}=t.detail;await this.api.deleteItem(e),await this.loadActiveListData()}async handleAddItem(t){const e={...t.detail};if(!e.product_id&&!e.fromRecentlyUsed)try{const t={name:e.name,category_id:e.category_id||"other"};e.price&&(t.price=parseFloat(e.price)),e.image_url&&(t.image_url=e.image_url);const r=await this.api.addProduct(t),i=r.product||r;i?.id&&(e.product_id=i.id)}catch(t){console.warn("[SLM] Could not auto-create product:",t)}const r=this.items.find(t=>t.product_id&&t.product_id===e.product_id&&!t.checked);if(e.fromRecentlyUsed)if(r)await this.api.updateItem(r.id,{quantity:1});else{const{fromRecentlyUsed:t,...r}=e,i={quantity:1};for(const[t,e]of Object.entries(r))null!=e&&(i[t]=e);await this.api.addItem(this.activeList.id,i)}else r?await this.api.updateItem(r.id,{quantity:r.quantity+1}):await this.api.addItem(this.activeList.id,e);this.trackRecentlyUsed(e.product_id),await this.loadActiveListData(),this.showAddDialog=!1}trackRecentlyUsed(t){if(!t)return;const e="slm_recent_products",r=localStorage.getItem(e),i=(r?JSON.parse(r):[]).filter(e=>e!==t);i.unshift(t);const n=i.slice(0,50);localStorage.setItem(e,JSON.stringify(n))}async _syncProductFromItemData(t,e){const r={};e.name&&(r.name=e.name),e.category_id&&(r.category_id=e.category_id),void 0!==e.price&&""!==e.price&&(r.price=parseFloat(e.price)||0),e.unit&&(r.default_unit=e.unit),void 0!==e.image_url&&(r.image_url=e.image_url),Object.keys(r).length>0&&await this.api.updateProduct(t,r)}async handleEditItem(t){const{itemId:e,data:r}=t.detail;if(this.editingItem?._isProductEdit)await this._syncProductFromItemData(this.editingItem.product_id,r);else{await this.api.updateItem(e,r);const t=this.items.find(t=>t.id===e);t?.product_id&&await this._syncProductFromItemData(t.product_id,r)}await this.loadActiveListData(),this.showEditDialog=!1,this.editingItem=null}handleNavChange(t){this.currentView=t.detail.view}handleSettingsChange(t){this.settings={...this.settings,...t.detail},this.saveSettings(),this.applyColorScheme(),this.settings.keepScreenOn?this.acquireWakeLock():this.releaseWakeLock(),this.requestUpdate()}handleMenuSettingChange(t){const{key:e,value:r}=t.detail;this.settings={...this.settings,[e]:r},this.saveSettings(),this.requestUpdate()}async handleCreateAndAddProduct(t){const{name:e,category_id:r,price:i}=t.detail;try{const t={name:e,category_id:r};i&&(t.price=parseFloat(i));const n=await this.api.addProduct(t),o=n.product||n,s={name:e,category_id:r,product_id:o.id,quantity:1,unit:"units"};i&&(s.price=parseFloat(i)),await this.api.addItem(this.activeList.id,s),o.id&&this.trackRecentlyUsed(o.id),await this.loadActiveListData()}catch(t){console.error("Failed to create product:",t)}}handleBackToLists(){this.currentView="lists"}async handleShareList(){const t=this.activeList?.name||"Shopping List",e=this.items.filter(t=>!t.checked).map(t=>`${t.quantity} ${t.unit} ${t.name}`).join("\n"),r=`${t}\n\n${e}`;if(navigator.share)try{await navigator.share({title:t,text:r})}catch(t){"AbortError"!==t.name&&console.error("Share failed:",t)}else navigator.clipboard.writeText(r),alert("List copied to clipboard!")}async subscribeToUpdates(){if(this.hass?.connection)try{const t=await this.hass.connection.subscribeMessage(t=>{console.log("[SLM] ✅ Received update:",t.event_type),this.loadActiveListData()},{type:"shopping_list_manager/subscribe"});this._unsubscribers=[t],console.log("[SLM] ✅ Subscribed to shopping list updates")}catch(t){console.error("[SLM] ❌ Failed to subscribe:",t)}}disconnectedCallback(){if(super.disconnectedCallback(),this._baseCardId){const t=oa.get(this._baseCardId)??1;oa.set(this._baseCardId,Math.max(0,t-1))}this._unsubscribers&&(console.log("[SLM] Cleaning up event subscriptions"),this._unsubscribers.forEach(t=>{try{t()}catch(t){console.error("[SLM] Error unsubscribing:",t)}}),this._unsubscribers=[])}renderCurrentView(){switch(this.currentView){case"shopping":return G`
+  `}customElements.define("slm-settings-view",na);const oa=new Map;class sa extends st{static properties={hass:{type:Object},config:{type:Object},currentView:{type:String},lists:{type:Array},activeList:{type:Object},items:{type:Array},categories:{type:Array},total:{type:Object},loading:{type:Boolean},showAddDialog:{type:Boolean},showEditDialog:{type:Boolean},editingItem:{type:Object},settings:{type:Object}};set hass(t){this._hass=t,this.api&&(this.api.hass=t),t?.config?.currency&&!this.total.currency&&(this.total={...this.total,currency:t.config.currency});const e=t?.user?.id;e&&this._settingsUserId!==e&&(this._settingsUserId=e,this.settings=this.loadSettings()),!this._subscribed&&t?.connection&&(this._subscribed=!0,this.subscribeToUpdates())}get hass(){return this._hass}constructor(){super(),this.currentView="shopping",this.lists=[],this.activeList=null,this.recentItems=[],this.items=[],this.categories=[],this.total={total:0,currency:"",item_count:0},this.loading=!0,this.showAddDialog=!1,this.showEditDialog=!1,this.editingItem=null,this._settingsUserId=null,this._baseCardId=null,this._cardId=null,this._assignedCardId=null,this.settings=this.loadSettings(),this._subscribed=!1}connectedCallback(){if(super.connectedCallback(),!this._assignedCardId&&this._baseCardId){const t=oa.get(this._baseCardId)??0;oa.set(this._baseCardId,t+1),this._assignedCardId=0===t?this._baseCardId:`${this._baseCardId}_${t}`}else if(this._assignedCardId&&this._baseCardId){const t=oa.get(this._baseCardId)??0;oa.set(this._baseCardId,t+1)}if(this._assignedCardId){const t=this._cardId;this._cardId=this._assignedCardId,this._cardId!==t&&this._settingsUserId&&(this.settings=this.loadSettings(),this.applyColorScheme(),this.requestUpdate())}}_hashConfig(t){const e=JSON.stringify(t);let r=0;for(let t=0;t<e.length;t++)r=(r<<5)-r+e.charCodeAt(t),r|=0;return Math.abs(r).toString(36)}_getSettingsKey(){const t=["slm_settings"];return this._settingsUserId&&t.push(this._settingsUserId),this._cardId&&t.push(this._cardId),t.join("_")}loadSettings(){const t={theme:"auto",darkMode:"system",fontSize:16,fontFamily:"system",useSystemTextSize:!0,openLastUsedList:!0,keepScreenOn:!1,notifications:{listSharing:!0,emails:!0},recentProductsCount:8,tilesPerRow:3,useEmojis:!0,colorScheme:"pastel",viewMode:"tile",sortMode:"category",showRecentlyUsed:!0,showPriceOnTile:!0,localImagePath:"/local/images/groceries",fontWeight:"normal"},e=this._getSettingsKey(),r=localStorage.getItem(e);if(r)return{...t,...JSON.parse(r)};if(this._cardId&&this._settingsUserId){const r=`slm_settings_${this._settingsUserId}`,i=localStorage.getItem(r);if(i){const r={...t,...JSON.parse(i)};return localStorage.setItem(e,JSON.stringify(r)),r}}return t}saveSettings(){const t=this._getSettingsKey();localStorage.setItem(t,JSON.stringify(this.settings))}async firstUpdated(){this.api=new lt(this.hass),await this.loadData(),this.applyColorScheme(),this.settings.keepScreenOn&&this.acquireWakeLock(),this._visibilityHandler=()=>{this.settings.keepScreenOn&&"visible"===document.visibilityState&&this.acquireWakeLock()},document.addEventListener("visibilitychange",this._visibilityHandler)}disconnectedCallback(){if(super.disconnectedCallback(),this.releaseWakeLock(),document.removeEventListener("visibilitychange",this._visibilityHandler),this._baseCardId){const t=oa.get(this._baseCardId)??1;oa.set(this._baseCardId,Math.max(0,t-1))}}async acquireWakeLock(){if("wakeLock"in navigator)try{this._wakeLock=await navigator.wakeLock.request("screen"),this._wakeLock.addEventListener("release",()=>{this._wakeLock=null})}catch(t){console.warn("[SLM] Wake lock failed:",t.message)}}releaseWakeLock(){this._wakeLock?.release(),this._wakeLock=null}applyColorScheme(){const t=this.settings.darkMode;"on"===t?this.setAttribute("data-theme","dark"):"off"===t?this.setAttribute("data-theme","light"):this.removeAttribute("data-theme");const e=this.settings.theme;e&&"soft"!==e?this.setAttribute("data-theme-name",e):this.removeAttribute("data-theme-name"),this.settings.useSystemTextSize?this.style.removeProperty("--slm-font-size-base"):this.style.setProperty("--slm-font-size-base",`${this.settings.fontSize}px`);this.style.setProperty("--slm-font-weight-base",{light:"300",normal:"400",bold:"700"}[this.settings.fontWeight]||"400")}async loadData(){try{this.loading=!0;const t=await this.api.getLists();this.lists=t.lists||[];const e=`slm_last_list_${this._settingsUserId||"default"}`;if(this.settings.openLastUsedList){const t=localStorage.getItem(e);this.activeList=this.lists.find(e=>e.id===t)||this.lists.find(t=>t.active)||this.lists[0]}else this.activeList=this.lists.find(t=>t.active)||this.lists[0];const r=await this.api.getCategories();this.categories=r.categories,this.activeList&&await this.loadActiveListData()}catch(t){console.error("Failed to load data:",t)}finally{this.loading=!1}}async loadActiveListData(){if(!this.activeList)return;const t=await this.api.getItems(this.activeList.id);this.items=t.items;const e=await this.api.getListTotal(this.activeList.id);this.total=e;const r=`slm_last_list_${this._settingsUserId||"default"}`;localStorage.setItem(r,this.activeList.id)}async handleListChange(t){const e=t.detail.listId;await this.api.setActiveList(e),this.activeList=this.lists.find(t=>t.id===e),await this.loadActiveListData(),this.currentView="shopping"}async handleItemClick(t){console.log("HANDLE ITEM CLICK",t.detail);const{itemId:e}=t.detail,r=this.items.find(t=>t.id===e);r&&!r.checked&&(this.api.incrementItem(e,1),this.loadActiveListData())}async handleItemDecrease(t){const{itemId:e}=t.detail,r=this.items.find(t=>t.id===e);r&&(r.quantity>1?await this.api.incrementItem(e,-1):await this.api.deleteItem(e),this.loadActiveListData())}async handleItemCheck(t){const{itemId:e,checked:r}=t.detail;if(await this.api.checkItem(e,r),r){const t=this.items.find(t=>t.id===e);t?.product_id&&this.trackRecentlyUsed(t.product_id)}await this.loadActiveListData()}async handleItemLongPress(t){this.editingItem=t.detail.item,this.showEditDialog=!0}async handleItemSwipeDelete(t){const{itemId:e}=t.detail;await this.api.deleteItem(e),await this.loadActiveListData()}async handleAddItem(t){const e={...t.detail};if(!e.product_id&&!e.fromRecentlyUsed)try{const t={name:e.name,category_id:e.category_id||"other"};e.price&&(t.price=parseFloat(e.price)),e.image_url&&(t.image_url=e.image_url);const r=await this.api.addProduct(t),i=r.product||r;i?.id&&(e.product_id=i.id)}catch(t){console.warn("[SLM] Could not auto-create product:",t)}const r=this.items.find(t=>t.product_id&&t.product_id===e.product_id&&!t.checked);if(e.fromRecentlyUsed)if(r)await this.api.updateItem(r.id,{quantity:1});else{const{fromRecentlyUsed:t,...r}=e,i={quantity:1};for(const[t,e]of Object.entries(r))null!=e&&(i[t]=e);await this.api.addItem(this.activeList.id,i)}else r?await this.api.updateItem(r.id,{quantity:r.quantity+1}):await this.api.addItem(this.activeList.id,e);this.trackRecentlyUsed(e.product_id),await this.loadActiveListData(),this.showAddDialog=!1}trackRecentlyUsed(t){if(!t)return;const e="slm_recent_products",r=localStorage.getItem(e),i=(r?JSON.parse(r):[]).filter(e=>e!==t);i.unshift(t);const n=i.slice(0,50);localStorage.setItem(e,JSON.stringify(n))}async _syncProductFromItemData(t,e){const r={};e.name&&(r.name=e.name),e.category_id&&(r.category_id=e.category_id),void 0!==e.price&&""!==e.price&&(r.price=parseFloat(e.price)||0),e.unit&&(r.default_unit=e.unit),void 0!==e.image_url&&(r.image_url=e.image_url),Object.keys(r).length>0&&await this.api.updateProduct(t,r)}async handleEditItem(t){const{itemId:e,data:r}=t.detail;if(this.editingItem?._isProductEdit)await this._syncProductFromItemData(this.editingItem.product_id,r);else{await this.api.updateItem(e,r);const t=this.items.find(t=>t.id===e);t?.product_id&&await this._syncProductFromItemData(t.product_id,r)}await this.loadActiveListData(),this.showEditDialog=!1,this.editingItem=null}handleNavChange(t){this.currentView=t.detail.view}handleSettingsChange(t){this.settings={...this.settings,...t.detail},this.saveSettings(),this.applyColorScheme(),this.settings.keepScreenOn?this.acquireWakeLock():this.releaseWakeLock(),this.requestUpdate()}handleMenuSettingChange(t){const{key:e,value:r}=t.detail;this.settings={...this.settings,[e]:r},this.saveSettings(),this.requestUpdate()}async handleCreateAndAddProduct(t){const{name:e,category_id:r,price:i}=t.detail;try{const t={name:e,category_id:r};i&&(t.price=parseFloat(i));const n=await this.api.addProduct(t),o=n.product||n,s={name:e,category_id:r,product_id:o.id,quantity:1,unit:"units"};i&&(s.price=parseFloat(i)),await this.api.addItem(this.activeList.id,s),o.id&&this.trackRecentlyUsed(o.id),await this.loadActiveListData()}catch(t){console.error("Failed to create product:",t)}}handleBackToLists(){this.currentView="lists"}async handleShareList(){const t=this.activeList?.name||"Shopping List",e=this.items.filter(t=>!t.checked).map(t=>`${t.quantity} ${t.unit} ${t.name}`).join("\n"),r=`${t}\n\n${e}`;if(navigator.share)try{await navigator.share({title:t,text:r})}catch(t){"AbortError"!==t.name&&console.error("Share failed:",t)}else navigator.clipboard.writeText(r),alert("List copied to clipboard!")}async subscribeToUpdates(){if(this.hass?.connection)try{const t=await this.hass.connection.subscribeMessage(t=>{console.log("[SLM] ✅ Received update:",t.event_type),this.loadActiveListData()},{type:"shopping_list_manager/subscribe"});this._unsubscribers=[t],console.log("[SLM] ✅ Subscribed to shopping list updates")}catch(t){console.error("[SLM] ❌ Failed to subscribe:",t)}}disconnectedCallback(){super.disconnectedCallback()}renderCurrentView(){switch(this.currentView){case"shopping":return G`
           <slm-list-header
             .activeList=${this.activeList}
             .itemCount=${this.items.filter(t=>!t.checked).length}
@@ -5366,6 +5369,104 @@ const C=globalThis,A=t=>t,I=C.trustedTypes,S=I?I.createPolicy("lit-html",{create
       --slm-cat-baby: #f48fb1;
       --slm-cat-other: #b0bec5;
       --slm-cat-recent: #b48fa5;
+    }
+
+    /* ===============================
+      DARK – Neon (Purple & Cyan)
+    ================================ */
+    :host([data-theme-name="neon"]) {
+      --slm-bg-main: #0a0b10;
+      --slm-bg-surface: #121420;
+      --slm-bg-elevated: #1a1d2e;
+
+      --slm-text-primary: #e0e0f0;
+      --slm-text-secondary: #a0a5c0;
+      --slm-text-muted: #6a6f8e;
+
+      --slm-border-subtle: #2a2d45;
+
+      --slm-accent-primary: #bb86fc;
+      --slm-accent-secondary: #03dac6;
+      --slm-accent-warning: #ffb74d;
+      --slm-accent-danger: #cf6679;
+
+      --slm-tile-bg: #1a1d2e;
+      --slm-tile-checked-opacity: 0.3;
+
+      --slm-shadow-soft: 0 4px 10px rgba(0,0,0,0.4);
+      --slm-shadow-medium: 0 8px 25px rgba(0,0,0,0.7);
+
+      --slm-list-gradient-0: linear-gradient(135deg, #6200ee, #bb86fc);
+      --slm-list-gradient-1: linear-gradient(135deg, #018786, #03dac6);
+      --slm-list-gradient-2: linear-gradient(135deg, #f57c00, #ffb74d);
+      --slm-list-gradient-3: linear-gradient(135deg, #7b1fa2, #ab47bc);
+      --slm-list-gradient-4: linear-gradient(135deg, #00796b, #009688);
+      --slm-list-gradient-5: linear-gradient(135deg, #c2185b, #ec407a);
+      --slm-total-bar-bg: linear-gradient(90deg, #6200ee 0%, #bb86fc 100%);
+
+      --slm-cat-produce: #03dac6;
+      --slm-cat-dairy: #bb86fc;
+      --slm-cat-meat: #cf6679;
+      --slm-cat-bakery: #ffb300;
+      --slm-cat-pantry: #ff7043;
+      --slm-cat-frozen: #03dac6;
+      --slm-cat-beverages: #bb86fc;
+      --slm-cat-snacks: #c6ff00;
+      --slm-cat-household: #00bcd4;
+      --slm-cat-health: #69f0ae;
+      --slm-cat-pet: #ff80ab;
+      --slm-cat-baby: #f48fb1;
+      --slm-cat-other: #6a6f8e;
+      --slm-cat-recent: #a0a5c0;
+    }
+
+    /* ===============================
+      LIGHT – Ocean (Ocean Blue)
+    ================================ */
+    :host([data-theme-name="ocean"]) {
+      --slm-bg-main: #f0f7ff;
+      --slm-bg-surface: #ffffff;
+      --slm-bg-elevated: #f9fbff;
+
+      --slm-text-primary: #1a3a5f;
+      --slm-text-secondary: #4a6b8c;
+      --slm-text-muted: #7a9bbd;
+
+      --slm-border-subtle: #d0e1f2;
+
+      --slm-accent-primary: #0077ff;
+      --slm-accent-secondary: #4c51bf;
+      --slm-accent-warning: #f6ad55;
+      --slm-accent-danger: #e53e3e;
+
+      --slm-tile-bg: #ffffff;
+      --slm-tile-checked-opacity: 0.4;
+
+      --slm-shadow-soft: 0 2px 8px rgba(26,58,95,0.08);
+      --slm-shadow-medium: 0 6px 18px rgba(26,58,95,0.15);
+
+      --slm-list-gradient-0: linear-gradient(135deg, #0077ff, #3182ce);
+      --slm-list-gradient-1: linear-gradient(135deg, #2c5282, #4c51bf);
+      --slm-list-gradient-2: linear-gradient(135deg, #c05621, #f6ad55);
+      --slm-list-gradient-3: linear-gradient(135deg, #6b46c1, #9f7aea);
+      --slm-list-gradient-4: linear-gradient(135deg, #2c7a7b, #38b2ac);
+      --slm-list-gradient-5: linear-gradient(135deg, #9b2c2c, #e53e3e);
+      --slm-total-bar-bg: linear-gradient(90deg, #0077ff 0%, #4c51bf 100%);
+
+      --slm-cat-produce: #38b2ac;
+      --slm-cat-dairy: #63b3ed;
+      --slm-cat-meat: #e53e3e;
+      --slm-cat-bakery: #f6ad55;
+      --slm-cat-pantry: #ed8936;
+      --slm-cat-frozen: #63b3ed;
+      --slm-cat-beverages: #667eea;
+      --slm-cat-snacks: #ecc94b;
+      --slm-cat-household: #38b2ac;
+      --slm-cat-health: #48bb78;
+      --slm-cat-pet: #a0785a;
+      --slm-cat-baby: #ed64a6;
+      --slm-cat-other: #7a9bbd;
+      --slm-cat-recent: #4a6b8c;
     }
 
   `;setConfig(t){this.config=t;const e=this._hashConfig(t);e!==this._baseCardId&&(this._baseCardId=e,this._assignedCardId=null,this._cardId=e)}getCardSize(){return 12}}customElements.define("shopping-list-manager-card",sa);

@@ -1192,6 +1192,15 @@ class ShoppingListManagerCard extends LitElement {
       --slm-cat-produce: #03dac6;
       --slm-cat-dairy: #bb86fc;
       --slm-cat-meat: #cf6679;
+      --slm-cat-bakery: #ffb300;
+      --slm-cat-pantry: #ff7043;
+      --slm-cat-frozen: #03dac6;
+      --slm-cat-beverages: #bb86fc;
+      --slm-cat-snacks: #c6ff00;
+      --slm-cat-household: #00bcd4;
+      --slm-cat-health: #69f0ae;
+      --slm-cat-pet: #ff80ab;
+      --slm-cat-baby: #f48fb1;
       --slm-cat-other: #6a6f8e;
       --slm-cat-recent: #a0a5c0;
     }
@@ -1230,8 +1239,17 @@ class ShoppingListManagerCard extends LitElement {
       --slm-total-bar-bg: linear-gradient(90deg, #0077ff 0%, #4c51bf 100%);
 
       --slm-cat-produce: #38b2ac;
-      --slm-cat-dairy: #4c51bf;
+      --slm-cat-dairy: #63b3ed;
       --slm-cat-meat: #e53e3e;
+      --slm-cat-bakery: #f6ad55;
+      --slm-cat-pantry: #ed8936;
+      --slm-cat-frozen: #63b3ed;
+      --slm-cat-beverages: #667eea;
+      --slm-cat-snacks: #ecc94b;
+      --slm-cat-household: #38b2ac;
+      --slm-cat-health: #48bb78;
+      --slm-cat-pet: #a0785a;
+      --slm-cat-baby: #ed64a6;
       --slm-cat-other: #7a9bbd;
       --slm-cat-recent: #4a6b8c;
     }
