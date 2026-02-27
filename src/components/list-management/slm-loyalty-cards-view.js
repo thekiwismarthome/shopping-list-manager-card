@@ -12,11 +12,15 @@ class SLMLoyaltyCardsView extends LitElement {
     showEditDialog: { type: Boolean },
     showFullscreenCard: { type: Boolean },
     showMembersDialog: { type: Boolean },
+    showViewMenu: { type: Boolean },
     editingCard: { type: Object },
     fullscreenCard: { type: Object },
     membersCard: { type: Object },
     newCard: { type: Object },
     allUsers: { type: Array },
+    _viewMode: { type: String },
+    _viewMenuX: { type: Number },
+    _viewMenuY: { type: Number },
     _loading: { type: Boolean }
   };
 
@@ -29,11 +33,15 @@ class SLMLoyaltyCardsView extends LitElement {
     this.showEditDialog = false;
     this.showFullscreenCard = false;
     this.showMembersDialog = false;
+    this.showViewMenu = false;
     this.editingCard = null;
     this.fullscreenCard = null;
     this.membersCard = null;
     this.allUsers = [];
     this._loading = false;
+    this._viewMode = localStorage.getItem('slm_loyalty_view_mode') || 'card';
+    this._viewMenuX = 0;
+    this._viewMenuY = 0;
     this.newCard = {
       name: '',
       number: '',
@@ -103,6 +111,24 @@ class SLMLoyaltyCardsView extends LitElement {
     }
   }
 
+  // ── View mode ────────────────────────────────────────────────────────────────
+
+  handleViewMenuClick(e) {
+    e.stopPropagation();
+    const rect = e.currentTarget.getBoundingClientRect();
+    this._viewMenuX = rect.right - 150;
+    this._viewMenuY = rect.bottom + 5;
+    this.showViewMenu = !this.showViewMenu;
+  }
+
+  setViewMode(mode) {
+    this._viewMode = mode;
+    localStorage.setItem('slm_loyalty_view_mode', mode);
+    this.showViewMenu = false;
+  }
+
+  // ── Barcode scanner ──────────────────────────────────────────────────────────
+
   startBarcodeScanner(isEdit) {
     const host = document.createElement('div');
     host.id = 'slm-barcode-scanner-host';
@@ -111,15 +137,12 @@ class SLMLoyaltyCardsView extends LitElement {
       zIndex: '99999', background: '#000',
       display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center'
     });
-
     const label = document.createElement('p');
     label.textContent = 'Point camera at barcode';
     Object.assign(label.style, { color: '#fff', fontSize: '16px', margin: '0 0 12px 0' });
-
     const scanRegion = document.createElement('div');
     scanRegion.id = 'slm-scanner-region';
     Object.assign(scanRegion.style, { width: '100%', maxWidth: '400px' });
-
     const cancelBtn = document.createElement('button');
     cancelBtn.textContent = '✕ Cancel';
     Object.assign(cancelBtn.style, {
@@ -127,7 +150,6 @@ class SLMLoyaltyCardsView extends LitElement {
       background: '#fff', color: '#333', border: 'none', borderRadius: '10px', cursor: 'pointer'
     });
     cancelBtn.onclick = () => this.stopBarcodeScanner();
-
     host.append(label, scanRegion, cancelBtn);
     document.body.appendChild(host);
 
@@ -158,6 +180,8 @@ class SLMLoyaltyCardsView extends LitElement {
     document.getElementById('slm-barcode-scanner-host')?.remove();
   }
 
+  // ── CRUD ─────────────────────────────────────────────────────────────────────
+
   handleAddCard() {
     this.newCard = {
       name: '',
@@ -174,7 +198,6 @@ class SLMLoyaltyCardsView extends LitElement {
   async handleSaveNewCard(e) {
     e.preventDefault();
     const formData = new FormData(e.target);
-    const isPrivate = this.newCard.private;
     const cardData = {
       name: formData.get('name'),
       number: formData.get('number'),
@@ -182,7 +205,7 @@ class SLMLoyaltyCardsView extends LitElement {
       logo: formData.get('logo') || '',
       notes: formData.get('notes') || '',
       color: formData.get('color') || '#9fa8da',
-      private: isPrivate
+      private: this.newCard.private
     };
     try {
       const result = await this.api.addLoyaltyCard(cardData);
@@ -282,14 +305,21 @@ class SLMLoyaltyCardsView extends LitElement {
     return card?.owner_id && (this._isOwner(card) || this.isAdmin);
   }
 
+  // ── Render ────────────────────────────────────────────────────────────────────
+
   render() {
     return html`
       <div class="loyalty-view">
         <div class="header">
           <h2>Loyalty Cards</h2>
-          <button class="add-btn" @click=${this.handleAddCard}>
-            <ha-icon icon="mdi:plus"></ha-icon>
-          </button>
+          <div class="header-actions">
+            <button class="icon-btn" @click=${this.handleViewMenuClick} title="View options">
+              <ha-icon icon="mdi:dots-vertical"></ha-icon>
+            </button>
+            <button class="add-btn" @click=${this.handleAddCard} title="Add card">
+              <ha-icon icon="mdi:plus"></ha-icon>
+            </button>
+          </div>
         </div>
 
         ${this._loading ? html`<div class="loading">Loading...</div>` : ''}
@@ -300,41 +330,91 @@ class SLMLoyaltyCardsView extends LitElement {
             <p>No loyalty cards yet</p>
             <p class="hint">Add your store loyalty cards for quick access</p>
           </div>
-        ` : html`
-          <div class="cards-grid">
-            ${this.cards.map(card => html`
-              <div class="loyalty-card" style="background: ${card.color}" @click=${() => this.handleCardClick(card)}>
-                ${card.owner_id ? html`
-                  <div class="private-badge">
-                    <ha-icon icon="mdi:lock"></ha-icon>
-                  </div>
-                ` : ''}
-                <button class="menu-btn" @click=${(e) => { e.stopPropagation(); this.handleEditCard(card); }}>
-                  <ha-icon icon="mdi:dots-vertical"></ha-icon>
-                </button>
-
-                <div class="card-body">
-                  ${card.logo ? html`
-                    <img src="${card.logo}" alt="${card.name}" class="card-logo">
-                  ` : ''}
-                  <h3>${card.name}</h3>
-                  <div class="card-number">${card.number}</div>
-                  ${card.barcode ? html`
-                    <div class="barcode-preview">
-                      <ha-icon icon="mdi:barcode"></ha-icon>
-                      <span>${card.barcode}</span>
-                    </div>
-                  ` : ''}
-                </div>
-              </div>
-            `)}
-          </div>
-        `}
+        ` : this._viewMode === 'tile' ? this.renderTileGrid() : this.renderCardGrid()}
 
         ${this.showAddDialog ? this.renderAddDialog() : ''}
         ${this.showEditDialog ? this.renderEditDialog() : ''}
         ${this.showFullscreenCard ? this.renderFullscreen() : ''}
         ${this.showMembersDialog ? this.renderMembersDialog() : ''}
+        ${this.showViewMenu ? this.renderViewMenu() : ''}
+      </div>
+    `;
+  }
+
+  renderCardGrid() {
+    return html`
+      <div class="cards-grid">
+        ${this.cards.map(card => html`
+          <div class="loyalty-card" style="background: ${card.color}" @click=${() => this.handleCardClick(card)}>
+            ${card.owner_id ? html`
+              <div class="private-badge">
+                <ha-icon icon="mdi:lock"></ha-icon>
+              </div>
+            ` : ''}
+            <button class="card-menu-btn" @click=${(e) => { e.stopPropagation(); this.handleEditCard(card); }}>
+              <ha-icon icon="mdi:dots-vertical"></ha-icon>
+            </button>
+            <div class="card-body">
+              ${card.logo ? html`
+                <img src="${card.logo}" alt="${card.name}" class="card-logo">
+              ` : ''}
+              <h3>${card.name}</h3>
+              <div class="card-number">${card.number}</div>
+              ${card.barcode ? html`
+                <div class="barcode-preview">
+                  <ha-icon icon="mdi:barcode"></ha-icon>
+                  <span>${card.barcode}</span>
+                </div>
+              ` : ''}
+            </div>
+          </div>
+        `)}
+      </div>
+    `;
+  }
+
+  renderTileGrid() {
+    return html`
+      <div class="tiles-grid">
+        ${this.cards.map(card => html`
+          <div
+            class="loyalty-tile"
+            style="${card.logo ? '' : `background: ${card.color};`}"
+            @click=${() => this.handleCardClick(card)}
+          >
+            ${card.logo ? html`
+              <img src="${card.logo}" alt="${card.name}" class="tile-img">
+            ` : ''}
+            <div class="tile-overlay">
+              <div class="tile-name">${card.name}</div>
+            </div>
+            ${card.owner_id ? html`
+              <div class="tile-private-badge">
+                <ha-icon icon="mdi:lock"></ha-icon>
+              </div>
+            ` : ''}
+            <button class="tile-menu-btn" @click=${(e) => { e.stopPropagation(); this.handleEditCard(card); }}>
+              <ha-icon icon="mdi:dots-vertical"></ha-icon>
+            </button>
+          </div>
+        `)}
+      </div>
+    `;
+  }
+
+  renderViewMenu() {
+    return html`
+      <div class="view-menu-overlay" @click=${() => this.showViewMenu = false}>
+        <div class="view-menu-popup" style="left: ${this._viewMenuX}px; top: ${this._viewMenuY}px;">
+          <button class="${this._viewMode === 'card' ? 'active' : ''}" @click=${(e) => { e.stopPropagation(); this.setViewMode('card'); }}>
+            <ha-icon icon="mdi:card-text"></ha-icon>
+            Card View
+          </button>
+          <button class="${this._viewMode === 'tile' ? 'active' : ''}" @click=${(e) => { e.stopPropagation(); this.setViewMode('tile'); }}>
+            <ha-icon icon="mdi:view-grid"></ha-icon>
+            Tile View
+          </button>
+        </div>
       </div>
     `;
   }
@@ -346,9 +426,7 @@ class SLMLoyaltyCardsView extends LitElement {
         <form class="dialog" @click=${(e) => e.stopPropagation()} @submit=${this.handleSaveNewCard}>
           <div class="dialog-header">
             <h3>Add Loyalty Card</h3>
-            <button type="button" @click=${() => this.showAddDialog = false}>
-              <span class="emoji">✖️</span>
-            </button>
+            <button type="button" @click=${() => this.showAddDialog = false}>✖️</button>
           </div>
           <div class="dialog-content">
             <label>
@@ -398,9 +476,7 @@ class SLMLoyaltyCardsView extends LitElement {
         <form class="dialog" @click=${(e) => e.stopPropagation()} @submit=${this.handleSaveEditCard}>
           <div class="dialog-header">
             <h3>Edit Card</h3>
-            <button type="button" @click=${() => { this.showEditDialog = false; this.editingCard = null; }}>
-              <span class="emoji">✖️</span>
-            </button>
+            <button type="button" @click=${() => { this.showEditDialog = false; this.editingCard = null; }}>✖️</button>
           </div>
           <div class="dialog-content">
             <label>
@@ -455,15 +531,12 @@ class SLMLoyaltyCardsView extends LitElement {
     const card = this.membersCard;
     const otherUsers = this.allUsers.filter(u => u.id !== this.userId);
     const allowedSet = new Set(card.allowed_users || []);
-
     return html`
       <div class="overlay" @click=${() => { this.showMembersDialog = false; this.membersCard = null; }}>
         <form class="dialog" @click=${(e) => e.stopPropagation()} @submit=${this.handleSaveMembers}>
           <div class="dialog-header">
             <h3>Manage Members</h3>
-            <button type="button" @click=${() => { this.showMembersDialog = false; this.membersCard = null; }}>
-              <span class="emoji">✖️</span>
-            </button>
+            <button type="button" @click=${() => { this.showMembersDialog = false; this.membersCard = null; }}>✖️</button>
           </div>
           <div class="dialog-content">
             <p class="members-hint">Select which users can see "${card.name}"</p>
@@ -508,9 +581,14 @@ class SLMLoyaltyCardsView extends LitElement {
   }
 
   static styles = css`
+    :host {
+      display: block;
+    }
     .loyalty-view {
       padding: 16px 8px;
     }
+
+    /* ── Header ─────────────────────────────────── */
     .header {
       display: flex;
       justify-content: space-between;
@@ -523,18 +601,39 @@ class SLMLoyaltyCardsView extends LitElement {
       font-size: 22px;
       font-weight: 700;
       color: var(--slm-text-primary);
+      flex: 1;
+    }
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .icon-btn {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 40px;
+      height: 40px;
+      background: var(--slm-bg-elevated, #f0f0f0);
+      border: none;
+      border-radius: 50%;
+      cursor: pointer;
+      color: var(--slm-text-primary);
+      -webkit-tap-highlight-color: transparent;
+    }
+    .icon-btn ha-icon {
+      --mdc-icon-size: 22px;
     }
     .add-btn {
       display: flex;
       align-items: center;
       justify-content: center;
-      padding: 8px;
+      width: 40px;
+      height: 40px;
       background: var(--primary-color);
       color: white;
       border: none;
       border-radius: 50%;
-      width: 40px;
-      height: 40px;
       cursor: pointer;
       box-shadow: var(--slm-shadow-soft);
       -webkit-tap-highlight-color: transparent;
@@ -542,6 +641,51 @@ class SLMLoyaltyCardsView extends LitElement {
     .add-btn ha-icon {
       --mdc-icon-size: 24px;
     }
+
+    /* ── View menu popup ─────────────────────────── */
+    .view-menu-overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 9999;
+    }
+    .view-menu-popup {
+      position: fixed;
+      background: var(--slm-bg-elevated, #fff);
+      box-shadow: var(--slm-shadow-medium);
+      border-radius: 10px;
+      overflow: hidden;
+      min-width: 150px;
+      z-index: 10000;
+    }
+    .view-menu-popup button {
+      width: 100%;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 13px 16px;
+      border: none;
+      background: transparent;
+      color: var(--slm-text-primary);
+      cursor: pointer;
+      font-size: 14px;
+      text-align: left;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .view-menu-popup button:active,
+    .view-menu-popup button.active {
+      background: var(--slm-bg-surface);
+      font-weight: 600;
+    }
+    .view-menu-popup button ha-icon {
+      --mdc-icon-size: 20px;
+      opacity: 0.75;
+    }
+    .view-menu-popup button.active ha-icon {
+      opacity: 1;
+      color: var(--primary-color);
+    }
+
+    /* ── Loading / Empty ─────────────────────────── */
     .loading {
       text-align: center;
       padding: 40px;
@@ -562,9 +706,11 @@ class SLMLoyaltyCardsView extends LitElement {
       opacity: 0.7;
       margin-bottom: 24px;
     }
+
+    /* ── Card view ───────────────────────────────── */
     .cards-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
       gap: 12px;
     }
     .loyalty-card {
@@ -572,11 +718,28 @@ class SLMLoyaltyCardsView extends LitElement {
       padding: 20px;
       border-radius: 12px;
       color: white;
-      min-height: 180px;
+      min-height: 160px;
       display: flex;
       flex-direction: column;
       box-shadow: var(--slm-shadow-soft);
       cursor: pointer;
+    }
+    .card-menu-btn {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      background: rgba(255,255,255,0.2);
+      color: white;
+      border: none;
+      border-radius: 50%;
+      width: 32px;
+      height: 32px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 2;
+      -webkit-tap-highlight-color: transparent;
     }
     .private-badge {
       position: absolute;
@@ -590,24 +753,6 @@ class SLMLoyaltyCardsView extends LitElement {
       --mdc-icon-size: 16px;
       color: white;
     }
-    .menu-btn {
-      position: absolute;
-      top: 10px;
-      right: 10px;
-      background: rgba(255,255,255,0.2);
-      color: white;
-      border: none;
-      border-radius: 50%;
-      width: 32px;
-      height: 32px;
-      cursor: pointer;
-      font-size: 18px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      z-index: 2;
-      -webkit-tap-highlight-color: transparent;
-    }
     .card-body {
       flex: 1;
       display: flex;
@@ -615,24 +760,24 @@ class SLMLoyaltyCardsView extends LitElement {
       justify-content: space-between;
     }
     .card-logo {
-      width: 60px;
-      height: 60px;
+      width: 56px;
+      height: 56px;
       object-fit: contain;
       margin-bottom: 10px;
       background: rgba(255,255,255,0.9);
-      padding: 8px;
+      padding: 6px;
       border-radius: 8px;
     }
     .loyalty-card h3 {
-      margin: 0 0 12px 0;
+      margin: 0 0 10px 0;
       font-size: 18px;
       font-weight: 700;
     }
     .card-number {
-      font-size: 16px;
+      font-size: 15px;
       font-weight: 600;
       letter-spacing: 1px;
-      margin-bottom: 10px;
+      margin-bottom: 8px;
     }
     .barcode-preview {
       display: flex;
@@ -641,12 +786,83 @@ class SLMLoyaltyCardsView extends LitElement {
       opacity: 0.9;
       font-size: 13px;
     }
-    .overlay {
-      position: fixed;
-      top: 0;
+
+    /* ── Tile view ───────────────────────────────── */
+    .tiles-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+      gap: 10px;
+    }
+    .loyalty-tile {
+      position: relative;
+      border-radius: 12px;
+      overflow: hidden;
+      aspect-ratio: 1;
+      cursor: pointer;
+      box-shadow: var(--slm-shadow-soft);
+    }
+    .tile-img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+    .tile-overlay {
+      position: absolute;
+      bottom: 0;
       left: 0;
       right: 0;
-      bottom: 0;
+      background: linear-gradient(transparent, rgba(0,0,0,0.65));
+      padding: 22px 8px 8px;
+    }
+    .tile-name {
+      font-size: 11px;
+      font-weight: 700;
+      color: white;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .tile-private-badge {
+      position: absolute;
+      top: 6px;
+      left: 6px;
+      background: rgba(0,0,0,0.35);
+      border-radius: 50%;
+      width: 22px;
+      height: 22px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .tile-private-badge ha-icon {
+      --mdc-icon-size: 13px;
+      color: white;
+    }
+    .tile-menu-btn {
+      position: absolute;
+      top: 4px;
+      right: 4px;
+      background: rgba(0,0,0,0.3);
+      color: white;
+      border: none;
+      border-radius: 50%;
+      width: 28px;
+      height: 28px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .tile-menu-btn ha-icon {
+      --mdc-icon-size: 18px;
+    }
+
+    /* ── Dialogs ──────────────────────────────────── */
+    .overlay {
+      position: fixed;
+      inset: 0;
       background: rgba(0, 0, 0, 0.5);
       display: flex;
       align-items: center;
@@ -719,11 +935,10 @@ class SLMLoyaltyCardsView extends LitElement {
       margin-bottom: 14px;
     }
     .toggle-label input[type="checkbox"] {
-      width: auto;
-      display: inline;
-      margin-top: 0;
       width: 20px;
       height: 20px;
+      display: inline;
+      margin-top: 0;
       cursor: pointer;
     }
     .scan-row {
@@ -744,12 +959,9 @@ class SLMLoyaltyCardsView extends LitElement {
       border: 2px solid var(--slm-border-subtle);
       border-radius: 8px;
       cursor: pointer;
-      line-height: 1;
       -webkit-tap-highlight-color: transparent;
     }
-    .scan-btn:active {
-      background: var(--slm-border-subtle);
-    }
+    .scan-btn:active { background: var(--slm-border-subtle); }
     .members-hint {
       margin: 0 0 16px 0;
       font-size: 14px;
@@ -797,28 +1009,19 @@ class SLMLoyaltyCardsView extends LitElement {
       gap: 6px;
       -webkit-tap-highlight-color: transparent;
     }
-    .action-btn.primary {
-      background: var(--slm-accent-primary, #9fa8da);
-      color: white;
-    }
+    .action-btn.primary { background: var(--slm-accent-primary, #9fa8da); color: white; }
     .action-btn.secondary {
       background: var(--slm-bg-main, #fafbfc);
       color: var(--slm-text-primary);
       border: 1px solid var(--slm-border-subtle);
     }
-    .action-btn.danger {
-      background: var(--slm-accent-danger, #ef9a9a);
-      color: white;
-    }
-    .action-btn ha-icon {
-      --mdc-icon-size: 18px;
-    }
+    .action-btn.danger { background: var(--slm-accent-danger, #ef9a9a); color: white; }
+    .action-btn ha-icon { --mdc-icon-size: 18px; }
+
+    /* ── Fullscreen ───────────────────────────────── */
     .fullscreen-overlay {
       position: fixed;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
+      inset: 0;
       background: rgba(0,0,0,0.95);
       display: flex;
       align-items: center;
@@ -849,9 +1052,7 @@ class SLMLoyaltyCardsView extends LitElement {
       border-radius: 12px;
       max-width: 400px;
     }
-    .barcode-display {
-      margin-bottom: 20px;
-    }
+    .barcode-display { margin-bottom: 20px; }
     .tap-hint {
       margin-top: 40px;
       opacity: 0.7;
