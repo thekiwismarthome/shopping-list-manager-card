@@ -1,250 +1,139 @@
-# Shopping List Manager for Home Assistant
+# Shopping List Manager Card for Home Assistant
 
-A comprehensive shopping list integration for Home Assistant, featuring a full-featured Lovelace card with real-time multi-device synchronisation, product catalog, category management, and loyalty card storage.
+A feature-rich, multi-list shopping manager for Home Assistant Lovelace. Built as a custom card using Lit web components, it gives you a full grocery management experience — from product search and category grouping to loyalty card storage — all in a polished, real-time-synced interface.
+
+> **Requires the [Shopping List Manager Integration](https://github.com/thekiwismarthome/shopping-list-manager)** to be installed first.
+
+[![Open your Home Assistant instance and open this repository inside the Home Assistant Community Store.](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=thekiwismarthome&repository=shopping-list-manager-card&category=plugin)
 
 ---
 
 ## Features
 
 ### 🛒 Shopping Lists
-- Create and manage multiple shopping lists
-- Set an active list across all devices
+- Create and manage **multiple shopping lists**
+- Active list syncs instantly across all devices and users
 - Share list contents via clipboard or native share sheet
-- Real-time synchronisation across all users and devices (including non-admin users)
+- Private or shared lists with per-member access control
+- List icons, rename, and delete support
 - List total price calculation in local currency
 
 ### 📦 Items & Quantities
-- Add items with quantity and unit (metric units: kg, g, L, mL, units, pack, etc.)
-- Tap item tile to increase quantity
-- Tap minus button to decrease quantity (removes item at zero)
-- Long-press tile for edit dialog with full item details
-- Swipe to delete
-- Check/uncheck items when in-store
-- Bulk check and clear checked items
+- Add items with quantity and unit (kg, g, L, mL, units, pack, and more)
+- **Tap** a tile to increment quantity; **tap minus** to decrement (removes at zero)
+- **Long-press** to open a full edit dialog — name, category, unit, price, and notes
+- **Swipe** to delete
+- Check items off as you shop; bulk-clear all checked items in one tap
 
 ### 🔍 Product Search & Catalog
-- 500+ product catalog (NZ-focused, extensible)
-- Fuzzy search with alias matching
-- Recently used products suggestions
-- Custom product creation
-- Product substitutes support
-- Allergen filtering
+- **500+ product catalog** with fuzzy search and alias matching
+- Recently-used product suggestions for quick re-adding
+- Custom product creation with default quantity and unit
+- Product images with local HA image folder support
+- Allergen filtering and product substitute suggestions
 - Auto-fill default quantities and units per product
-- Product images (webp, 200x200px, optimised)
 
 ### 🗂️ Categories
-- 13 default categories (Produce, Dairy, Meat, Bakery, Pantry, Frozen, Beverages, Snacks, Household, Health, Pet, Baby, Other)
-- Items grouped by category in the grid view
-- Pastel colour coding per category
-- Emoji icons per category
+- 13 default categories — Produce, Dairy, Meat, Bakery, Pantry, Frozen, Beverages, Snacks, Household, Health, Pet, Baby, Other
+- Items grouped by category with colour-coded headers and emoji icons
+- Category order configurable per list
 
 ### 💳 Loyalty Cards
-- Store loyalty/rewards card barcodes
-- Quick access from bottom navigation
+- Store loyalty and rewards card barcodes in one place
+- Built-in **camera barcode scanner** for easy card capture
+- **Fullscreen card display** for scanning at checkout
+- Supports standard barcodes and QR codes
+- Card colour, logo, and notes customisation
+- Shared or private card access per user
 
-### ⚙️ Settings
-- Tiles per row (configurable grid layout)
-- Dark / Light / System theme
-- Recently used products count
-- Open last used list on load
-- Keep screen on (kiosk mode)
-- Font size options
+### 🎨 Themes & Display
+- **Tile view** (category-grouped grid) and **List view**
+- Tiles per row: 2 / 3 / 4 / 5 (configurable)
+- Sort items by category or alphabetically
+- Show or hide item prices on tiles
+- **8 built-in themes:**
+
+| Theme | Style |
+|---|---|
+| Soft Pastel *(default)* | Clean, modern pastels |
+| Arctic | Cool blue tones |
+| Meadow | Natural greens |
+| Blossom | Warm pink / mauve |
+| Ocean Blue | Ocean-inspired blues |
+| Midnight Ocean | Dark, GitHub-inspired blue |
+| Ember | Warm dark orange / brown |
+| Purple & Cyan | Material Design 3 vibrant dark |
+
+- Dark mode: **On / Off / Follow device**
+- Font family (6 options), font size, and font weight controls
+- Emoji or icon display toggle
+
+### 🔄 Real-Time Sync
+- WebSocket-based synchronisation — changes appear instantly on all connected devices
+- Works for **non-admin HA users** without requiring admin privileges
+- Keep-screen-on (wake lock) option for kiosk and tablet use
 
 ---
 
-## Architecture
+## Requirements
 
-### Backend (Home Assistant Custom Integration)
-
-```
-custom_components/shopping_list_manager/
-├── __init__.py               # Integration setup, WebSocket handler registration
-├── manifest.json             # Integration manifest
-├── const.py                  # Constants, event names, WebSocket command types
-├── models.py                 # ShoppingList, ShoppingItem, Product, Category dataclasses
-├── storage.py                # Persistent storage layer (HA Store)
-├── manager.py                # Business logic layer
-├── config_flow.py            # Config flow for UI setup
-├── category_loader.py        # Category initialisation from JSON
-├── categories.json           # Default category definitions
-├── websocket/
-│   ├── __init__.py           # Package marker
-│   └── handlers.py           # All WebSocket command handlers
-└── utils/
-    └── images.py             # Image processing (webp conversion, resizing)
-```
-
-**Storage:** Uses Home Assistant's built-in `Store` for persistent JSON storage. Three separate stores: lists/items, products, categories.
-
-**Events fired on the HA bus:**
-| Event | Fired when |
+| Component | Minimum Version |
 |---|---|
-| `shopping_list_manager_item_added` | Item added to a list |
-| `shopping_list_manager_item_updated` | Item quantity/details changed |
-| `shopping_list_manager_item_checked` | Item checked or unchecked |
-| `shopping_list_manager_item_deleted` | Item deleted |
-| `shopping_list_manager_list_updated` | List created, updated, or active list changed |
-| `shopping_list_manager_list_deleted` | List deleted |
-
-### Frontend (Lovelace Custom Card)
-
-Built with [Lit](https://lit.dev/) web components, bundled with Rollup.
-
-```
-shopping_list_manager_card/
-├── shopping-list-manager-card.js   # Built/deployed file (committed to repo)
-├── package.json
-├── rollup.config.js
-└── src/
-    ├── shopping-list-manager-card.js   # Main card component
-    └── components/
-        ├── slm-item-grid.js            # Category-grouped item grid
-        ├── slm-item-tile.js            # Individual item tile
-        ├── slm-search-bar.js           # Product search with suggestions
-        ├── slm-list-header.js          # List name, item count, back/share
-        ├── slm-lists-view.js           # Lists management view
-        ├── slm-loyalty-cards-view.js   # Loyalty cards view
-        └── slm-settings-view.js        # Settings view
-```
-
-**Component hierarchy:**
-```
-ShoppingListManagerCard (main)
-├── slm-list-header
-├── slm-search-bar
-├── slm-item-grid
-│   └── slm-item-tile (× n)
-├── slm-lists-view
-├── slm-loyalty-cards-view
-└── slm-settings-view
-```
-
----
-
-## WebSocket API
-
-All commands use the prefix `shopping_list_manager/`.
-
-### Lists
-| Command | Parameters | Description |
-|---|---|---|
-| `lists/get_all` | — | Get all lists |
-| `lists/create` | `name`, `icon` | Create a new list |
-| `lists/update` | `list_id`, `name?`, `icon?`, `category_order?` | Update a list |
-| `lists/delete` | `list_id` | Delete a list |
-| `lists/set_active` | `list_id` | Set the active list |
-
-### Items
-| Command | Parameters | Description |
-|---|---|---|
-| `items/get` | `list_id` | Get items for a list |
-| `items/add` | `list_id`, `name`, `category_id`, `quantity?`, `unit?`, `product_id?`, `price?`, `image_url?` | Add item |
-| `items/update` | `item_id`, `name?`, `quantity?`, `unit?`, `note?`, `price?`, `category_id?` | Update item |
-| `items/increment` | `item_id`, `amount` | Atomically increment/decrement quantity |
-| `items/check` | `item_id`, `checked` | Check or uncheck item |
-| `items/delete` | `item_id` | Delete item |
-| `items/bulk_check` | `item_ids`, `checked` | Bulk check/uncheck |
-| `items/clear_checked` | `list_id` | Remove all checked items |
-| `items/get_total` | `list_id` | Get price total for a list |
-
-### Products
-| Command | Parameters | Description |
-|---|---|---|
-| `products/search` | `query`, `limit?`, `exclude_allergens?`, `include_tags?` | Search product catalog |
-| `products/suggestions` | `limit?` | Get product suggestions |
-| `products/substitutes` | `product_id`, `limit?` | Get product substitutes |
-| `products/add` | `name`, `category_id`, `default_unit?`, `default_quantity?`, `price?`, `image_url?` | Add custom product |
-| `products/update` | `product_id`, ...fields | Update a product |
-| `products/get_by_ids` | `product_ids` | Fetch products by ID array |
-
-### Categories
-| Command | Parameters | Description |
-|---|---|---|
-| `categories/get_all` | — | Get all categories |
-
-### Real-time Subscriptions
-| Command | Description |
-|---|---|
-| `subscribe` | Subscribe to all SLM events (works for non-admin users) |
-
-> **Note:** Direct HA event subscriptions (`subscribe_events`) are blocked for non-admin users. The `subscribe` command acts as a trusted proxy — the integration relays all SLM bus events to the WebSocket connection. This allows kiosk tablets and non-admin users to receive real-time updates.
+| Home Assistant | 2024.1 |
+| [Shopping List Manager Integration](https://github.com/thekiwismarthome/shopping-list-manager) | Latest |
+| HACS | 2.x |
 
 ---
 
 ## Installation
 
-### Backend
+### Step 1 — Install the Backend Integration
 
-1. Copy `custom_components/shopping_list_manager/` to your HA `config/custom_components/` directory
-2. Restart Home Assistant
-3. Go to **Settings → Integrations → Add Integration** and search for **Shopping List Manager**
+Install the **Shopping List Manager** integration via HACS first:
 
-### Frontend (Manual)
+[![Open your Home Assistant instance and open this repository inside the Home Assistant Community Store.](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=thekiwismarthome&repository=shopping-list-manager&category=integration)
 
-1. Copy `shopping-list-manager-card.js` to `/config/www/community/shopping-list-manager-card/`
-2. Add to HA resources:
-   ```yaml
-   url: /local/community/shopping-list-manager-card/shopping-list-manager-card.js
-   type: module
-   ```
-3. Add the card to your dashboard:
-   ```yaml
-   type: custom:shopping-list-manager-card
-   ```
+After installing, restart Home Assistant and add the integration via **Settings → Devices & Services → Add Integration → Shopping List Manager**.
 
-### Frontend (HACS) — Planned
+### Step 2 — Install this Card via HACS
 
-Add this repository as a custom HACS repository (Frontend category). Install via HACS and add the resource automatically.
+[![Open your Home Assistant instance and open this repository inside the Home Assistant Community Store.](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=thekiwismarthome&repository=shopping-list-manager-card&category=plugin)
 
----
+Or manually in HACS:
 
-## Building the Frontend
+1. Open **HACS** in your Home Assistant sidebar
+2. Go to **Frontend**
+3. Click **+ Explore & Download Repositories**
+4. Search for **Shopping List Manager Card**
+5. Click **Download**
+6. Reload your browser
 
-```bash
-cd shopping_list_manager_card
-npm install
-npm run build
+### Step 3 — Add the Card to a Dashboard
+
+1. Open a Lovelace dashboard and click **Edit**
+2. Click **+ Add Card**
+3. Search for **Shopping List Manager**
+4. Select the card and click **Add to Dashboard**
+
+Or add it manually in YAML:
+
+```yaml
+type: custom:shopping-list-manager-card
 ```
 
-The built file is output to `shopping_list_manager_card/shopping-list-manager-card.js`. This file must be committed to the repository for HACS distribution.
+---
+
+## Documentation
+
+Full documentation is available in the [Wiki](https://github.com/thekiwismarthome/shopping-list-manager-card/wiki).
+
+## Support & Feedback
+
+- [Open an Issue](https://github.com/thekiwismarthome/shopping-list-manager-card/issues)
+- [Home Assistant Community Forum](https://community.home-assistant.io)
 
 ---
 
-## Multi-Device & Non-Admin Support
+## License
 
-The integration is designed to work correctly across multiple simultaneous users and devices including kiosk tablets running as non-admin HA users.
-
-- All item/list changes fire HA bus events
-- All connected cards subscribe via the `shopping_list_manager/subscribe` WebSocket command
-- The subscription proxy runs with integration-level permissions, bypassing HA's restriction on non-admin users subscribing to custom events directly
-- The frontend uses the `hass` property setter (not `firstUpdated`) to initiate the subscription, ensuring reliable connection on slow or low-powered devices
-
----
-
-## Current Status
-
-### ✅ Complete
-- Phase 1: Backend architecture — data models, storage, WebSocket API, category system
-- Phase 2: Product catalog (500+ NZ-focused items), image handling, enhanced search with fuzzy matching, allergen filters, substitution groups
-- Phase 3: Full frontend rebuild with Lit web components — multi-list UI, item grid, product search, edit dialogs, list management, loyalty cards view, settings
-- Real-time multi-device synchronisation for all users including non-admin
-- HACS repository structure and build pipeline
-
-### 🔜 Planned
-- Phase 4: Loyalty card barcode scanner
-- Phase 5: OpenFoodFacts barcode lookup integration (`barcode/scan`, `openfoodfacts/fetch`)
-- HACS community submission
-- Multi-language/multi-currency support
-
----
-
-## Technical Notes
-
-- **Storage version:** 2
-- **Image format:** WebP, 200×200px, 85% quality, max 15KB
-- **Units:** Always metric (kg, g, L, mL, units, pack, etc.)
-- **Currency:** Configurable (default NZD)
-- **Default quantities:** Pre-configured for 35+ common products
-- **HA minimum version:** 2024.x (uses modern WebSocket API and `Store`)
-- **Python:** 3.13 compatible
-- **Frontend:** Lit 4.x, bundled with Rollup, no external runtime dependencies
+MIT — see [LICENSE](LICENSE) for details.
