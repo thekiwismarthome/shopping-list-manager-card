@@ -302,8 +302,8 @@ class ShoppingListManagerCard extends LitElement {
     const item = this.items.find(i => i.id === itemId);
 
     if (item && !item.checked) {
-      this.api.incrementItem(itemId, 1);
-      this.loadActiveListData();
+      await this.api.incrementItem(itemId, 1);
+      await this.loadActiveListData();
     }
   }
 
@@ -319,7 +319,7 @@ class ShoppingListManagerCard extends LitElement {
       await this.api.deleteItem(itemId);
     }
 
-    this.loadActiveListData();
+    await this.loadActiveListData();
   }
 
 
@@ -544,10 +544,6 @@ class ShoppingListManagerCard extends LitElement {
     } catch (err) {
       console.error('[SLM] ❌ Failed to subscribe:', err);
     }
-  }
-
-  disconnectedCallback() {
-    super.disconnectedCallback();
   }
 
   renderCurrentView() {
