@@ -282,36 +282,40 @@ class SLMItemTile extends LitElement {
 
     // 1. Explicit product image URL (highest priority)
     if (this.item?.image_url) {
-      return html`<img src="${this.item.image_url}" alt="${name}">`;
+      return html`
+        <div class="image-area">
+          <img src="${this.item.image_url}" alt="${name}" class="product-icon">
+        </div>`;
     }
 
     // 2. Local HA image folder — try webp → jpg → png → jpeg
     const localBase = this.getLocalImageBasePath(name);
     if (localBase && this._localImgExtIdx < exts.length) {
       return html`
-        <div class="no-image">
+        <div class="image-area">
           <img
             src="${localBase}.${exts[this._localImgExtIdx]}"
             alt="${name}"
             class="product-icon"
             @error=${() => { this._localImgExtIdx++; this.requestUpdate(); }}
           >
-        </div>
-      `;
+        </div>`;
     }
 
     // 3. Bundled icons8 icon
     const bundled = this.getBundledIcon(name);
     if (bundled) {
-      return html`<div class="no-image"><img src="${bundled}" alt="${name}" class="product-icon"></div>`;
+      return html`
+        <div class="image-area">
+          <img src="${bundled}" alt="${name}" class="product-icon">
+        </div>`;
     }
 
     // 4. Emoji fallback
     return html`
-      <div class="no-image">
+      <div class="image-area">
         <div class="emoji">${this.getProductEmoji(name, categoryId)}</div>
-      </div>
-    `;
+      </div>`;
   }
 
   render() {
@@ -385,6 +389,7 @@ class SLMItemTile extends LitElement {
       aspect-ratio: 1;
       overflow: hidden;
       box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+      container-type: inline-size;
     }
     .tile:active {
       transform: scale(0.97);
@@ -423,29 +428,30 @@ class SLMItemTile extends LitElement {
       border-radius: 0 14px 0 14px;
       box-shadow: -2px 2px 6px rgba(0,0,0,0.25);
     }
-    img, .no-image {
-      width: 100%;
+    .image-area {
       flex: 1;
       min-height: 0;
-      object-fit: cover;
-    }
-    .no-image {
+      width: 100%;
       display: flex;
       align-items: center;
       justify-content: center;
-      background: transparent;
+      overflow: hidden;
     }
     .product-icon {
-      width: 60%;
-      height: 60%;
+      width: 80cqw;
+      height: 80cqw;
+      max-width: 80%;
+      max-height: 100%;
       object-fit: contain;
     }
     .emoji {
-      font-size: 40px;
+      font-size: clamp(20px, 40cqi, 60px);
+      line-height: 1;
     }
     .info {
       flex-shrink: 0;
       padding: 5px 8px 7px;
+      text-align: center;
     }
     .name {
       font-weight: var(--slm-font-weight-base, 600);
@@ -458,11 +464,13 @@ class SLMItemTile extends LitElement {
       display: -webkit-box;
       -webkit-line-clamp: 2;
       -webkit-box-orient: vertical;
+      text-align: center;
     }
     .price {
       font-size: 0.69em;
       color: var(--slm-accent-primary, #9fa8da);
       font-weight: 700;
+      text-align: center;
     }
     .checked-overlay {
       position: absolute;
