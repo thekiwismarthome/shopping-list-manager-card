@@ -9,7 +9,9 @@ class SLMEditItemDialog extends LitElement {
     categories: { type: Array },
     editedItem: { type: Object },
     imagePreview: { type: String },
-    _customUnit: { type: Boolean, state: true }
+    _customUnit: { type: Boolean, state: true },
+    _oftLoading: { type: Boolean, state: true },
+    _oftStatus: { type: String, state: true }
   };
 
   constructor() {
@@ -17,6 +19,8 @@ class SLMEditItemDialog extends LitElement {
     this.editedItem = {};
     this.imagePreview = null;
     this._customUnit = false;
+    this._oftLoading = false;
+    this._oftStatus = '';
   }
 
   updated(changedProperties) {
@@ -115,6 +119,71 @@ class SLMEditItemDialog extends LitElement {
     if (urlInput) urlInput.value = '';
   }
 
+  async handleSearchOFT() {
+    const name = this.editedItem.name?.trim();
+    if (!name || this._oftLoading) return;
+    this._oftLoading = true;
+    this._oftStatus = '';
+
+    try {
+      const url = `https://world.openfoodfacts.org/api/v2/search?search_terms=${encodeURIComponent(name)}&fields=product_name,categories_tags,image_front_url,price&page_size=1`;
+      const response = await fetch(url);
+      if (!response.ok) throw new Error(`HTTP ${response.status}`);
+      const data = await response.json();
+      const p = data?.products?.[0];
+      if (!p) {
+        this._oftStatus = 'No results found on OpenFoodFacts.';
+        this._oftLoading = false;
+        return;
+      }
+
+      const updates = {};
+
+      // Category
+      updates.category_id = this._mapOftCategory(p.categories_tags || []);
+
+      // Price
+      if (p.price) updates.price = p.price;
+
+      // Image — download and save locally
+      if (p.image_front_url) {
+        let imageUrl = p.image_front_url;
+        try {
+          const dlResult = await this.api.downloadProductImage(imageUrl, name);
+          if (dlResult?.local_url) imageUrl = dlResult.local_url;
+        } catch (err) {
+          console.warn('OFT image download failed:', err);
+        }
+        updates.image_url = imageUrl;
+        this.imagePreview = imageUrl;
+      }
+
+      this.editedItem = { ...this.editedItem, ...updates };
+      this._oftStatus = 'Updated from OpenFoodFacts ✓';
+    } catch (err) {
+      console.warn('OFT search failed:', err);
+      this._oftStatus = 'OpenFoodFacts lookup failed.';
+    }
+
+    this._oftLoading = false;
+  }
+
+  _mapOftCategory(tags) {
+    const t = tags.map(s => s.replace(/^[a-z]{2}:/, '').toLowerCase());
+    if (t.some(s => /dairy|milk|cheese|yogurt|butter|cream/.test(s))) return 'dairy';
+    if (t.some(s => /meat|beef|chicken|pork|fish|seafood|poultry|lamb/.test(s))) return 'meat';
+    if (t.some(s => /bread|bakery|pastry|cake|biscuit|croissant/.test(s))) return 'bakery';
+    if (t.some(s => /frozen/.test(s))) return 'frozen';
+    if (t.some(s => /beverage|drink|juice|water|soda|coffee|tea|alcohol|beer|wine/.test(s))) return 'beverages';
+    if (t.some(s => /snack|chip|crisp|chocolate|candy|confection|sweet/.test(s))) return 'snacks';
+    if (t.some(s => /vegetable|fruit|produce|fresh/.test(s))) return 'produce';
+    if (t.some(s => /baby|infant|toddler/.test(s))) return 'baby';
+    if (t.some(s => /\bpet\b/.test(s))) return 'pet';
+    if (t.some(s => /health|beauty|cosmetic|medicine|supplement/.test(s))) return 'health';
+    if (t.some(s => /household|cleaning|laundry/.test(s))) return 'household';
+    return 'pantry';
+  }
+
   getCategoryEmoji(categoryId) {
     const emojiMap = {
       'produce': '🥬', 'dairy': '🥛', 'meat': '🥩', 'bakery': '🍞',
@@ -146,6 +215,16 @@ class SLMEditItemDialog extends LitElement {
                 .value=${this.editedItem.name || ''}
                 @input=${(e) => this.editedItem = { ...this.editedItem, name: e.target.value }}
               />
+              <button
+                class="oft-btn"
+                ?disabled=${this._oftLoading || !this.editedItem.name?.trim()}
+                @click=${this.handleSearchOFT}
+              >
+                <ha-icon icon=${this._oftLoading ? 'mdi:loading' : 'mdi:cloud-search'}
+                  class=${this._oftLoading ? 'spin' : ''}></ha-icon>
+                ${this._oftLoading ? 'Searching OpenFoodFacts…' : 'Search OpenFoodFacts'}
+              </button>
+              ${this._oftStatus ? html`<div class="oft-status">${this._oftStatus}</div>` : ''}
             </div>
 
             <div class="form-group">
@@ -495,6 +574,47 @@ class SLMEditItemDialog extends LitElement {
     }
     .action-btn:active {
       transform: scale(0.97);
+    }
+    .oft-btn {
+      margin-top: 8px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      width: 100%;
+      padding: 8px 12px;
+      border: 1px solid var(--slm-border-subtle, #e8eaf6);
+      border-radius: 8px;
+      background: var(--slm-bg-main, #fafbfc);
+      color: var(--slm-accent-primary, #9fa8da);
+      font-size: 13px;
+      font-weight: 600;
+      font-family: inherit;
+      cursor: pointer;
+      transition: border-color 0.15s, background 0.15s;
+    }
+    .oft-btn ha-icon {
+      --mdc-icon-size: 18px;
+      flex-shrink: 0;
+    }
+    .oft-btn:hover:not(:disabled) {
+      border-color: var(--slm-accent-primary, #9fa8da);
+      background: var(--slm-bg-elevated, #ffffff);
+    }
+    .oft-btn:disabled {
+      opacity: 0.45;
+      cursor: default;
+    }
+    .oft-status {
+      margin-top: 6px;
+      font-size: 12px;
+      color: var(--slm-text-secondary, #757575);
+    }
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+    .spin {
+      animation: spin 1s linear infinite;
+      display: inline-block;
     }
   `;
 }

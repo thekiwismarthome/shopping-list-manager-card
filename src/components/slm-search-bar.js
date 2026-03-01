@@ -546,15 +546,19 @@ class SLMSearchBar extends LitElement {
     .scan-btn {
       background: none;
       border: none;
-      padding: 4px;
+      padding: 4px 6px 4px 2px;
       cursor: pointer;
       line-height: 0;
-      color: var(--slm-text-muted);
+      color: var(--slm-text-primary);
+      opacity: 0.75;
       -webkit-tap-highlight-color: transparent;
       flex-shrink: 0;
     }
+    .scan-btn:active {
+      opacity: 1;
+    }
     .scan-btn ha-icon {
-      --mdc-icon-size: 20px;
+      --mdc-icon-size: 26px;
     }
     .results-dropdown {
       position: absolute;

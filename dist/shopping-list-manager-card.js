@@ -478,15 +478,19 @@ const C=globalThis,A=t=>t,I=C.trustedTypes,S=I?I.createPolicy("lit-html",{create
     .scan-btn {
       background: none;
       border: none;
-      padding: 4px;
+      padding: 4px 6px 4px 2px;
       cursor: pointer;
       line-height: 0;
-      color: var(--slm-text-muted);
+      color: var(--slm-text-primary);
+      opacity: 0.75;
       -webkit-tap-highlight-color: transparent;
       flex-shrink: 0;
     }
+    .scan-btn:active {
+      opacity: 1;
+    }
     .scan-btn ha-icon {
-      --mdc-icon-size: 20px;
+      --mdc-icon-size: 26px;
     }
     .results-dropdown {
       position: absolute;
@@ -1492,7 +1496,7 @@ const C=globalThis,A=t=>t,I=C.trustedTypes,S=I?I.createPolicy("lit-html",{create
       opacity: 0.5;
       cursor: not-allowed;
     }
-  `}customElements.define("slm-add-item-dialog",me);const be=["units","kg","g","L","mL","pack","bunch","dozen","bottle","can","bag","box","loaf","slice"];class we extends st{static properties={api:{type:Object},item:{type:Object},categories:{type:Array},editedItem:{type:Object},imagePreview:{type:String},_customUnit:{type:Boolean,state:!0}};constructor(){super(),this.editedItem={},this.imagePreview=null,this._customUnit=!1}updated(t){if(t.has("item")&&this.item){const t=this.item.unit||"units";this._customUnit=!be.includes(t),this.editedItem={name:this.item.name,category_id:this.item.category_id||"other",quantity:this.item.quantity,unit:t,note:this.item.note||"",image_url:this.item.image_url||"",price:null!=this.item.price?this.item.price:""},this.imagePreview=this.item.image_url||null}}handleSave(){const t={...this.editedItem};""===t.price||null===t.price?delete t.price:t.price=parseFloat(t.price)||0,this.dispatchEvent(new CustomEvent("save-item",{detail:{itemId:this.item.id,data:t},bubbles:!0,composed:!0}))}handleDelete(){confirm(`Delete ${this.item.name}?`)&&this.dispatchEvent(new CustomEvent("delete-item",{detail:{itemId:this.item.id},bubbles:!0,composed:!0}))}handleClose(){this.dispatchEvent(new CustomEvent("close",{bubbles:!0,composed:!0}))}handleQtyChange(t){const e=Math.max(1,(this.editedItem.quantity||1)+t);this.editedItem={...this.editedItem,quantity:e}}handleUnitSelect(t){const e=t.target.value;"__other__"===e?(this._customUnit=!0,this.editedItem={...this.editedItem,unit:""}):(this._customUnit=!1,this.editedItem={...this.editedItem,unit:e})}handleImageUrlInput(t){const e=t.target.value;this.editedItem={...this.editedItem,image_url:e},this.imagePreview=e||null}handleFilePick(){const t=this.shadowRoot.querySelector("#file-input");t&&t.click()}handleFileChange(t){const e=t.target.files[0];if(!e)return;const r=new FileReader;r.onload=t=>{const e=t.target.result;this.editedItem={...this.editedItem,image_url:e},this.imagePreview=e},r.readAsDataURL(e)}handleClearImage(){this.editedItem={...this.editedItem,image_url:""},this.imagePreview=null;const t=this.shadowRoot.querySelector("#file-input");t&&(t.value="");const e=this.shadowRoot.querySelector("#image-url-input");e&&(e.value="")}getCategoryEmoji(t){return{produce:"🥬",dairy:"🥛",meat:"🥩",bakery:"🍞",pantry:"🥫",frozen:"🧊",beverages:"🥤",snacks:"🍿",household:"🧹",health:"💊",pet:"🐾",baby:"👶",other:"📦"}[t]||"📦"}render(){if(!this.item)return z``;const t=this.categories||[],e=this.editedItem.unit||"units",r=this._customUnit?"__other__":e;return z`
+  `}customElements.define("slm-add-item-dialog",me);const be=["units","kg","g","L","mL","pack","bunch","dozen","bottle","can","bag","box","loaf","slice"];class we extends st{static properties={api:{type:Object},item:{type:Object},categories:{type:Array},editedItem:{type:Object},imagePreview:{type:String},_customUnit:{type:Boolean,state:!0},_oftLoading:{type:Boolean,state:!0},_oftStatus:{type:String,state:!0}};constructor(){super(),this.editedItem={},this.imagePreview=null,this._customUnit=!1,this._oftLoading=!1,this._oftStatus=""}updated(t){if(t.has("item")&&this.item){const t=this.item.unit||"units";this._customUnit=!be.includes(t),this.editedItem={name:this.item.name,category_id:this.item.category_id||"other",quantity:this.item.quantity,unit:t,note:this.item.note||"",image_url:this.item.image_url||"",price:null!=this.item.price?this.item.price:""},this.imagePreview=this.item.image_url||null}}handleSave(){const t={...this.editedItem};""===t.price||null===t.price?delete t.price:t.price=parseFloat(t.price)||0,this.dispatchEvent(new CustomEvent("save-item",{detail:{itemId:this.item.id,data:t},bubbles:!0,composed:!0}))}handleDelete(){confirm(`Delete ${this.item.name}?`)&&this.dispatchEvent(new CustomEvent("delete-item",{detail:{itemId:this.item.id},bubbles:!0,composed:!0}))}handleClose(){this.dispatchEvent(new CustomEvent("close",{bubbles:!0,composed:!0}))}handleQtyChange(t){const e=Math.max(1,(this.editedItem.quantity||1)+t);this.editedItem={...this.editedItem,quantity:e}}handleUnitSelect(t){const e=t.target.value;"__other__"===e?(this._customUnit=!0,this.editedItem={...this.editedItem,unit:""}):(this._customUnit=!1,this.editedItem={...this.editedItem,unit:e})}handleImageUrlInput(t){const e=t.target.value;this.editedItem={...this.editedItem,image_url:e},this.imagePreview=e||null}handleFilePick(){const t=this.shadowRoot.querySelector("#file-input");t&&t.click()}handleFileChange(t){const e=t.target.files[0];if(!e)return;const r=new FileReader;r.onload=t=>{const e=t.target.result;this.editedItem={...this.editedItem,image_url:e},this.imagePreview=e},r.readAsDataURL(e)}handleClearImage(){this.editedItem={...this.editedItem,image_url:""},this.imagePreview=null;const t=this.shadowRoot.querySelector("#file-input");t&&(t.value="");const e=this.shadowRoot.querySelector("#image-url-input");e&&(e.value="")}async handleSearchOFT(){const t=this.editedItem.name?.trim();if(t&&!this._oftLoading){this._oftLoading=!0,this._oftStatus="";try{const e=`https://world.openfoodfacts.org/api/v2/search?search_terms=${encodeURIComponent(t)}&fields=product_name,categories_tags,image_front_url,price&page_size=1`,r=await fetch(e);if(!r.ok)throw new Error(`HTTP ${r.status}`);const i=await r.json(),n=i?.products?.[0];if(!n)return this._oftStatus="No results found on OpenFoodFacts.",void(this._oftLoading=!1);const o={};if(o.category_id=this._mapOftCategory(n.categories_tags||[]),n.price&&(o.price=n.price),n.image_front_url){let e=n.image_front_url;try{const r=await this.api.downloadProductImage(e,t);r?.local_url&&(e=r.local_url)}catch(t){console.warn("OFT image download failed:",t)}o.image_url=e,this.imagePreview=e}this.editedItem={...this.editedItem,...o},this._oftStatus="Updated from OpenFoodFacts ✓"}catch(t){console.warn("OFT search failed:",t),this._oftStatus="OpenFoodFacts lookup failed."}this._oftLoading=!1}}_mapOftCategory(t){const e=t.map(t=>t.replace(/^[a-z]{2}:/,"").toLowerCase());return e.some(t=>/dairy|milk|cheese|yogurt|butter|cream/.test(t))?"dairy":e.some(t=>/meat|beef|chicken|pork|fish|seafood|poultry|lamb/.test(t))?"meat":e.some(t=>/bread|bakery|pastry|cake|biscuit|croissant/.test(t))?"bakery":e.some(t=>/frozen/.test(t))?"frozen":e.some(t=>/beverage|drink|juice|water|soda|coffee|tea|alcohol|beer|wine/.test(t))?"beverages":e.some(t=>/snack|chip|crisp|chocolate|candy|confection|sweet/.test(t))?"snacks":e.some(t=>/vegetable|fruit|produce|fresh/.test(t))?"produce":e.some(t=>/baby|infant|toddler/.test(t))?"baby":e.some(t=>/\bpet\b/.test(t))?"pet":e.some(t=>/health|beauty|cosmetic|medicine|supplement/.test(t))?"health":e.some(t=>/household|cleaning|laundry/.test(t))?"household":"pantry"}getCategoryEmoji(t){return{produce:"🥬",dairy:"🥛",meat:"🥩",bakery:"🍞",pantry:"🥫",frozen:"🧊",beverages:"🥤",snacks:"🍿",household:"🧹",health:"💊",pet:"🐾",baby:"👶",other:"📦"}[t]||"📦"}render(){if(!this.item)return z``;const t=this.categories||[],e=this.editedItem.unit||"units",r=this._customUnit?"__other__":e;return z`
       <div class="overlay" @click=${this.handleClose}>
         <div class="dialog" @click=${t=>t.stopPropagation()}>
           <div class="dialog-header">
@@ -1508,6 +1512,16 @@ const C=globalThis,A=t=>t,I=C.trustedTypes,S=I?I.createPolicy("lit-html",{create
                 .value=${this.editedItem.name||""}
                 @input=${t=>this.editedItem={...this.editedItem,name:t.target.value}}
               />
+              <button
+                class="oft-btn"
+                ?disabled=${this._oftLoading||!this.editedItem.name?.trim()}
+                @click=${this.handleSearchOFT}
+              >
+                <ha-icon icon=${this._oftLoading?"mdi:loading":"mdi:cloud-search"}
+                  class=${this._oftLoading?"spin":""}></ha-icon>
+                ${this._oftLoading?"Searching OpenFoodFacts…":"Search OpenFoodFacts"}
+              </button>
+              ${this._oftStatus?z`<div class="oft-status">${this._oftStatus}</div>`:""}
             </div>
 
             <div class="form-group">
@@ -1854,6 +1868,47 @@ const C=globalThis,A=t=>t,I=C.trustedTypes,S=I?I.createPolicy("lit-html",{create
     }
     .action-btn:active {
       transform: scale(0.97);
+    }
+    .oft-btn {
+      margin-top: 8px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      width: 100%;
+      padding: 8px 12px;
+      border: 1px solid var(--slm-border-subtle, #e8eaf6);
+      border-radius: 8px;
+      background: var(--slm-bg-main, #fafbfc);
+      color: var(--slm-accent-primary, #9fa8da);
+      font-size: 13px;
+      font-weight: 600;
+      font-family: inherit;
+      cursor: pointer;
+      transition: border-color 0.15s, background 0.15s;
+    }
+    .oft-btn ha-icon {
+      --mdc-icon-size: 18px;
+      flex-shrink: 0;
+    }
+    .oft-btn:hover:not(:disabled) {
+      border-color: var(--slm-accent-primary, #9fa8da);
+      background: var(--slm-bg-elevated, #ffffff);
+    }
+    .oft-btn:disabled {
+      opacity: 0.45;
+      cursor: default;
+    }
+    .oft-status {
+      margin-top: 6px;
+      font-size: 12px;
+      color: var(--slm-text-secondary, #757575);
+    }
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+    .spin {
+      animation: spin 1s linear infinite;
+      display: inline-block;
     }
   `}customElements.define("slm-edit-item-dialog",we);class ye extends st{static properties={list:{type:Object},isActive:{type:Boolean},itemCount:{type:Number},totalCost:{type:Number},currency:{type:String},emoji:{type:String},currentUserId:{type:String},isAdmin:{type:Boolean},showMenu:{type:Boolean},menuX:{type:Number},menuY:{type:Number}};constructor(){super(),this.showMenu=!1,this.itemCount=0,this.totalCost=0,this.currency="NZD",this.currentUserId="",this.isAdmin=!1,this.menuX=0,this.menuY=0}get _isPrivate(){return!!this.list?.owner_id}get _isOwner(){return this.list?.owner_id===this.currentUserId}get _canManageMembers(){return this._isPrivate&&(this._isOwner||this.isAdmin)}getColorClass(){return`color-${parseInt(this.list.id.slice(-1),16)%6}`}dimColor(t){return`rgba(${parseInt(t.slice(1,3),16)}, ${parseInt(t.slice(3,5),16)}, ${parseInt(t.slice(5,7),16)}, 0.5)`}handleCardClick(t){t.target.closest(".menu-btn")||this.dispatchEvent(new CustomEvent("list-select",{detail:{listId:this.list.id},bubbles:!0,composed:!0}))}handleMenuClick(t){t.stopPropagation();const e=t.target.closest(".menu-btn").getBoundingClientRect();this.menuX=e.right-160,this.menuY=e.bottom+5,this.showMenu=!this.showMenu}handleAction(t,e){e.stopPropagation(),this.showMenu=!1,this.dispatchEvent(new CustomEvent("list-action",{detail:{action:t,listId:this.list.id},bubbles:!0,composed:!0}))}render(){return z`
       <div
