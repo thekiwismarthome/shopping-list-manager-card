@@ -136,6 +136,32 @@ class SLMSearchBar extends LitElement {
     this._createImageUrl = '';
   }
 
+  async handleLookupBarcode() {
+    const barcode = this._createBarcode?.trim();
+    if (!barcode || this._oftLoading) return;
+    this._oftLoading = true;
+    this.requestUpdate();
+
+    const oftData = await this.fetchFromOpenFoodFacts(barcode);
+
+    if (oftData) {
+      if (oftData.image_url) {
+        try {
+          const dlResult = await this.api.downloadProductImage(oftData.image_url, oftData.name || this._createName);
+          if (dlResult?.local_url) oftData.image_url = dlResult.local_url;
+        } catch (err) {
+          console.warn('Image download failed:', err);
+        }
+      }
+      this._createName = oftData.name || this._createName;
+      this._createCategory = oftData.category_id || 'other';
+      this._createImageUrl = oftData.image_url || '';
+      if (oftData.price) this._createPrice = String(oftData.price);
+    }
+
+    this._oftLoading = false;
+  }
+
   handleCreateAndAdd() {
     if (!this._createName.trim()) return;
     this.dispatchEvent(new CustomEvent('create-and-add-product', {
@@ -446,15 +472,25 @@ class SLMSearchBar extends LitElement {
                   </select>
                 </div>
 
-                <input
-                  class="create-input barcode-input"
-                  type="text"
-                  inputmode="numeric"
-                  placeholder="Barcode (optional)"
-                  .value=${this._createBarcode}
-                  ?readonly=${this._barcodeLocked}
-                  @input=${(e) => this._createBarcode = e.target.value}
-                />
+                <div class="barcode-lookup-row">
+                  <input
+                    class="create-input barcode-input"
+                    type="text"
+                    inputmode="numeric"
+                    placeholder="Barcode (optional)"
+                    .value=${this._createBarcode}
+                    @input=${(e) => this._createBarcode = e.target.value}
+                    ?disabled=${this._oftLoading}
+                  />
+                  <button
+                    class="barcode-lookup-btn"
+                    title="Search OpenFoodFacts by barcode"
+                    ?disabled=${this._oftLoading || !this._createBarcode?.trim()}
+                    @click=${this.handleLookupBarcode}
+                  >
+                    <ha-icon icon="mdi:cloud-search"></ha-icon>
+                  </button>
+                </div>
 
                 <div class="create-actions">
                   <button class="create-btn secondary" @click=${this.handleCancelCreate}>Cancel</button>
@@ -725,6 +761,39 @@ class SLMSearchBar extends LitElement {
       min-width: 80px;
       padding-left: 8px;
       padding-right: 4px;
+    }
+    .barcode-lookup-row {
+      display: flex;
+      gap: 6px;
+      align-items: stretch;
+    }
+    .barcode-lookup-row .barcode-input {
+      flex: 1;
+      width: auto;
+    }
+    .barcode-lookup-btn {
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0 10px;
+      border: 1px solid var(--slm-border-subtle);
+      border-radius: 8px;
+      background: var(--slm-bg-elevated);
+      color: var(--slm-accent-primary);
+      cursor: pointer;
+      transition: border-color 0.15s;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .barcode-lookup-btn ha-icon {
+      --mdc-icon-size: 20px;
+    }
+    .barcode-lookup-btn:hover:not(:disabled) {
+      border-color: var(--slm-accent-primary);
+    }
+    .barcode-lookup-btn:disabled {
+      opacity: 0.4;
+      cursor: default;
     }
     .barcode-input {
       font-size: 13px;

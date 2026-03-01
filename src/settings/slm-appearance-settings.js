@@ -265,8 +265,11 @@ class SLMAppearanceSettings extends LitElement {
       cursor: pointer;
     }
 
+    :host {
+      display: block;
+    }
     .appearance-settings {
-      padding-bottom: 80px;
+      padding-bottom: 20px;
     }
     .header {
       display: flex;

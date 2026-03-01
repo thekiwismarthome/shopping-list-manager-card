@@ -636,13 +636,15 @@ class ShoppingListManagerCard extends LitElement {
 
       case 'settings':
         return html`
-          <slm-settings-view
-            .hass=${this.hass}
-            .api=${this.api}
-            .settings=${this.settings}
-            .categories=${this.categories}
-            @settings-changed=${this.handleSettingsChange}
-          ></slm-settings-view>
+          <div class="content-area">
+            <slm-settings-view
+              .hass=${this.hass}
+              .api=${this.api}
+              .settings=${this.settings}
+              .categories=${this.categories}
+              @settings-changed=${this.handleSettingsChange}
+            ></slm-settings-view>
+          </div>
         `;
 
       default:

@@ -37,11 +37,28 @@ class SLMEditItemDialog extends LitElement {
         note: this.item.note || '',
         image_url: this.item.image_url || '',
         price: this.item.price != null ? this.item.price : '',
-        barcode: this.item.barcode || ''
+        barcode: ''
       };
       this.imagePreview = this.item.image_url || null;
       this._oftResults = [];
       this._oftStatus = '';
+
+      // Barcodes live on products, not items — fetch from product record
+      if (this.item.product_id && this.api) {
+        this._loadProductBarcode(this.item.product_id);
+      }
+    }
+  }
+
+  async _loadProductBarcode(productId) {
+    try {
+      const result = await this.api.getProductsByIds([productId]);
+      const product = result?.products?.[0];
+      if (product?.barcode) {
+        this.editedItem = { ...this.editedItem, barcode: product.barcode };
+      }
+    } catch (err) {
+      console.warn('Failed to load product barcode:', err);
     }
   }
 

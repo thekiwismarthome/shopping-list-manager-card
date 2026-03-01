@@ -219,8 +219,11 @@ class SLMSettingsView extends LitElement {
   }
 
   static styles = css`
+    :host {
+      display: block;
+    }
     .settings-main {
-      padding-bottom: 80px;
+      padding-bottom: 20px;
     }
     .settings-header {
       padding: 16px;
