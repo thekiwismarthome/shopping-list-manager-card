@@ -161,7 +161,7 @@ class SLMEditItemDialog extends LitElement {
     this._oftResults = [];
 
     try {
-      const url = `https://world.openfoodfacts.org/api/v2/search?search_terms=${encodeURIComponent(name)}&fields=product_name,categories_tags,image_front_thumb_url,image_front_url,price&page_size=5`;
+      const url = `https://world.openfoodfacts.org/api/v2/search?search_terms=${encodeURIComponent(name)}&fields=product_name,categories_tags,image_front_thumb_url,image_front_url,image_url,price&page_size=5`;
       const response = await fetch(url);
       if (!response.ok) throw new Error(`HTTP ${response.status}`);
       const data = await response.json();
@@ -206,7 +206,7 @@ class SLMEditItemDialog extends LitElement {
 
     // Fall back to OpenFoodFacts
     try {
-      const url = `https://world.openfoodfacts.org/api/v2/product/${encodeURIComponent(barcode)}.json?fields=product_name,categories_tags,image_front_thumb_url,image_front_url,price`;
+      const url = `https://world.openfoodfacts.org/api/v2/product/${encodeURIComponent(barcode)}.json?fields=product_name,categories_tags,image_front_thumb_url,image_front_url,image_url,price`;
       const response = await fetch(url);
       if (!response.ok) throw new Error(`HTTP ${response.status}`);
       const data = await response.json();
@@ -233,8 +233,9 @@ class SLMEditItemDialog extends LitElement {
     updates.category_id = this._mapOftCategory(p.categories_tags || []);
     if (p.price) updates.price = p.price;
 
-    if (p.image_front_url) {
-      let imageUrl = p.image_front_url;
+    const remoteImage = p.image_front_url || p.image_url || '';
+    if (remoteImage) {
+      let imageUrl = remoteImage;
       try {
         const dlResult = await this.api.downloadProductImage(imageUrl, this.editedItem.name);
         if (dlResult?.local_url) imageUrl = dlResult.local_url;

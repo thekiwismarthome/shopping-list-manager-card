@@ -325,7 +325,7 @@ class SLMSearchBar extends LitElement {
 
   async fetchFromOpenFoodFacts(barcode) {
     try {
-      const url = `https://world.openfoodfacts.org/api/v2/product/${barcode}.json?fields=product_name,categories_tags,image_front_url,price`;
+      const url = `https://world.openfoodfacts.org/api/v2/product/${barcode}.json?fields=product_name,categories_tags,image_front_url,image_url,price`;
       const response = await fetch(url);
       if (!response.ok) return null;
       const data = await response.json();
@@ -336,7 +336,7 @@ class SLMSearchBar extends LitElement {
       return {
         name,
         category_id: this._mapOftCategory(p.categories_tags || []),
-        image_url: p.image_front_url || '',
+        image_url: p.image_front_url || p.image_url || '',
         price: p.price ?? null
       };
     } catch (err) {

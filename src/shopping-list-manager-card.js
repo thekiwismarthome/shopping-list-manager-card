@@ -341,8 +341,19 @@ class ShoppingListManagerCard extends LitElement {
 
   async handleItemSwipeDelete(e) {
     const { itemId } = e.detail;
+    const item = this.items.find(i => i.id === itemId);
+    if (item?.product_id) this.untrackRecentlyUsed(item.product_id);
     await this.api.deleteItem(itemId);
     await this.loadActiveListData();
+  }
+
+  untrackRecentlyUsed(productId) {
+    if (!productId) return;
+    const recentKey = 'slm_recent_products';
+    const saved = localStorage.getItem(recentKey);
+    if (!saved) return;
+    const recent = JSON.parse(saved).filter(id => id !== productId);
+    localStorage.setItem(recentKey, JSON.stringify(recent));
   }
 
   async handleAddItem(e) {
