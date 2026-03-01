@@ -159,6 +159,8 @@ class SLMSearchBar extends LitElement {
   // ── Barcode scanner ───────────────────────────────────────────────────────────
 
   startBarcodeScanner() {
+    if (!this._facingMode) this._facingMode = 'environment';
+
     const host = document.createElement('div');
     host.id = 'slm-product-scanner-host';
     Object.assign(host.style, {
@@ -166,25 +168,48 @@ class SLMSearchBar extends LitElement {
       zIndex: '99999', background: '#000',
       display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center'
     });
+
     const label = document.createElement('p');
     label.textContent = 'Point camera at product barcode';
     Object.assign(label.style, { color: '#fff', fontSize: '16px', margin: '0 0 12px 0' });
+
     const scanRegion = document.createElement('div');
     scanRegion.id = 'slm-product-scanner-region';
     Object.assign(scanRegion.style, { width: '100%', maxWidth: '400px' });
+
+    const btnRow = document.createElement('div');
+    Object.assign(btnRow.style, {
+      display: 'flex', gap: '12px', marginTop: '20px'
+    });
+
+    const flipBtn = document.createElement('button');
+    flipBtn.textContent = '⇄ Flip Camera';
+    Object.assign(flipBtn.style, {
+      padding: '10px 20px', background: 'rgba(255,255,255,0.15)',
+      border: '1px solid rgba(255,255,255,0.4)', borderRadius: '8px',
+      fontSize: '14px', cursor: 'pointer', color: '#fff'
+    });
+    flipBtn.addEventListener('click', () => {
+      this._facingMode = this._facingMode === 'environment' ? 'user' : 'environment';
+      this.stopBarcodeScanner();
+      this.startBarcodeScanner();
+    });
+
     const cancelBtn = document.createElement('button');
     cancelBtn.textContent = '✕ Cancel';
     Object.assign(cancelBtn.style, {
-      marginTop: '20px', padding: '10px 24px', background: '#fff',
+      padding: '10px 24px', background: '#fff',
       border: 'none', borderRadius: '8px', fontSize: '15px', cursor: 'pointer'
     });
     cancelBtn.addEventListener('click', () => this.stopBarcodeScanner());
-    host.append(label, scanRegion, cancelBtn);
+
+    btnRow.append(flipBtn, cancelBtn);
+    host.append(label, scanRegion, btnRow);
     document.body.appendChild(host);
 
     this._scannerInstance = new Html5Qrcode('slm-product-scanner-region');
     this._scannerInstance.start(
-      { facingMode: 'environment' },
+      { facingMode: this._facingMode },
       { fps: 10, qrbox: { width: 280, height: 120 } },
       (decodedText) => this.handleBarcodeScanned(decodedText),
       () => {}
@@ -229,6 +254,16 @@ class SLMSearchBar extends LitElement {
     const oftData = await this.fetchFromOpenFoodFacts(barcode);
 
     if (oftData) {
+      // Download and save the image locally if available
+      if (oftData.image_url) {
+        try {
+          const dlResult = await this.api.downloadProductImage(oftData.image_url, oftData.name);
+          if (dlResult?.local_url) oftData.image_url = dlResult.local_url;
+        } catch (err) {
+          console.warn('Image download failed, keeping remote URL:', err);
+        }
+      }
+
       // Try to match an existing catalog product by name
       try {
         const searchResult = await this.api.searchProducts(oftData.name, { limit: 1 });
@@ -256,6 +291,7 @@ class SLMSearchBar extends LitElement {
       this._createName = oftData.name;
       this._createCategory = oftData.category_id || 'other';
       this._createImageUrl = oftData.image_url || '';
+      if (oftData.price) this._createPrice = String(oftData.price);
     }
 
     this._oftLoading = false;
@@ -263,7 +299,7 @@ class SLMSearchBar extends LitElement {
 
   async fetchFromOpenFoodFacts(barcode) {
     try {
-      const url = `https://world.openfoodfacts.org/api/v2/product/${barcode}.json?fields=product_name,categories_tags,image_front_url`;
+      const url = `https://world.openfoodfacts.org/api/v2/product/${barcode}.json?fields=product_name,categories_tags,image_front_url,price`;
       const response = await fetch(url);
       if (!response.ok) return null;
       const data = await response.json();
@@ -274,7 +310,8 @@ class SLMSearchBar extends LitElement {
       return {
         name,
         category_id: this._mapOftCategory(p.categories_tags || []),
-        image_url: p.image_front_url || ''
+        image_url: p.image_front_url || '',
+        price: p.price ?? null
       };
     } catch (err) {
       console.warn('OpenFoodFacts fetch failed:', err);
@@ -332,7 +369,9 @@ class SLMSearchBar extends LitElement {
               this._showCreateForm = false;
             }}>✖</button>
           ` : ''}
-          <button class="scan-btn" title="Scan barcode" @click=${() => this.startBarcodeScanner()}>📷</button>
+          <button class="scan-btn" title="Scan barcode" @click=${() => this.startBarcodeScanner()}>
+            <ha-icon icon="mdi:barcode-scan"></ha-icon>
+          </button>
         </div>
 
         ${this.showResults ? html`
@@ -509,10 +548,13 @@ class SLMSearchBar extends LitElement {
       border: none;
       padding: 4px;
       cursor: pointer;
-      font-size: 18px;
-      line-height: 1;
+      line-height: 0;
+      color: var(--slm-text-muted);
       -webkit-tap-highlight-color: transparent;
       flex-shrink: 0;
+    }
+    .scan-btn ha-icon {
+      --mdc-icon-size: 20px;
     }
     .results-dropdown {
       position: absolute;
