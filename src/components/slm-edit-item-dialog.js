@@ -36,7 +36,8 @@ class SLMEditItemDialog extends LitElement {
         unit,
         note: this.item.note || '',
         image_url: this.item.image_url || '',
-        price: this.item.price != null ? this.item.price : ''
+        price: this.item.price != null ? this.item.price : '',
+        barcode: this.item.barcode || ''
       };
       this.imagePreview = this.item.image_url || null;
       this._oftResults = [];
@@ -46,11 +47,23 @@ class SLMEditItemDialog extends LitElement {
 
   handleSave() {
     const data = { ...this.editedItem };
+
+    // Barcode lives on the product, not the item — handle it separately
+    const barcode = data.barcode?.trim() || null;
+    delete data.barcode;
+
     if (data.price === '' || data.price === null) {
       delete data.price;
     } else {
       data.price = parseFloat(data.price) || 0;
     }
+
+    // Persist the barcode to the linked product if one exists
+    if (barcode && this.item.product_id) {
+      this.api.updateProduct(this.item.product_id, { barcode })
+        .catch(err => console.warn('Failed to save barcode to product:', err));
+    }
+
     this.dispatchEvent(new CustomEvent('save-item', {
       detail: { itemId: this.item.id, data },
       bubbles: true,
@@ -150,6 +163,50 @@ class SLMEditItemDialog extends LitElement {
     this._oftLoading = false;
   }
 
+  async handleSearchByBarcode() {
+    const barcode = this.editedItem.barcode?.trim();
+    if (!barcode || this._oftLoading) return;
+    this._oftLoading = true;
+    this._oftStatus = '';
+    this._oftResults = [];
+
+    // Check local catalog first — exact barcode match
+    try {
+      const result = await this.api.searchProductByBarcode(barcode);
+      if (result?.product) {
+        const p = result.product;
+        const updates = { category_id: p.category_id };
+        if (p.price) updates.price = p.price;
+        if (p.image_url) { updates.image_url = p.image_url; this.imagePreview = p.image_url; }
+        this.editedItem = { ...this.editedItem, ...updates };
+        this._oftStatus = `Found in local catalog: "${p.name}" ✓`;
+        this._oftLoading = false;
+        return;
+      }
+    } catch (err) {
+      console.warn('Local barcode lookup failed:', err);
+    }
+
+    // Fall back to OpenFoodFacts
+    try {
+      const url = `https://world.openfoodfacts.org/api/v2/product/${encodeURIComponent(barcode)}.json?fields=product_name,categories_tags,image_front_thumb_url,image_front_url,price`;
+      const response = await fetch(url);
+      if (!response.ok) throw new Error(`HTTP ${response.status}`);
+      const data = await response.json();
+      if (data.status !== 1 || !data.product?.product_name?.trim()) {
+        this._oftStatus = 'Barcode not found on OpenFoodFacts.';
+      } else {
+        this._oftResults = [data.product];
+        this._oftStatus = 'Found on OpenFoodFacts — tap to apply';
+      }
+    } catch (err) {
+      console.warn('OFT barcode search failed:', err);
+      this._oftStatus = 'OpenFoodFacts lookup failed.';
+    }
+
+    this._oftLoading = false;
+  }
+
   async handleApplyOFTResult(p) {
     this._oftLoading = true;
     this._oftResults = [];
@@ -235,7 +292,7 @@ class SLMEditItemDialog extends LitElement {
               >
                 <ha-icon icon=${this._oftLoading ? 'mdi:loading' : 'mdi:cloud-search'}
                   class=${this._oftLoading ? 'spin' : ''}></ha-icon>
-                ${this._oftLoading ? 'Searching OpenFoodFacts…' : 'Search OpenFoodFacts'}
+                ${this._oftLoading ? 'Searching…' : 'Search OFT by name'}
               </button>
 
               ${this._oftStatus ? html`<div class="oft-status">${this._oftStatus}</div>` : ''}
@@ -264,6 +321,28 @@ class SLMEditItemDialog extends LitElement {
                   </button>
                 </div>
               ` : ''}
+            </div>
+
+            <div class="form-group">
+              <label>Barcode</label>
+              <div class="barcode-row">
+                <input
+                  type="text"
+                  inputmode="numeric"
+                  placeholder="Barcode number (optional)"
+                  .value=${this.editedItem.barcode || ''}
+                  @input=${(e) => this.editedItem = { ...this.editedItem, barcode: e.target.value }}
+                />
+                <button
+                  class="barcode-search-btn"
+                  title="Search OpenFoodFacts by barcode"
+                  ?disabled=${this._oftLoading || !this.editedItem.barcode?.trim()}
+                  @click=${this.handleSearchByBarcode}
+                >
+                  <ha-icon icon=${this._oftLoading ? 'mdi:loading' : 'mdi:cloud-search'}
+                    class=${this._oftLoading ? 'spin' : ''}></ha-icon>
+                </button>
+              </div>
             </div>
 
             <div class="form-group">
@@ -616,23 +695,23 @@ class SLMEditItemDialog extends LitElement {
     }
     .oft-btn {
       margin-top: 8px;
-      display: flex;
+      display: inline-flex;
       align-items: center;
       gap: 6px;
-      width: 100%;
-      padding: 8px 12px;
+      width: auto;
+      padding: 6px 10px;
       border: 1px solid var(--slm-border-subtle, #e8eaf6);
       border-radius: 8px;
       background: var(--slm-bg-main, #fafbfc);
       color: var(--slm-accent-primary, #9fa8da);
-      font-size: 13px;
+      font-size: 12px;
       font-weight: 600;
       font-family: inherit;
       cursor: pointer;
       transition: border-color 0.15s, background 0.15s;
     }
     .oft-btn ha-icon {
-      --mdc-icon-size: 18px;
+      --mdc-icon-size: 16px;
       flex-shrink: 0;
     }
     .oft-btn:hover:not(:disabled) {
@@ -640,6 +719,37 @@ class SLMEditItemDialog extends LitElement {
       background: var(--slm-bg-elevated, #ffffff);
     }
     .oft-btn:disabled {
+      opacity: 0.45;
+      cursor: default;
+    }
+    .barcode-row {
+      display: flex;
+      gap: 8px;
+      align-items: stretch;
+    }
+    .barcode-row input {
+      flex: 1;
+    }
+    .barcode-search-btn {
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0 12px;
+      border: 2px solid var(--slm-border-subtle, #e8eaf6);
+      border-radius: 8px;
+      background: var(--slm-bg-elevated, #ffffff);
+      color: var(--slm-accent-primary, #9fa8da);
+      cursor: pointer;
+      transition: border-color 0.15s;
+    }
+    .barcode-search-btn ha-icon {
+      --mdc-icon-size: 20px;
+    }
+    .barcode-search-btn:hover:not(:disabled) {
+      border-color: var(--slm-accent-primary, #9fa8da);
+    }
+    .barcode-search-btn:disabled {
       opacity: 0.45;
       cursor: default;
     }
