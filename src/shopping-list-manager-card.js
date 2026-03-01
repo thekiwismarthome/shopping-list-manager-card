@@ -471,10 +471,12 @@ class ShoppingListManagerCard extends LitElement {
   }
 
   async handleCreateAndAddProduct(e) {
-    const { name, category_id, price } = e.detail;
+    const { name, category_id, price, unit, barcode, image_url } = e.detail;
     try {
       const productData = { name, category_id }; // backend forces custom=True
       if (price) productData.price = parseFloat(price);
+      if (barcode) productData.barcode = barcode;
+      if (image_url) productData.image_url = image_url;
       const result = await this.api.addProduct(productData);
       const product = result.product || result;
       const itemData = {
@@ -482,7 +484,7 @@ class ShoppingListManagerCard extends LitElement {
         category_id,
         product_id: product.id,
         quantity: 1,
-        unit: 'units'
+        unit: unit || 'units'
       };
       if (price) itemData.price = parseFloat(price);
       await this.api.addItem(this.activeList.id, itemData);

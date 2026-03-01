@@ -129,6 +129,13 @@ export class ShoppingListAPI {
   }
 
   // Products
+  async searchProductByBarcode(barcode) {
+    return await this.hass.callWS({
+      type: 'shopping_list_manager/products/search_by_barcode',
+      barcode
+    });
+  }
+
   async searchProducts(query, filters = {}) {
     return await this.hass.callWS({
       type: 'shopping_list_manager/products/search',
