@@ -11,7 +11,8 @@ class SLMEditItemDialog extends LitElement {
     imagePreview: { type: String },
     _customUnit: { type: Boolean, state: true },
     _oftLoading: { type: Boolean, state: true },
-    _oftStatus: { type: String, state: true }
+    _oftStatus: { type: String, state: true },
+    _oftResults: { type: Array, state: true }
   };
 
   constructor() {
@@ -21,6 +22,7 @@ class SLMEditItemDialog extends LitElement {
     this._customUnit = false;
     this._oftLoading = false;
     this._oftStatus = '';
+    this._oftResults = [];
   }
 
   updated(changedProperties) {
@@ -37,6 +39,8 @@ class SLMEditItemDialog extends LitElement {
         price: this.item.price != null ? this.item.price : ''
       };
       this.imagePreview = this.item.image_url || null;
+      this._oftResults = [];
+      this._oftStatus = '';
     }
   }
 
@@ -124,47 +128,51 @@ class SLMEditItemDialog extends LitElement {
     if (!name || this._oftLoading) return;
     this._oftLoading = true;
     this._oftStatus = '';
+    this._oftResults = [];
 
     try {
-      const url = `https://world.openfoodfacts.org/api/v2/search?search_terms=${encodeURIComponent(name)}&fields=product_name,categories_tags,image_front_url,price&page_size=1`;
+      const url = `https://world.openfoodfacts.org/api/v2/search?search_terms=${encodeURIComponent(name)}&fields=product_name,categories_tags,image_front_thumb_url,image_front_url,price&page_size=5`;
       const response = await fetch(url);
       if (!response.ok) throw new Error(`HTTP ${response.status}`);
       const data = await response.json();
-      const p = data?.products?.[0];
-      if (!p) {
+      const products = (data?.products || []).filter(p => p.product_name?.trim());
+      if (products.length === 0) {
         this._oftStatus = 'No results found on OpenFoodFacts.';
-        this._oftLoading = false;
-        return;
+      } else {
+        this._oftResults = products;
+        this._oftStatus = `${products.length} result${products.length > 1 ? 's' : ''} found — tap one to apply`;
       }
-
-      const updates = {};
-
-      // Category
-      updates.category_id = this._mapOftCategory(p.categories_tags || []);
-
-      // Price
-      if (p.price) updates.price = p.price;
-
-      // Image — download and save locally
-      if (p.image_front_url) {
-        let imageUrl = p.image_front_url;
-        try {
-          const dlResult = await this.api.downloadProductImage(imageUrl, name);
-          if (dlResult?.local_url) imageUrl = dlResult.local_url;
-        } catch (err) {
-          console.warn('OFT image download failed:', err);
-        }
-        updates.image_url = imageUrl;
-        this.imagePreview = imageUrl;
-      }
-
-      this.editedItem = { ...this.editedItem, ...updates };
-      this._oftStatus = 'Updated from OpenFoodFacts ✓';
     } catch (err) {
       console.warn('OFT search failed:', err);
       this._oftStatus = 'OpenFoodFacts lookup failed.';
     }
 
+    this._oftLoading = false;
+  }
+
+  async handleApplyOFTResult(p) {
+    this._oftLoading = true;
+    this._oftResults = [];
+    this._oftStatus = '';
+
+    const updates = {};
+    updates.category_id = this._mapOftCategory(p.categories_tags || []);
+    if (p.price) updates.price = p.price;
+
+    if (p.image_front_url) {
+      let imageUrl = p.image_front_url;
+      try {
+        const dlResult = await this.api.downloadProductImage(imageUrl, this.editedItem.name);
+        if (dlResult?.local_url) imageUrl = dlResult.local_url;
+      } catch (err) {
+        console.warn('OFT image download failed:', err);
+      }
+      updates.image_url = imageUrl;
+      this.imagePreview = imageUrl;
+    }
+
+    this.editedItem = { ...this.editedItem, ...updates };
+    this._oftStatus = 'Updated from OpenFoodFacts ✓';
     this._oftLoading = false;
   }
 
@@ -182,6 +190,11 @@ class SLMEditItemDialog extends LitElement {
     if (t.some(s => /health|beauty|cosmetic|medicine|supplement/.test(s))) return 'health';
     if (t.some(s => /household|cleaning|laundry/.test(s))) return 'household';
     return 'pantry';
+  }
+
+  _getCategoryName(categoryId) {
+    const cat = (this.categories || []).find(c => c.id === categoryId);
+    return cat ? cat.name : categoryId;
   }
 
   getCategoryEmoji(categoryId) {
@@ -224,7 +237,33 @@ class SLMEditItemDialog extends LitElement {
                   class=${this._oftLoading ? 'spin' : ''}></ha-icon>
                 ${this._oftLoading ? 'Searching OpenFoodFacts…' : 'Search OpenFoodFacts'}
               </button>
+
               ${this._oftStatus ? html`<div class="oft-status">${this._oftStatus}</div>` : ''}
+
+              ${this._oftResults.length > 0 ? html`
+                <div class="oft-results">
+                  ${this._oftResults.map(p => html`
+                    <button class="oft-result-item" @click=${() => this.handleApplyOFTResult(p)}>
+                      ${p.image_front_thumb_url ? html`
+                        <img class="oft-thumb" src="${p.image_front_thumb_url}" alt="${p.product_name}" />
+                      ` : html`
+                        <div class="oft-thumb">${this.getCategoryEmoji(this._mapOftCategory(p.categories_tags || []))}</div>
+                      `}
+                      <div class="oft-result-info">
+                        <div class="oft-result-name">${p.product_name}</div>
+                        <div class="oft-result-meta">
+                          ${this._getCategoryName(this._mapOftCategory(p.categories_tags || []))}
+                          ${p.price ? html` &bull; $${p.price}` : ''}
+                        </div>
+                      </div>
+                      <ha-icon icon="mdi:check-circle-outline" class="oft-apply-icon"></ha-icon>
+                    </button>
+                  `)}
+                  <button class="oft-dismiss" @click=${() => this._oftResults = []}>
+                    Dismiss
+                  </button>
+                </div>
+              ` : ''}
             </div>
 
             <div class="form-group">
@@ -607,6 +646,83 @@ class SLMEditItemDialog extends LitElement {
     .oft-status {
       margin-top: 6px;
       font-size: 12px;
+      color: var(--slm-text-secondary, #757575);
+    }
+    .oft-results {
+      margin-top: 8px;
+      border: 1px solid var(--slm-border-subtle, #e8eaf6);
+      border-radius: 10px;
+      overflow: hidden;
+    }
+    .oft-result-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      width: 100%;
+      padding: 10px 12px;
+      border: none;
+      border-bottom: 1px solid var(--slm-border-subtle, #e8eaf6);
+      background: var(--slm-bg-main, #fafbfc);
+      cursor: pointer;
+      text-align: left;
+      font-family: inherit;
+      -webkit-tap-highlight-color: transparent;
+      transition: background 0.15s;
+    }
+    .oft-result-item:hover {
+      background: var(--slm-bg-elevated, #ffffff);
+    }
+    .oft-result-item:active {
+      background: var(--slm-bg-surface, #f5f5f5);
+    }
+    .oft-thumb {
+      width: 42px;
+      height: 42px;
+      border-radius: 6px;
+      object-fit: contain;
+      background: var(--slm-bg-elevated, #ffffff);
+      border: 1px solid var(--slm-border-subtle, #e8eaf6);
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 22px;
+    }
+    .oft-result-info {
+      flex: 1;
+      min-width: 0;
+    }
+    .oft-result-name {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--slm-text-primary, #424242);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .oft-result-meta {
+      font-size: 12px;
+      color: var(--slm-text-secondary, #757575);
+      margin-top: 2px;
+    }
+    .oft-apply-icon {
+      --mdc-icon-size: 20px;
+      color: var(--slm-accent-primary, #9fa8da);
+      flex-shrink: 0;
+    }
+    .oft-dismiss {
+      display: block;
+      width: 100%;
+      padding: 8px 12px;
+      border: none;
+      background: transparent;
+      color: var(--slm-text-muted, #9e9e9e);
+      font-size: 12px;
+      font-family: inherit;
+      cursor: pointer;
+      text-align: center;
+    }
+    .oft-dismiss:hover {
       color: var(--slm-text-secondary, #757575);
     }
     @keyframes spin {

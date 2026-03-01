@@ -1496,7 +1496,7 @@ const C=globalThis,A=t=>t,I=C.trustedTypes,S=I?I.createPolicy("lit-html",{create
       opacity: 0.5;
       cursor: not-allowed;
     }
-  `}customElements.define("slm-add-item-dialog",me);const be=["units","kg","g","L","mL","pack","bunch","dozen","bottle","can","bag","box","loaf","slice"];class we extends st{static properties={api:{type:Object},item:{type:Object},categories:{type:Array},editedItem:{type:Object},imagePreview:{type:String},_customUnit:{type:Boolean,state:!0},_oftLoading:{type:Boolean,state:!0},_oftStatus:{type:String,state:!0}};constructor(){super(),this.editedItem={},this.imagePreview=null,this._customUnit=!1,this._oftLoading=!1,this._oftStatus=""}updated(t){if(t.has("item")&&this.item){const t=this.item.unit||"units";this._customUnit=!be.includes(t),this.editedItem={name:this.item.name,category_id:this.item.category_id||"other",quantity:this.item.quantity,unit:t,note:this.item.note||"",image_url:this.item.image_url||"",price:null!=this.item.price?this.item.price:""},this.imagePreview=this.item.image_url||null}}handleSave(){const t={...this.editedItem};""===t.price||null===t.price?delete t.price:t.price=parseFloat(t.price)||0,this.dispatchEvent(new CustomEvent("save-item",{detail:{itemId:this.item.id,data:t},bubbles:!0,composed:!0}))}handleDelete(){confirm(`Delete ${this.item.name}?`)&&this.dispatchEvent(new CustomEvent("delete-item",{detail:{itemId:this.item.id},bubbles:!0,composed:!0}))}handleClose(){this.dispatchEvent(new CustomEvent("close",{bubbles:!0,composed:!0}))}handleQtyChange(t){const e=Math.max(1,(this.editedItem.quantity||1)+t);this.editedItem={...this.editedItem,quantity:e}}handleUnitSelect(t){const e=t.target.value;"__other__"===e?(this._customUnit=!0,this.editedItem={...this.editedItem,unit:""}):(this._customUnit=!1,this.editedItem={...this.editedItem,unit:e})}handleImageUrlInput(t){const e=t.target.value;this.editedItem={...this.editedItem,image_url:e},this.imagePreview=e||null}handleFilePick(){const t=this.shadowRoot.querySelector("#file-input");t&&t.click()}handleFileChange(t){const e=t.target.files[0];if(!e)return;const r=new FileReader;r.onload=t=>{const e=t.target.result;this.editedItem={...this.editedItem,image_url:e},this.imagePreview=e},r.readAsDataURL(e)}handleClearImage(){this.editedItem={...this.editedItem,image_url:""},this.imagePreview=null;const t=this.shadowRoot.querySelector("#file-input");t&&(t.value="");const e=this.shadowRoot.querySelector("#image-url-input");e&&(e.value="")}async handleSearchOFT(){const t=this.editedItem.name?.trim();if(t&&!this._oftLoading){this._oftLoading=!0,this._oftStatus="";try{const e=`https://world.openfoodfacts.org/api/v2/search?search_terms=${encodeURIComponent(t)}&fields=product_name,categories_tags,image_front_url,price&page_size=1`,r=await fetch(e);if(!r.ok)throw new Error(`HTTP ${r.status}`);const i=await r.json(),n=i?.products?.[0];if(!n)return this._oftStatus="No results found on OpenFoodFacts.",void(this._oftLoading=!1);const o={};if(o.category_id=this._mapOftCategory(n.categories_tags||[]),n.price&&(o.price=n.price),n.image_front_url){let e=n.image_front_url;try{const r=await this.api.downloadProductImage(e,t);r?.local_url&&(e=r.local_url)}catch(t){console.warn("OFT image download failed:",t)}o.image_url=e,this.imagePreview=e}this.editedItem={...this.editedItem,...o},this._oftStatus="Updated from OpenFoodFacts ✓"}catch(t){console.warn("OFT search failed:",t),this._oftStatus="OpenFoodFacts lookup failed."}this._oftLoading=!1}}_mapOftCategory(t){const e=t.map(t=>t.replace(/^[a-z]{2}:/,"").toLowerCase());return e.some(t=>/dairy|milk|cheese|yogurt|butter|cream/.test(t))?"dairy":e.some(t=>/meat|beef|chicken|pork|fish|seafood|poultry|lamb/.test(t))?"meat":e.some(t=>/bread|bakery|pastry|cake|biscuit|croissant/.test(t))?"bakery":e.some(t=>/frozen/.test(t))?"frozen":e.some(t=>/beverage|drink|juice|water|soda|coffee|tea|alcohol|beer|wine/.test(t))?"beverages":e.some(t=>/snack|chip|crisp|chocolate|candy|confection|sweet/.test(t))?"snacks":e.some(t=>/vegetable|fruit|produce|fresh/.test(t))?"produce":e.some(t=>/baby|infant|toddler/.test(t))?"baby":e.some(t=>/\bpet\b/.test(t))?"pet":e.some(t=>/health|beauty|cosmetic|medicine|supplement/.test(t))?"health":e.some(t=>/household|cleaning|laundry/.test(t))?"household":"pantry"}getCategoryEmoji(t){return{produce:"🥬",dairy:"🥛",meat:"🥩",bakery:"🍞",pantry:"🥫",frozen:"🧊",beverages:"🥤",snacks:"🍿",household:"🧹",health:"💊",pet:"🐾",baby:"👶",other:"📦"}[t]||"📦"}render(){if(!this.item)return z``;const t=this.categories||[],e=this.editedItem.unit||"units",r=this._customUnit?"__other__":e;return z`
+  `}customElements.define("slm-add-item-dialog",me);const be=["units","kg","g","L","mL","pack","bunch","dozen","bottle","can","bag","box","loaf","slice"];class we extends st{static properties={api:{type:Object},item:{type:Object},categories:{type:Array},editedItem:{type:Object},imagePreview:{type:String},_customUnit:{type:Boolean,state:!0},_oftLoading:{type:Boolean,state:!0},_oftStatus:{type:String,state:!0},_oftResults:{type:Array,state:!0}};constructor(){super(),this.editedItem={},this.imagePreview=null,this._customUnit=!1,this._oftLoading=!1,this._oftStatus="",this._oftResults=[]}updated(t){if(t.has("item")&&this.item){const t=this.item.unit||"units";this._customUnit=!be.includes(t),this.editedItem={name:this.item.name,category_id:this.item.category_id||"other",quantity:this.item.quantity,unit:t,note:this.item.note||"",image_url:this.item.image_url||"",price:null!=this.item.price?this.item.price:""},this.imagePreview=this.item.image_url||null,this._oftResults=[],this._oftStatus=""}}handleSave(){const t={...this.editedItem};""===t.price||null===t.price?delete t.price:t.price=parseFloat(t.price)||0,this.dispatchEvent(new CustomEvent("save-item",{detail:{itemId:this.item.id,data:t},bubbles:!0,composed:!0}))}handleDelete(){confirm(`Delete ${this.item.name}?`)&&this.dispatchEvent(new CustomEvent("delete-item",{detail:{itemId:this.item.id},bubbles:!0,composed:!0}))}handleClose(){this.dispatchEvent(new CustomEvent("close",{bubbles:!0,composed:!0}))}handleQtyChange(t){const e=Math.max(1,(this.editedItem.quantity||1)+t);this.editedItem={...this.editedItem,quantity:e}}handleUnitSelect(t){const e=t.target.value;"__other__"===e?(this._customUnit=!0,this.editedItem={...this.editedItem,unit:""}):(this._customUnit=!1,this.editedItem={...this.editedItem,unit:e})}handleImageUrlInput(t){const e=t.target.value;this.editedItem={...this.editedItem,image_url:e},this.imagePreview=e||null}handleFilePick(){const t=this.shadowRoot.querySelector("#file-input");t&&t.click()}handleFileChange(t){const e=t.target.files[0];if(!e)return;const r=new FileReader;r.onload=t=>{const e=t.target.result;this.editedItem={...this.editedItem,image_url:e},this.imagePreview=e},r.readAsDataURL(e)}handleClearImage(){this.editedItem={...this.editedItem,image_url:""},this.imagePreview=null;const t=this.shadowRoot.querySelector("#file-input");t&&(t.value="");const e=this.shadowRoot.querySelector("#image-url-input");e&&(e.value="")}async handleSearchOFT(){const t=this.editedItem.name?.trim();if(t&&!this._oftLoading){this._oftLoading=!0,this._oftStatus="",this._oftResults=[];try{const e=`https://world.openfoodfacts.org/api/v2/search?search_terms=${encodeURIComponent(t)}&fields=product_name,categories_tags,image_front_thumb_url,image_front_url,price&page_size=5`,r=await fetch(e);if(!r.ok)throw new Error(`HTTP ${r.status}`);const i=await r.json(),n=(i?.products||[]).filter(t=>t.product_name?.trim());0===n.length?this._oftStatus="No results found on OpenFoodFacts.":(this._oftResults=n,this._oftStatus=`${n.length} result${n.length>1?"s":""} found — tap one to apply`)}catch(t){console.warn("OFT search failed:",t),this._oftStatus="OpenFoodFacts lookup failed."}this._oftLoading=!1}}async handleApplyOFTResult(t){this._oftLoading=!0,this._oftResults=[],this._oftStatus="";const e={};if(e.category_id=this._mapOftCategory(t.categories_tags||[]),t.price&&(e.price=t.price),t.image_front_url){let r=t.image_front_url;try{const t=await this.api.downloadProductImage(r,this.editedItem.name);t?.local_url&&(r=t.local_url)}catch(t){console.warn("OFT image download failed:",t)}e.image_url=r,this.imagePreview=r}this.editedItem={...this.editedItem,...e},this._oftStatus="Updated from OpenFoodFacts ✓",this._oftLoading=!1}_mapOftCategory(t){const e=t.map(t=>t.replace(/^[a-z]{2}:/,"").toLowerCase());return e.some(t=>/dairy|milk|cheese|yogurt|butter|cream/.test(t))?"dairy":e.some(t=>/meat|beef|chicken|pork|fish|seafood|poultry|lamb/.test(t))?"meat":e.some(t=>/bread|bakery|pastry|cake|biscuit|croissant/.test(t))?"bakery":e.some(t=>/frozen/.test(t))?"frozen":e.some(t=>/beverage|drink|juice|water|soda|coffee|tea|alcohol|beer|wine/.test(t))?"beverages":e.some(t=>/snack|chip|crisp|chocolate|candy|confection|sweet/.test(t))?"snacks":e.some(t=>/vegetable|fruit|produce|fresh/.test(t))?"produce":e.some(t=>/baby|infant|toddler/.test(t))?"baby":e.some(t=>/\bpet\b/.test(t))?"pet":e.some(t=>/health|beauty|cosmetic|medicine|supplement/.test(t))?"health":e.some(t=>/household|cleaning|laundry/.test(t))?"household":"pantry"}_getCategoryName(t){const e=(this.categories||[]).find(e=>e.id===t);return e?e.name:t}getCategoryEmoji(t){return{produce:"🥬",dairy:"🥛",meat:"🥩",bakery:"🍞",pantry:"🥫",frozen:"🧊",beverages:"🥤",snacks:"🍿",household:"🧹",health:"💊",pet:"🐾",baby:"👶",other:"📦"}[t]||"📦"}render(){if(!this.item)return z``;const t=this.categories||[],e=this.editedItem.unit||"units",r=this._customUnit?"__other__":e;return z`
       <div class="overlay" @click=${this.handleClose}>
         <div class="dialog" @click=${t=>t.stopPropagation()}>
           <div class="dialog-header">
@@ -1521,7 +1521,33 @@ const C=globalThis,A=t=>t,I=C.trustedTypes,S=I?I.createPolicy("lit-html",{create
                   class=${this._oftLoading?"spin":""}></ha-icon>
                 ${this._oftLoading?"Searching OpenFoodFacts…":"Search OpenFoodFacts"}
               </button>
+
               ${this._oftStatus?z`<div class="oft-status">${this._oftStatus}</div>`:""}
+
+              ${this._oftResults.length>0?z`
+                <div class="oft-results">
+                  ${this._oftResults.map(t=>z`
+                    <button class="oft-result-item" @click=${()=>this.handleApplyOFTResult(t)}>
+                      ${t.image_front_thumb_url?z`
+                        <img class="oft-thumb" src="${t.image_front_thumb_url}" alt="${t.product_name}" />
+                      `:z`
+                        <div class="oft-thumb">${this.getCategoryEmoji(this._mapOftCategory(t.categories_tags||[]))}</div>
+                      `}
+                      <div class="oft-result-info">
+                        <div class="oft-result-name">${t.product_name}</div>
+                        <div class="oft-result-meta">
+                          ${this._getCategoryName(this._mapOftCategory(t.categories_tags||[]))}
+                          ${t.price?z` &bull; $${t.price}`:""}
+                        </div>
+                      </div>
+                      <ha-icon icon="mdi:check-circle-outline" class="oft-apply-icon"></ha-icon>
+                    </button>
+                  `)}
+                  <button class="oft-dismiss" @click=${()=>this._oftResults=[]}>
+                    Dismiss
+                  </button>
+                </div>
+              `:""}
             </div>
 
             <div class="form-group">
@@ -1901,6 +1927,83 @@ const C=globalThis,A=t=>t,I=C.trustedTypes,S=I?I.createPolicy("lit-html",{create
     .oft-status {
       margin-top: 6px;
       font-size: 12px;
+      color: var(--slm-text-secondary, #757575);
+    }
+    .oft-results {
+      margin-top: 8px;
+      border: 1px solid var(--slm-border-subtle, #e8eaf6);
+      border-radius: 10px;
+      overflow: hidden;
+    }
+    .oft-result-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      width: 100%;
+      padding: 10px 12px;
+      border: none;
+      border-bottom: 1px solid var(--slm-border-subtle, #e8eaf6);
+      background: var(--slm-bg-main, #fafbfc);
+      cursor: pointer;
+      text-align: left;
+      font-family: inherit;
+      -webkit-tap-highlight-color: transparent;
+      transition: background 0.15s;
+    }
+    .oft-result-item:hover {
+      background: var(--slm-bg-elevated, #ffffff);
+    }
+    .oft-result-item:active {
+      background: var(--slm-bg-surface, #f5f5f5);
+    }
+    .oft-thumb {
+      width: 42px;
+      height: 42px;
+      border-radius: 6px;
+      object-fit: contain;
+      background: var(--slm-bg-elevated, #ffffff);
+      border: 1px solid var(--slm-border-subtle, #e8eaf6);
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 22px;
+    }
+    .oft-result-info {
+      flex: 1;
+      min-width: 0;
+    }
+    .oft-result-name {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--slm-text-primary, #424242);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .oft-result-meta {
+      font-size: 12px;
+      color: var(--slm-text-secondary, #757575);
+      margin-top: 2px;
+    }
+    .oft-apply-icon {
+      --mdc-icon-size: 20px;
+      color: var(--slm-accent-primary, #9fa8da);
+      flex-shrink: 0;
+    }
+    .oft-dismiss {
+      display: block;
+      width: 100%;
+      padding: 8px 12px;
+      border: none;
+      background: transparent;
+      color: var(--slm-text-muted, #9e9e9e);
+      font-size: 12px;
+      font-family: inherit;
+      cursor: pointer;
+      text-align: center;
+    }
+    .oft-dismiss:hover {
       color: var(--slm-text-secondary, #757575);
     }
     @keyframes spin {
