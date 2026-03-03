@@ -197,6 +197,11 @@ class SLMItemTile extends LitElement {
     }
   }
 
+  _noteType(note) {
+    if (!note) return null;
+    return note.startsWith('[RM] ') ? 'recipe' : 'note';
+  }
+
   getCategoryEmoji(categoryId) {
     const emojiMap = {
       'produce': '🥬', 'dairy': '🥛', 'meat': '🥩', 'bakery': '🍞',
@@ -362,6 +367,16 @@ class SLMItemTile extends LitElement {
           ` : ''}
         </div>
 
+        ${this._noteType(this.item.note) === 'recipe' ? html`
+          <div class="note-badge recipe-note" title="${this.item.note?.replace('[RM] ', '') ?? ''}">
+            <ha-icon icon="mdi:chef-hat"></ha-icon>
+          </div>
+        ` : this._noteType(this.item.note) === 'note' ? html`
+          <div class="note-badge info-note" title="${this.item.note ?? ''}">
+            <ha-icon icon="mdi:information-variant-circle-outline"></ha-icon>
+          </div>
+        ` : ''}
+
         ${this.item.checked ? html`
           <div class="checked-overlay">
             <span class="check-icon">✓</span>
@@ -488,6 +503,22 @@ class SLMItemTile extends LitElement {
       font-size: 40px;
       color: white;
     }
+    .note-badge {
+      position: absolute;
+      bottom: 30px;
+      right: 4px;
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 3;
+      background: rgba(0,0,0,0.35);
+    }
+    .note-badge ha-icon { --mdc-icon-size: 13px; }
+    .recipe-note { color: #9fa8da; }
+    .info-note { color: #b0b0b0; }
   `;
 }
 

@@ -90,6 +90,11 @@ class SLMItemList extends LitElement {
     return cat?.color || getComputedStyle(this).getPropertyValue('--slm-accent-primary').trim() || '#9fa8da';
   }
 
+  _noteType(note) {
+    if (!note) return null;
+    return note.startsWith('[RM] ') ? 'recipe' : 'note';
+  }
+
   getRecentColor() {
     return getComputedStyle(this).getPropertyValue('--slm-cat-recent').trim() || '#9e9e9e';
   }
@@ -294,6 +299,8 @@ class SLMItemList extends LitElement {
     const color = this.getCategoryColor(item.category_id);
     const { r, g, b } = this.hexToRgb(color);
     const showPrice = this.settings?.showPriceOnTile !== false;
+    const noteType = this._noteType(item.note);
+    const noteTitle = item.note?.replace('[RM] ', '') ?? '';
 
     return html`
       <div
@@ -306,7 +313,13 @@ class SLMItemList extends LitElement {
         @touchend=${this.handleMouseUp}
       >
         <div class="row-left">
-          <div class="cat-dot" style="background: ${color}"></div>
+          ${noteType === 'recipe' ? html`
+            <ha-icon class="note-dot recipe-dot" icon="mdi:chef-hat" title="${noteTitle}"></ha-icon>
+          ` : noteType === 'note' ? html`
+            <ha-icon class="note-dot info-dot" icon="mdi:information-variant-circle-outline" title="${noteTitle}"></ha-icon>
+          ` : html`
+            <div class="cat-dot" style="background: ${color}"></div>
+          `}
           <div class="row-icon">
             ${this.renderRowIcon(item.name, item.category_id, item.image_url)}
           </div>
@@ -469,6 +482,12 @@ class SLMItemList extends LitElement {
       border-radius: 50%;
       flex-shrink: 0;
     }
+    .note-dot {
+      --mdc-icon-size: 16px;
+      flex-shrink: 0;
+    }
+    .recipe-dot { color: var(--slm-accent-primary, #9fa8da); }
+    .info-dot { color: var(--slm-text-secondary, #aaa); }
     .row-icon {
       width: 36px;
       height: 36px;
