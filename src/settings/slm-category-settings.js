@@ -117,8 +117,11 @@ class CategorySettings extends LitElement {
   }
 
   static styles = css`
+    :host {
+      display: block;
+    }
     .slm-category-settings {
-      padding-bottom: 80px;
+      padding-bottom: 20px;
     }
     .header {
       display: flex;

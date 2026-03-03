@@ -43,8 +43,11 @@ class ProfileSettings extends LitElement {
   }
 
   static styles = css`
+    :host {
+      display: block;
+    }
     .slm-profile-settings {
-      padding-bottom: 80px;
+      padding-bottom: 20px;
     }
     .header {
       display: flex;

@@ -64,8 +64,11 @@ class NotificationSettings extends LitElement {
   }
 
   static styles = css`
+    :host {
+      display: block;
+    }
     .slm-notification-settings {
-      padding-bottom: 80px;
+      padding-bottom: 20px;
     }
     .header {
       display: flex;
