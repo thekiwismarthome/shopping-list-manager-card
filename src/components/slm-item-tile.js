@@ -505,18 +505,19 @@ class SLMItemTile extends LitElement {
     }
     .note-badge {
       position: absolute;
-      bottom: 30px;
-      right: 4px;
-      width: 18px;
-      height: 18px;
+      bottom: 8px;
+      right: 6px;
+      width: 26px;
+      height: 26px;
       border-radius: 50%;
       display: flex;
       align-items: center;
       justify-content: center;
       z-index: 3;
-      background: rgba(0,0,0,0.35);
+      background: rgba(0,0,0,0.5);
+      box-shadow: 0 1px 4px rgba(0,0,0,0.4);
     }
-    .note-badge ha-icon { --mdc-icon-size: 13px; }
+    .note-badge ha-icon { --mdc-icon-size: 17px; }
     .recipe-note { color: #9fa8da; }
     .info-note { color: #b0b0b0; }
   `;
