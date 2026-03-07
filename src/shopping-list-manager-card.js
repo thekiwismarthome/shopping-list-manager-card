@@ -139,7 +139,7 @@ class ShoppingListManagerCard extends LitElement {
         emails: true
       },
       recentProductsCount: 8,
-      tilesPerRow: 3,
+      tilesPerRow: this.isEmbedded ? 8 : 3,
       useEmojis: true,
       colorScheme: 'pastel',
       viewMode: 'tile',
