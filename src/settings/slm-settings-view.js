@@ -11,6 +11,7 @@ class SLMSettingsView extends LitElement {
     hass: { type: Object },
     api: { type: Object },
     settings: { type: Object },
+    isEmbedded: { type: Boolean },
     categories: { type: Array },
     currentSection: { type: String }
   };
@@ -175,6 +176,7 @@ class SLMSettingsView extends LitElement {
         return html`
           <slm-appearance-settings
             .settings=${this.settings}
+            .isEmbedded=${this.isEmbedded}
             @settings-changed=${(e) => this.dispatchEvent(e)}
             @back=${() => this.currentSection = 'main'}
           ></slm-appearance-settings>

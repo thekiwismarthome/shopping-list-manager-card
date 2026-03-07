@@ -19,6 +19,7 @@ class ShoppingListManagerCard extends LitElement {
   static properties = {
     hass: { type: Object },
     config: { type: Object },
+    isEmbedded: { type: Boolean },
     currentView: { type: String },
     lists: { type: Array },
     activeList: { type: Object },
@@ -58,6 +59,7 @@ class ShoppingListManagerCard extends LitElement {
 
   constructor() {
     super();
+    this.isEmbedded = false;
     this.currentView = 'shopping';
     this.lists = [];
     this.activeList = null;
@@ -652,6 +654,7 @@ class ShoppingListManagerCard extends LitElement {
               .hass=${this.hass}
               .api=${this.api}
               .settings=${this.settings}
+              .isEmbedded=${this.isEmbedded}
               .categories=${this.categories}
               @settings-changed=${this.handleSettingsChange}
             ></slm-settings-view>

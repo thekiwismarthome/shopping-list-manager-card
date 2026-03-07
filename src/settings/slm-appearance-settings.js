@@ -5,12 +5,14 @@ import './slm-font-settings.js';
 class SLMAppearanceSettings extends LitElement {
   static properties = {
     settings: { type: Object },
+    isEmbedded: { type: Boolean },
     showDarkModePopup: { type: Boolean },
     showFontSettings: { type: Boolean }
   };
 
   constructor() {
     super();
+    this.isEmbedded = false;
     this.showDarkModePopup = false;
     this.showFontSettings = false;
   }
@@ -117,8 +119,8 @@ class SLMAppearanceSettings extends LitElement {
             <div class="item-content full-width">
               <div class="item-title">Tiles Per Row</div>
               <div class="tile-options">
-                ${[2, 3, 4, 5].map(num => html`
-                  <button 
+                ${(this.isEmbedded ? [2, 3, 4, 5, 8, 10] : [2, 3, 4, 5]).map(num => html`
+                  <button
                     class="tile-option ${this.settings.tilesPerRow === num ? 'selected' : ''}"
                     @click=${() => this.handleSettingChange('tilesPerRow', num)}
                   >
