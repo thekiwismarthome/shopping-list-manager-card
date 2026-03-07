@@ -30,7 +30,8 @@ class ShoppingListManagerCard extends LitElement {
     showAddDialog: { type: Boolean },
     showEditDialog: { type: Boolean },
     editingItem: { type: Object },
-    settings: { type: Object }
+    settings: { type: Object },
+    isEmbedded: { type: Boolean }
   };
   set hass(hass) {
     this._hass = hass;
@@ -76,6 +77,7 @@ class ShoppingListManagerCard extends LitElement {
     this._cardId = null;
     this._assignedCardId = null;
     this.settings = this.loadSettings();
+    this.isEmbedded = false;
     this._subscribed = false;
   }
 
