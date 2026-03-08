@@ -119,7 +119,7 @@ class SLMAppearanceSettings extends LitElement {
             <div class="item-content full-width">
               <div class="item-title">Tiles Per Row</div>
               <div class="tile-options">
-                ${(this.isEmbedded ? [2, 3, 4, 5, 8, 10] : [2, 3, 4, 5]).map(num => html`
+                ${[2, 3, 4, 5, 8, 10].map(num => html`
                   <button
                     class="tile-option ${this.settings.tilesPerRow === num ? 'selected' : ''}"
                     @click=${() => this.handleSettingChange('tilesPerRow', num)}
