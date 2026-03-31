@@ -535,9 +535,25 @@ class ShoppingListManagerCard extends LitElement {
         }
       }
     } else {
-      // Fallback: copy to clipboard
-      navigator.clipboard.writeText(shareText);
-      alert('List copied to clipboard!');
+      // Fallback: copy to clipboard (navigator.clipboard unavailable in HA iframes)
+      try {
+        if (navigator.clipboard?.writeText) {
+          await navigator.clipboard.writeText(shareText);
+        } else {
+          const ta = document.createElement('textarea');
+          ta.value = shareText;
+          ta.style.cssText = 'position:fixed;top:-9999px;left:-9999px;opacity:0';
+          document.body.appendChild(ta);
+          ta.focus();
+          ta.select();
+          document.execCommand('copy');
+          document.body.removeChild(ta);
+        }
+        alert('List copied to clipboard!');
+      } catch (err) {
+        console.error('Copy to clipboard failed:', err);
+        alert('Could not copy to clipboard. Please copy manually:\n\n' + shareText);
+      }
     }
   }
 
