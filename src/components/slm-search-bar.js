@@ -325,10 +325,7 @@ class SLMSearchBar extends LitElement {
 
   async fetchFromOpenFoodFacts(barcode) {
     try {
-      const url = `https://world.openfoodfacts.org/api/v2/product/${barcode}.json?fields=product_name,categories_tags,image_front_url,image_url,price`;
-      const response = await fetch(url);
-      if (!response.ok) return null;
-      const data = await response.json();
+      const data = await this.api.fetchOpenFoodFactsByBarcode(barcode);
       if (data.status !== 1 || !data.product) return null;
       const p = data.product;
       const name = p.product_name?.trim();

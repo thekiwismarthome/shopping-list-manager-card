@@ -136,6 +136,21 @@ export class ShoppingListAPI {
     });
   }
 
+  async searchOpenFoodFacts(query, pageSize = 5) {
+    return await this.hass.callWS({
+      type: 'shopping_list_manager/openfoodfacts/fetch',
+      query,
+      page_size: pageSize,
+    });
+  }
+
+  async fetchOpenFoodFactsByBarcode(barcode) {
+    return await this.hass.callWS({
+      type: 'shopping_list_manager/openfoodfacts/fetch',
+      barcode,
+    });
+  }
+
   async downloadProductImage(imageUrl, productName) {
     return await this.hass.callWS({
       type: 'shopping_list_manager/products/download_image',
