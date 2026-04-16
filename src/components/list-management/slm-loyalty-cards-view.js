@@ -187,10 +187,68 @@ class SLMLoyaltyCardsView extends LitElement {
         this.stopBarcodeScanner();
       },
       () => {}
-    ).catch((err) => {
-      console.warn('Scanner failed to start:', err);
-      this.stopBarcodeScanner();
+    ).catch(() => {
+      // Camera stream unavailable (HTTP context) — fall back to file/capture input.
+      this._showScannerFileFallback(host, label, scanRegion, isEdit);
     });
+  }
+
+  _showScannerFileFallback(host, label, scanRegion, isEdit) {
+    label.textContent = 'Take a photo of the barcode';
+    scanRegion.innerHTML = '';
+
+    const hint = document.createElement('p');
+    hint.textContent = 'Live camera unavailable (HTTP). Use the button below to photograph the barcode.';
+    Object.assign(hint.style, {
+      color: 'rgba(255,255,255,0.6)', fontSize: '13px',
+      textAlign: 'center', maxWidth: '320px', margin: '0 0 16px 0'
+    });
+
+    const fileInput = document.createElement('input');
+    fileInput.type = 'file';
+    fileInput.accept = 'image/*';
+    fileInput.capture = 'environment';
+    fileInput.style.display = 'none';
+
+    const photoBtn = document.createElement('button');
+    photoBtn.textContent = '📷 Open Camera';
+    Object.assign(photoBtn.style, {
+      padding: '12px 28px', background: '#fff', border: 'none',
+      borderRadius: '8px', fontSize: '15px', cursor: 'pointer', fontWeight: '600'
+    });
+
+    const errorMsg = document.createElement('p');
+    Object.assign(errorMsg.style, {
+      color: '#f87171', fontSize: '13px', marginTop: '10px', display: 'none'
+    });
+
+    photoBtn.addEventListener('click', () => fileInput.click());
+
+    fileInput.addEventListener('change', async (e) => {
+      const file = e.target.files?.[0];
+      if (!file) return;
+      photoBtn.disabled = true;
+      photoBtn.textContent = 'Scanning…';
+      errorMsg.style.display = 'none';
+      try {
+        const decodedText = await this._scannerInstance.scanFile(file, true);
+        if (isEdit) {
+          this.editingCard = { ...this.editingCard, number: decodedText, barcode: decodedText };
+        } else {
+          this.newCard = { ...this.newCard, number: decodedText, barcode: decodedText };
+        }
+        this.stopBarcodeScanner();
+      } catch {
+        errorMsg.textContent = 'No barcode found — try again with a clearer photo.';
+        errorMsg.style.display = 'block';
+        photoBtn.disabled = false;
+        photoBtn.textContent = '📷 Open Camera';
+        fileInput.value = '';
+      }
+    });
+
+    host.insertBefore(hint, scanRegion);
+    scanRegion.append(fileInput, photoBtn, errorMsg);
   }
 
   stopBarcodeScanner() {

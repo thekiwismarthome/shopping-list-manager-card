@@ -239,7 +239,67 @@ class SLMSearchBar extends LitElement {
       { fps: 10, qrbox: { width: 280, height: 120 } },
       (decodedText) => this.handleBarcodeScanned(decodedText),
       () => {}
-    ).catch(() => this.stopBarcodeScanner());
+    ).catch(() => {
+      // Camera stream unavailable (HTTP context, permission denied, etc.)
+      // Fall back to file/capture input — works over HTTP on mobile.
+      this._showScannerFileFallback(host, label, scanRegion, btnRow, flipBtn);
+    });
+  }
+
+  _showScannerFileFallback(host, label, scanRegion, btnRow, flipBtn) {
+    // Replace live-stream UI with a capture-input button
+    label.textContent = 'Take a photo of the barcode';
+    scanRegion.innerHTML = '';
+    flipBtn.remove();
+
+    const hint = document.createElement('p');
+    hint.textContent = 'Live camera unavailable (HTTP). Use the button below to photograph the barcode.';
+    Object.assign(hint.style, {
+      color: 'rgba(255,255,255,0.6)', fontSize: '13px',
+      textAlign: 'center', maxWidth: '320px', margin: '0 0 16px 0'
+    });
+
+    const fileInput = document.createElement('input');
+    fileInput.type = 'file';
+    fileInput.accept = 'image/*';
+    fileInput.capture = 'environment';
+    fileInput.style.display = 'none';
+
+    const photoBtn = document.createElement('button');
+    photoBtn.textContent = '📷 Open Camera';
+    Object.assign(photoBtn.style, {
+      padding: '12px 28px', background: '#fff', border: 'none',
+      borderRadius: '8px', fontSize: '15px', cursor: 'pointer', fontWeight: '600'
+    });
+
+    const errorMsg = document.createElement('p');
+    Object.assign(errorMsg.style, {
+      color: '#f87171', fontSize: '13px', marginTop: '10px', display: 'none'
+    });
+
+    photoBtn.addEventListener('click', () => fileInput.click());
+
+    fileInput.addEventListener('change', async (e) => {
+      const file = e.target.files?.[0];
+      if (!file) return;
+      photoBtn.disabled = true;
+      photoBtn.textContent = 'Scanning…';
+      errorMsg.style.display = 'none';
+      try {
+        const result = await this._scannerInstance.scanFile(file, true);
+        this.handleBarcodeScanned(result);
+      } catch {
+        errorMsg.textContent = 'No barcode found — try again with a clearer photo.';
+        errorMsg.style.display = 'block';
+        photoBtn.disabled = false;
+        photoBtn.textContent = '📷 Open Camera';
+        // Reset input so the same file can be reselected
+        fileInput.value = '';
+      }
+    });
+
+    host.insertBefore(hint, scanRegion);
+    scanRegion.append(fileInput, photoBtn, errorMsg);
   }
 
   stopBarcodeScanner() {
