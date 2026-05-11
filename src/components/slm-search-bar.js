@@ -40,6 +40,7 @@ class SLMSearchBar extends LitElement {
     this._barcodeLocked = false;
     this._oftLoading = false;
     this._scannerInstance = null;
+    this._stopPromise = null;
   }
 
   disconnectedCallback() {
@@ -184,7 +185,8 @@ class SLMSearchBar extends LitElement {
 
   // ── Barcode scanner ───────────────────────────────────────────────────────────
 
-  startBarcodeScanner() {
+  async startBarcodeScanner() {
+    if (this._stopPromise) { await this._stopPromise; this._stopPromise = null; }
     if (!this._facingMode) this._facingMode = 'environment';
 
     const host = document.createElement('div');
@@ -304,7 +306,7 @@ class SLMSearchBar extends LitElement {
 
   stopBarcodeScanner() {
     if (this._scannerInstance) {
-      this._scannerInstance.stop().catch(() => {});
+      this._stopPromise = this._scannerInstance.stop().catch(() => {});
       this._scannerInstance = null;
     }
     document.getElementById('slm-product-scanner-host')?.remove();

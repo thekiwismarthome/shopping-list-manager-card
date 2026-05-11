@@ -54,6 +54,7 @@ class SLMLoyaltyCardsView extends LitElement {
       private: true
     };
     this._scannerInstance = null;
+    this._stopPromise = null;
     this._loadedForUserId = null;
   }
 
@@ -150,7 +151,8 @@ class SLMLoyaltyCardsView extends LitElement {
 
   // ── Barcode scanner ──────────────────────────────────────────────────────────
 
-  startBarcodeScanner(isEdit) {
+  async startBarcodeScanner(isEdit) {
+    if (this._stopPromise) { await this._stopPromise; this._stopPromise = null; }
     const host = document.createElement('div');
     host.id = 'slm-barcode-scanner-host';
     Object.assign(host.style, {
@@ -253,7 +255,7 @@ class SLMLoyaltyCardsView extends LitElement {
 
   stopBarcodeScanner() {
     if (this._scannerInstance) {
-      this._scannerInstance.stop().catch(() => {});
+      this._stopPromise = this._scannerInstance.stop().catch(() => {});
       this._scannerInstance = null;
     }
     document.getElementById('slm-barcode-scanner-host')?.remove();
