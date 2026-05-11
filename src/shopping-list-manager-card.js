@@ -19,6 +19,7 @@ class ShoppingListManagerCard extends LitElement {
   static properties = {
     hass: { type: Object },
     config: { type: Object },
+    isEmbedded: { type: Boolean },
     currentView: { type: String },
     lists: { type: Array },
     activeList: { type: Object },
@@ -29,7 +30,8 @@ class ShoppingListManagerCard extends LitElement {
     showAddDialog: { type: Boolean },
     showEditDialog: { type: Boolean },
     editingItem: { type: Object },
-    settings: { type: Object }
+    settings: { type: Object },
+    isEmbedded: { type: Boolean }
   };
   set hass(hass) {
     this._hass = hass;
@@ -58,6 +60,7 @@ class ShoppingListManagerCard extends LitElement {
 
   constructor() {
     super();
+    this.isEmbedded = false;
     this.currentView = 'shopping';
     this.lists = [];
     this.activeList = null;
@@ -74,6 +77,7 @@ class ShoppingListManagerCard extends LitElement {
     this._cardId = null;
     this._assignedCardId = null;
     this.settings = this.loadSettings();
+    this.isEmbedded = false;
     this._subscribed = false;
   }
 
@@ -135,7 +139,7 @@ class ShoppingListManagerCard extends LitElement {
         emails: true
       },
       recentProductsCount: 8,
-      tilesPerRow: 3,
+      tilesPerRow: this.isEmbedded ? 8 : 3,
       useEmojis: true,
       colorScheme: 'pastel',
       viewMode: 'tile',
@@ -531,9 +535,25 @@ class ShoppingListManagerCard extends LitElement {
         }
       }
     } else {
-      // Fallback: copy to clipboard
-      navigator.clipboard.writeText(shareText);
-      alert('List copied to clipboard!');
+      // Fallback: copy to clipboard (navigator.clipboard unavailable in HA iframes)
+      try {
+        if (navigator.clipboard?.writeText) {
+          await navigator.clipboard.writeText(shareText);
+        } else {
+          const ta = document.createElement('textarea');
+          ta.value = shareText;
+          ta.style.cssText = 'position:fixed;top:-9999px;left:-9999px;opacity:0';
+          document.body.appendChild(ta);
+          ta.focus();
+          ta.select();
+          document.execCommand('copy');
+          document.body.removeChild(ta);
+        }
+        alert('List copied to clipboard!');
+      } catch (err) {
+        console.error('Copy to clipboard failed:', err);
+        alert('Could not copy to clipboard. Please copy manually:\n\n' + shareText);
+      }
     }
   }
 
@@ -652,6 +672,7 @@ class ShoppingListManagerCard extends LitElement {
               .hass=${this.hass}
               .api=${this.api}
               .settings=${this.settings}
+              .isEmbedded=${this.isEmbedded}
               .categories=${this.categories}
               @settings-changed=${this.handleSettingsChange}
             ></slm-settings-view>

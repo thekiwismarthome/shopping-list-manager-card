@@ -161,10 +161,7 @@ class SLMEditItemDialog extends LitElement {
     this._oftResults = [];
 
     try {
-      const url = `https://world.openfoodfacts.org/api/v2/search?search_terms=${encodeURIComponent(name)}&fields=product_name,categories_tags,image_front_thumb_url,image_front_url,image_url,price&page_size=5`;
-      const response = await fetch(url);
-      if (!response.ok) throw new Error(`HTTP ${response.status}`);
-      const data = await response.json();
+      const data = await this.api.searchOpenFoodFacts(name, 5);
       const products = (data?.products || []).filter(p => p.product_name?.trim());
       if (products.length === 0) {
         this._oftStatus = 'No results found on OpenFoodFacts.';
@@ -206,10 +203,7 @@ class SLMEditItemDialog extends LitElement {
 
     // Fall back to OpenFoodFacts
     try {
-      const url = `https://world.openfoodfacts.org/api/v2/product/${encodeURIComponent(barcode)}.json?fields=product_name,categories_tags,image_front_thumb_url,image_front_url,image_url,price`;
-      const response = await fetch(url);
-      if (!response.ok) throw new Error(`HTTP ${response.status}`);
-      const data = await response.json();
+      const data = await this.api.fetchOpenFoodFactsByBarcode(barcode);
       if (data.status !== 1 || !data.product?.product_name?.trim()) {
         this._oftStatus = 'Barcode not found on OpenFoodFacts.';
       } else {
