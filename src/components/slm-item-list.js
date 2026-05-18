@@ -304,7 +304,7 @@ class SLMItemList extends LitElement {
 
     return html`
       <div
-        class="list-row"
+        class="list-row ${item._pending ? 'pending-row' : ''}"
         @click=${(e) => this.handleRowClick(e, item)}
         @mousedown=${() => this.handleMouseDown(item)}
         @mouseup=${this.handleMouseUp}
@@ -469,6 +469,10 @@ class SLMItemList extends LitElement {
     }
     .recent-row {
       opacity: 0.75;
+    }
+    .pending-row {
+      opacity: 0.6;
+      pointer-events: none;
     }
     .row-left {
       display: flex;

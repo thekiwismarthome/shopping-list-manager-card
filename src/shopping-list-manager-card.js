@@ -291,6 +291,16 @@ class ShoppingListManagerCard extends LitElement {
     localStorage.setItem(lastListKey, this.activeList.id);
   }
 
+  async _refreshTotal() {
+    if (!this.activeList) return;
+    try {
+      const result = await this.api.getListTotal(this.activeList.id);
+      this.total = result;
+    } catch (err) {
+      console.warn('[SLM] Failed to refresh total:', err);
+    }
+  }
+
   async handleListChange(e) {
     const listId = e.detail.listId;
     await this.api.setActiveList(listId);
@@ -300,42 +310,63 @@ class ShoppingListManagerCard extends LitElement {
   }
 
   async handleItemClick(e) {
-    console.log("HANDLE ITEM CLICK", e.detail);
-
     const { itemId } = e.detail;
     const item = this.items.find(i => i.id === itemId);
+    if (!item || item.checked) return;
 
-    if (item && !item.checked) {
+    const prev = this.items;
+    this.items = this.items.map(i => i.id === itemId ? { ...i, quantity: i.quantity + 1, _pending: true } : i);
+    try {
       await this.api.incrementItem(itemId, 1);
-      await this.loadActiveListData();
+      this.items = this.items.map(i => i.id === itemId ? { ...i, _pending: false } : i);
+    } catch (err) {
+      console.error('[SLM] Failed to increment item:', err);
+      this.items = prev;
     }
   }
 
   async handleItemDecrease(e) {
     const { itemId } = e.detail;
     const item = this.items.find(i => i.id === itemId);
-
     if (!item) return;
 
+    const prev = this.items;
     if (item.quantity > 1) {
-      await this.api.incrementItem(itemId, -1);
+      this.items = this.items.map(i => i.id === itemId ? { ...i, quantity: i.quantity - 1, _pending: true } : i);
+      try {
+        await this.api.incrementItem(itemId, -1);
+        this.items = this.items.map(i => i.id === itemId ? { ...i, _pending: false } : i);
+      } catch (err) {
+        console.error('[SLM] Failed to decrement item:', err);
+        this.items = prev;
+      }
     } else {
-      await this.api.deleteItem(itemId);
+      this.items = this.items.filter(i => i.id !== itemId);
+      try {
+        await this.api.deleteItem(itemId);
+        this._refreshTotal();
+      } catch (err) {
+        console.error('[SLM] Failed to delete item:', err);
+        this.items = prev;
+      }
     }
-
-    await this.loadActiveListData();
   }
-
 
   async handleItemCheck(e) {
     const { itemId, checked } = e.detail;
-    await this.api.checkItem(itemId, checked);
-    // Track checked-off items so they appear in recently-used suggestions
     if (checked) {
       const item = this.items.find(i => i.id === itemId);
       if (item?.product_id) this.trackRecentlyUsed(item.product_id);
     }
-    await this.loadActiveListData();
+    const prev = this.items;
+    this.items = this.items.map(i => i.id === itemId ? { ...i, checked, _pending: true } : i);
+    try {
+      await this.api.checkItem(itemId, checked);
+      this.items = this.items.map(i => i.id === itemId ? { ...i, _pending: false } : i);
+    } catch (err) {
+      console.error('[SLM] Failed to check item:', err);
+      this.items = prev;
+    }
   }
 
   async handleItemLongPress(e) {
@@ -347,8 +378,16 @@ class ShoppingListManagerCard extends LitElement {
     const { itemId } = e.detail;
     const item = this.items.find(i => i.id === itemId);
     if (item?.product_id) this.untrackRecentlyUsed(item.product_id);
-    await this.api.deleteItem(itemId);
-    await this.loadActiveListData();
+
+    const prev = this.items;
+    this.items = this.items.filter(i => i.id !== itemId);
+    try {
+      await this.api.deleteItem(itemId);
+      this._refreshTotal();
+    } catch (err) {
+      console.error('[SLM] Failed to delete item:', err);
+      this.items = prev;
+    }
   }
 
   untrackRecentlyUsed(productId) {
@@ -362,6 +401,9 @@ class ShoppingListManagerCard extends LitElement {
 
   async handleAddItem(e) {
     const itemData = { ...e.detail };
+
+    // Close dialog immediately for perceived speed
+    this.showAddDialog = false;
 
     // Auto-create a product record if none exists yet (quick-add from search)
     // so the item is reusable across lists and appears in suggestions/recently-used.
@@ -387,31 +429,33 @@ class ShoppingListManagerCard extends LitElement {
       i.product_id && i.product_id === itemData.product_id && !i.checked
     );
 
-    if (itemData.fromRecentlyUsed) {
-      // Recently-used: always start fresh at qty=1
-      if (existingItem) {
-        await this.api.updateItem(existingItem.id, { quantity: 1 });
-      } else {
-        // Strip internal flag and any null/undefined optional fields (backend schema rejects nulls)
-        const { fromRecentlyUsed: _flag, ...rest } = itemData;
-        const addData = { quantity: 1 };
-        for (const [k, v] of Object.entries(rest)) {
-          if (v !== null && v !== undefined) addData[k] = v;
+    try {
+      if (itemData.fromRecentlyUsed) {
+        // Recently-used: always start fresh at qty=1
+        if (existingItem) {
+          await this.api.updateItem(existingItem.id, { quantity: 1 });
+        } else {
+          // Strip internal flag and any null/undefined optional fields (backend schema rejects nulls)
+          const { fromRecentlyUsed: _flag, ...rest } = itemData;
+          const addData = { quantity: 1 };
+          for (const [k, v] of Object.entries(rest)) {
+            if (v !== null && v !== undefined) addData[k] = v;
+          }
+          await this.api.addItem(this.activeList.id, addData);
         }
-        await this.api.addItem(this.activeList.id, addData);
+      } else if (existingItem) {
+        // Normal add: increment existing unchecked item
+        await this.api.updateItem(existingItem.id, {
+          quantity: existingItem.quantity + 1
+        });
+      } else {
+        await this.api.addItem(this.activeList.id, itemData);
       }
-    } else if (existingItem) {
-      // Normal add: increment existing unchecked item
-      await this.api.updateItem(existingItem.id, {
-        quantity: existingItem.quantity + 1
-      });
-    } else {
-      await this.api.addItem(this.activeList.id, itemData);
+      this.trackRecentlyUsed(itemData.product_id);
+      this._refreshTotal();
+    } catch (err) {
+      console.error('[SLM] Failed to add item:', err);
     }
-
-    this.trackRecentlyUsed(itemData.product_id);
-    await this.loadActiveListData();
-    this.showAddDialog = false;
   }
 
   trackRecentlyUsed(productId) {
@@ -457,7 +501,7 @@ class ShoppingListManagerCard extends LitElement {
       }
     }
 
-    await this.loadActiveListData();
+    this._refreshTotal();
     this.showEditDialog = false;
     this.editingItem = null;
   }
@@ -504,7 +548,7 @@ class ShoppingListManagerCard extends LitElement {
       if (price) itemData.price = parseFloat(price);
       await this.api.addItem(this.activeList.id, itemData);
       if (product.id) this.trackRecentlyUsed(product.id);
-      await this.loadActiveListData();
+      this._refreshTotal();
     } catch (err) {
       console.error('Failed to create product:', err);
     }
@@ -561,13 +605,8 @@ class ShoppingListManagerCard extends LitElement {
     if (!this.hass?.connection) return;
 
     try {
-      // Use our custom WebSocket subscription instead of direct HA event subscription
-      // This bypasses HA's non-admin restriction on custom events
       const unsubscribe = await this.hass.connection.subscribeMessage(
-        (message) => {
-          console.log('[SLM] ✅ Received update:', message.event_type);
-          this.loadActiveListData();
-        },
+        (message) => this._applySubscriptionEvent(message),
         { type: 'shopping_list_manager/subscribe' }
       );
 
@@ -576,6 +615,57 @@ class ShoppingListManagerCard extends LitElement {
 
     } catch (err) {
       console.error('[SLM] ❌ Failed to subscribe:', err);
+    }
+  }
+
+  _applySubscriptionEvent(message) {
+    const eventType = message.event_type;
+    const data = message.data;
+    const activeId = this.activeList?.id;
+
+    if (eventType === 'shopping_list_manager_item_added') {
+      if (data.list_id !== activeId) return;
+      if (!this.items.find(i => i.id === data.item.id)) {
+        this.items = [...this.items, data.item];
+      }
+      this._refreshTotal();
+
+    } else if (eventType === 'shopping_list_manager_item_updated') {
+      if (data.list_id !== activeId) return;
+      this.items = this.items.map(i =>
+        i.id === data.item.id ? { ...data.item, _pending: false } : i
+      );
+      this._refreshTotal();
+
+    } else if (eventType === 'shopping_list_manager_item_checked') {
+      const { item_id, item_ids, checked, list_id } = data;
+      if (item_id) {
+        if (list_id && list_id !== activeId) return;
+        this.items = this.items.map(i =>
+          i.id === item_id ? { ...i, checked, _pending: false } : i
+        );
+      } else if (item_ids) {
+        const idSet = new Set(item_ids);
+        this.items = this.items.map(i =>
+          idSet.has(i.id) ? { ...i, checked, _pending: false } : i
+        );
+      }
+
+    } else if (eventType === 'shopping_list_manager_item_deleted') {
+      const { item_id, action, list_id } = data;
+      if (action === 'cleared_checked') {
+        if (list_id !== activeId) return;
+        this.items = this.items.filter(i => !i.checked);
+      } else if (item_id) {
+        this.items = this.items.filter(i => i.id !== item_id);
+      }
+      this._refreshTotal();
+
+    } else if (
+      eventType === 'shopping_list_manager_list_updated' ||
+      eventType === 'shopping_list_manager_list_deleted'
+    ) {
+      this.loadData();
     }
   }
 

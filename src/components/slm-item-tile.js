@@ -332,7 +332,7 @@ class SLMItemTile extends LitElement {
 
     return html`
       <div
-        class="tile ${this.item.checked ? 'checked' : ''} ${this.isRecentlyUsed ? 'recently-used' : ''}"
+        class="tile ${this.item.checked ? 'checked' : ''} ${this.isRecentlyUsed ? 'recently-used' : ''} ${this.item._pending ? 'pending' : ''}"
         style="background: ${tileBg}"
         @click=${this.handleTileClick}
         @mousedown=${this.handleMouseDown}
@@ -411,6 +411,10 @@ class SLMItemTile extends LitElement {
     }
     .tile.recently-used {
       opacity: 0.8;
+    }
+    .tile.pending {
+      opacity: 0.6;
+      pointer-events: none;
     }
     .tile.checked {
       opacity: var(--slm-tile-checked-opacity);
