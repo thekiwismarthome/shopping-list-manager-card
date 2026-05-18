@@ -306,7 +306,11 @@ class SLMSearchBar extends LitElement {
 
   stopBarcodeScanner() {
     if (this._scannerInstance) {
-      this._stopPromise = this._scannerInstance.stop().catch(() => {});
+      try {
+        this._stopPromise = this._scannerInstance.stop().catch(() => {});
+      } catch {
+        this._stopPromise = null;
+      }
       this._scannerInstance = null;
     }
     document.getElementById('slm-product-scanner-host')?.remove();
