@@ -1,4 +1,5 @@
 import { LitElement, html, css } from 'lit';
+import { CARD_VERSION } from 'virtual:card-version';
 import './slm-profile-settings.js';
 import './slm-appearance-settings.js';
 import './slm-notification-settings.js';
@@ -13,12 +14,19 @@ class SLMSettingsView extends LitElement {
     settings: { type: Object },
     isEmbedded: { type: Boolean },
     categories: { type: Array },
-    currentSection: { type: String }
+    currentSection: { type: String },
+    _slmVersion: { type: String },
   };
 
   constructor() {
     super();
     this.currentSection = 'main';
+    this._slmVersion = '…';
+  }
+
+  connectedCallback() {
+    super.connectedCallback();
+    this.api?.getIntegrationSettings().then(r => { this._slmVersion = r.version ?? '—'; }).catch(() => { this._slmVersion = '—'; });
   }
 
   handleSettingChange(key, value) {
@@ -153,8 +161,15 @@ class SLMSettingsView extends LitElement {
 
           <div class="settings-item">
             <div class="item-content">
-              <div class="item-title">Version</div>
-              <div class="item-subtitle">3.0.0</div>
+              <div class="item-title">Shopping List Manager</div>
+              <div class="item-subtitle">Integration v${this._slmVersion}</div>
+            </div>
+          </div>
+
+          <div class="settings-item">
+            <div class="item-content">
+              <div class="item-title">SLM Card</div>
+              <div class="item-subtitle">Card v${CARD_VERSION}</div>
             </div>
           </div>
         </div>

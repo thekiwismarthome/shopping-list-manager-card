@@ -4958,7 +4958,7 @@ const C=globalThis,A=t=>t,I=C.trustedTypes,S=I?I.createPolicy("lit-html",{create
       opacity: 0.5;
       cursor: default;
     }
-  `}customElements.define("slm-data-settings",na);class oa extends st{static properties={hass:{type:Object},api:{type:Object},settings:{type:Object},isEmbedded:{type:Boolean},categories:{type:Array},currentSection:{type:String}};constructor(){super(),this.currentSection="main"}handleSettingChange(t,e){this.dispatchEvent(new CustomEvent("settings-changed",{detail:{[t]:e},bubbles:!0,composed:!0}))}handleNavigation(t){this.currentSection=t}renderMainSettings(){return z`
+  `}customElements.define("slm-data-settings",na);class oa extends st{static properties={hass:{type:Object},api:{type:Object},settings:{type:Object},isEmbedded:{type:Boolean},categories:{type:Array},currentSection:{type:String},_slmVersion:{type:String}};constructor(){super(),this.currentSection="main",this._slmVersion="…"}connectedCallback(){super.connectedCallback(),this.api?.getIntegrationSettings().then(t=>{this._slmVersion=t.version??"—"}).catch(()=>{this._slmVersion="—"})}handleSettingChange(t,e){this.dispatchEvent(new CustomEvent("settings-changed",{detail:{[t]:e},bubbles:!0,composed:!0}))}handleNavigation(t){this.currentSection=t}renderMainSettings(){return z`
       <div class="settings-main">
         <div class="settings-header">
           <h2>Settings</h2>
@@ -5077,8 +5077,15 @@ const C=globalThis,A=t=>t,I=C.trustedTypes,S=I?I.createPolicy("lit-html",{create
 
           <div class="settings-item">
             <div class="item-content">
-              <div class="item-title">Version</div>
-              <div class="item-subtitle">3.0.0</div>
+              <div class="item-title">Shopping List Manager</div>
+              <div class="item-subtitle">Integration v${this._slmVersion}</div>
+            </div>
+          </div>
+
+          <div class="settings-item">
+            <div class="item-content">
+              <div class="item-title">SLM Card</div>
+              <div class="item-subtitle">Card v${"3.0.0"}</div>
             </div>
           </div>
         </div>
