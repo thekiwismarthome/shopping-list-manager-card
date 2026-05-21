@@ -15,18 +15,30 @@ class SLMSettingsView extends LitElement {
     isEmbedded: { type: Boolean },
     categories: { type: Array },
     currentSection: { type: String },
-    _slmVersion: { type: String },
+    _slmVersion:  { type: String },
+    _slmcVersion: { type: String },
   };
 
   constructor() {
     super();
     this.currentSection = 'main';
-    this._slmVersion = '…';
+    this._slmVersion  = '…';
+    this._slmcVersion = '…';
   }
 
-  connectedCallback() {
-    super.connectedCallback();
-    this.api?.getIntegrationSettings().then(r => { this._slmVersion = r.version ?? '—'; }).catch(() => { this._slmVersion = '—'; });
+  updated(changedProps) {
+    if (changedProps.has('hass') && this.hass && this._slmVersion === '…') {
+      Promise.all([
+        this.hass.callWS({ type: 'hacs/repository/info', repository_id: 'thekiwismarthome/shopping-list-manager' }),
+        this.hass.callWS({ type: 'hacs/repository/info', repository_id: 'thekiwismarthome/shopping-list-manager-card' }),
+      ]).then(([slm, slmc]) => {
+        this._slmVersion  = slm.installed_version  ?? '—';
+        this._slmcVersion = slmc.installed_version ?? CARD_VERSION;
+      }).catch(() => {
+        this._slmVersion  = '—';
+        this._slmcVersion = CARD_VERSION;
+      });
+    }
   }
 
   handleSettingChange(key, value) {
@@ -169,7 +181,7 @@ class SLMSettingsView extends LitElement {
           <div class="settings-item">
             <div class="item-content">
               <div class="item-title">SLM Card</div>
-              <div class="item-subtitle">Card v${CARD_VERSION}</div>
+              <div class="item-subtitle">Card v${this._slmcVersion}</div>
             </div>
           </div>
         </div>
