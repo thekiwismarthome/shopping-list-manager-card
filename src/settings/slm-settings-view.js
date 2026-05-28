@@ -28,16 +28,17 @@ class SLMSettingsView extends LitElement {
 
   updated(changedProps) {
     if (changedProps.has('hass') && this.hass && this._slmVersion === '…') {
-      Promise.all([
-        this.hass.callWS({ type: 'hacs/repository/info', repository_id: 'thekiwismarthome/shopping-list-manager' }),
-        this.hass.callWS({ type: 'hacs/repository/info', repository_id: 'thekiwismarthome/shopping-list-manager-card' }),
-      ]).then(([slm, slmc]) => {
-        this._slmVersion  = slm.installed_version  ?? '—';
-        this._slmcVersion = slmc.installed_version ?? CARD_VERSION;
-      }).catch(() => {
-        this._slmVersion  = '—';
-        this._slmcVersion = CARD_VERSION;
-      });
+      this.hass.callWS({ type: 'hacs/repositories/list' })
+        .then(repos => {
+          const slm  = repos.find(r => r.full_name === 'thekiwismarthome/shopping-list-manager');
+          const slmc = repos.find(r => r.full_name === 'thekiwismarthome/shopping-list-manager-card');
+          this._slmVersion  = slm?.installed_version  ?? '—';
+          this._slmcVersion = slmc?.installed_version ?? CARD_VERSION;
+        })
+        .catch(() => {
+          this._slmVersion  = '—';
+          this._slmcVersion = CARD_VERSION;
+        });
     }
   }
 
@@ -230,6 +231,8 @@ class SLMSettingsView extends LitElement {
       case 'support':
         return html`
           <slm-support-settings
+            .slmVersion=${this._slmVersion}
+            .slmcVersion=${this._slmcVersion}
             @back=${() => this.currentSection = 'main'}
           ></slm-support-settings>
         `;
