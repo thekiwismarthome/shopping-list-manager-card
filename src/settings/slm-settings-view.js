@@ -175,14 +175,14 @@ class SLMSettingsView extends LitElement {
           <div class="settings-item">
             <div class="item-content">
               <div class="item-title">Shopping List Manager</div>
-              <div class="item-subtitle">Integration v${this._slmVersion}</div>
+              <div class="item-subtitle">Integration version ${this._slmVersion}</div>
             </div>
           </div>
 
           <div class="settings-item">
             <div class="item-content">
               <div class="item-title">SLM Card</div>
-              <div class="item-subtitle">Card v${this._slmcVersion}</div>
+              <div class="item-subtitle">Card version ${this._slmcVersion}</div>
             </div>
           </div>
         </div>

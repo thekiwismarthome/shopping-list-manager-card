@@ -74,7 +74,7 @@ class SupportSettings extends LitElement {
             </div>
             <div class="item-content">
               <div class="item-title">Shopping List Manager</div>
-              <div class="item-subtitle">Integration v${this.slmVersion}</div>
+              <div class="item-subtitle">Integration version ${this.slmVersion}</div>
             </div>
           </div>
 
@@ -84,7 +84,7 @@ class SupportSettings extends LitElement {
             </div>
             <div class="item-content">
               <div class="item-title">SLM Card</div>
-              <div class="item-subtitle">Card v${this.slmcVersion}</div>
+              <div class="item-subtitle">Card version ${this.slmcVersion}</div>
             </div>
           </div>
         </div>
