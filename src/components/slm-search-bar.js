@@ -1,6 +1,6 @@
 import { LitElement, html, css } from 'lit';
 import { Html5Qrcode } from 'html5-qrcode';
-import { t } from '../localize.js';
+import { formatCurrency, t } from '../localize.js';
 
 const UNITS = ['units', 'kg', 'g', 'L', 'mL', 'pack', 'loaf', 'dozen', 'ea', 'pkt', 'tray', 'bottle', 'can', 'bunch', 'roll', 'bar'];
 
@@ -579,7 +579,7 @@ class SLMSearchBar extends LitElement {
                   <div class="result-info">
                     <div class="result-name">${product.name}</div>
                     ${product.price ? html`
-                      <div class="result-price">$${product.price.toFixed(2)}</div>
+                      <div class="result-price">${formatCurrency(this.hass, product.price)}</div>
                     ` : ''}
                   </div>
                   <span class="add-icon">➕</span>

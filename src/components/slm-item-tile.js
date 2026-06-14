@@ -1,4 +1,5 @@
 import { LitElement, html, css } from 'lit';
+import { formatCurrency } from '../localize.js';
 import { PRODUCT_ICON_MAP } from '../icons/product-icon-map.js';
 import { PRODUCT_ICONS } from '../icons/product-icons.js';
 
@@ -364,7 +365,7 @@ class SLMItemTile extends LitElement {
         <div class="info">
           <div class="name">${this.item.name}</div>
           ${showPrice && this.item.price ? html`
-            <div class="price">$${(this.item.price * (this.item.quantity || 1)).toFixed(2)}</div>
+            <div class="price">${formatCurrency(this.hass, this.item.price * (this.item.quantity || 1))}</div>
           ` : ''}
         </div>
 

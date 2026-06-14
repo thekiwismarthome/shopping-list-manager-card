@@ -1,5 +1,5 @@
 import { LitElement, html, css } from 'lit';
-import { t } from '../localize.js';
+import { formatCurrency, t } from '../localize.js';
 
 class AddItemDialog extends LitElement {
   static properties = {
@@ -112,7 +112,7 @@ class AddItemDialog extends LitElement {
                         <div class="result-info">
                           <div class="result-name">${product.name}</div>
                           ${product.price ? html`
-                            <div class="result-price">$${product.price.toFixed(2)}</div>
+                            <div class="result-price">${formatCurrency(this.hass, product.price)}</div>
                           ` : ''}
                         </div>
                       </div>
@@ -148,7 +148,7 @@ class AddItemDialog extends LitElement {
 
                 ${this.selectedProduct.price ? html`
                   <div class="total-price">
-                    ${t(this.hass, 'dialog.total')} $${(this.selectedProduct.price * this.quantity).toFixed(2)}
+                    ${t(this.hass, 'dialog.total')} ${formatCurrency(this.hass, this.selectedProduct.price * this.quantity)}
                   </div>
                 ` : ''}
               </div>

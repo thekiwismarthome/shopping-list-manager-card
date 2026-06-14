@@ -1,5 +1,5 @@
 import { LitElement, html, css } from 'lit';
-import { t } from '../../localize.js';
+import { formatCurrency, t } from '../../localize.js';
 
 class SLMSearchBar extends LitElement {
   static properties = {
@@ -127,7 +127,7 @@ class SLMSearchBar extends LitElement {
                   <div class="result-info">
                     <div class="result-name">${product.name}</div>
                     ${product.price ? html`
-                      <div class="result-price">$${product.price.toFixed(2)}</div>
+                      <div class="result-price">${formatCurrency(this.hass, product.price)}</div>
                     ` : ''}
                   </div>
                   <span class="add-icon">➕</span>

@@ -1,5 +1,5 @@
 import { LitElement, html, css } from 'lit';
-import { t } from '../../localize.js';
+import { formatCurrency, t } from '../../localize.js';
 
 class SLMListCard extends LitElement {
   static properties = {
@@ -110,7 +110,7 @@ class SLMListCard extends LitElement {
         <div class="card-stats">
           <span>${this.itemCount}</span>
           <span class="separator">·</span>
-          <span>${this.currency} $${this.totalCost.toFixed(2)}</span>
+          <span>${formatCurrency(this.hass, this.totalCost, this.currency)}</span>
         </div>
 
         <button class="menu-btn" @click=${this.handleMenuClick}>

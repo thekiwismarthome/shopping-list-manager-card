@@ -1,5 +1,5 @@
 import { LitElement, html, css } from 'lit';
-import { t } from '../localize.js';
+import { formatCurrency, t } from '../localize.js';
 
 const UNITS = ['units', 'kg', 'g', 'L', 'mL', 'pack', 'bunch', 'dozen', 'bottle', 'can', 'bag', 'box', 'loaf', 'slice'];
 
@@ -327,7 +327,7 @@ class SLMEditItemDialog extends LitElement {
                         <div class="oft-result-name">${p.product_name}</div>
                         <div class="oft-result-meta">
                           ${this._getCategoryName(this._mapOftCategory(p.categories_tags || []))}
-                          ${p.price ? html` &bull; $${p.price}` : ''}
+                          ${p.price ? html` &bull; ${formatCurrency(this.hass, p.price)}` : ''}
                         </div>
                       </div>
                       <ha-icon icon="mdi:check-circle-outline" class="oft-apply-icon"></ha-icon>
@@ -416,7 +416,7 @@ class SLMEditItemDialog extends LitElement {
               ${this.editedItem.price && this.editedItem.price !== '' ? html`
                 <div class="price-info">
                   <span>${t(this.hass, 'dialog.total')}</span>
-                  <span class="price-value">$${(parseFloat(this.editedItem.price) * (this.editedItem.quantity || 1)).toFixed(2)}</span>
+                  <span class="price-value">${formatCurrency(this.hass, parseFloat(this.editedItem.price) * (this.editedItem.quantity || 1))}</span>
                 </div>
               ` : ''}
             </div>

@@ -1,6 +1,6 @@
 import { LitElement, html, css } from 'lit';
 import { ShoppingListAPI } from './services/api.js';
-import { t } from './localize.js';
+import { formatCurrency, t } from './localize.js';
 import './components/slm-bottom-nav.js';
 import './components/slm-list-header.js';
 import './components/slm-search-bar.js';
@@ -743,7 +743,7 @@ class ShoppingListManagerCard extends LitElement {
 
           <div class="total-bar">
             <div class="total-amount">
-              ${this.total.currency} $${this.total.total.toFixed(2)}
+              ${formatCurrency(localizeHass, this.total.total, this.total.currency)}
             </div>
             <div class="total-count">${t(localizeHass, 'shopping.items', { count: this.total.item_count })}</div>
           </div>

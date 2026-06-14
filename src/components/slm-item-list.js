@@ -1,5 +1,5 @@
 import { LitElement, html, css } from 'lit';
-import { t } from '../localize.js';
+import { formatCurrency, t } from '../localize.js';
 import { PRODUCT_ICON_MAP } from '../icons/product-icon-map.js';
 import { PRODUCT_ICONS } from '../icons/product-icons.js';
 
@@ -330,7 +330,7 @@ class SLMItemList extends LitElement {
         <div class="row-middle">
           <div class="row-name">${item.name}</div>
           ${showPrice && item.price ? html`
-            <div class="row-price">$${(item.price * item.quantity).toFixed(2)}</div>
+            <div class="row-price">${formatCurrency(this.hass, item.price * item.quantity)}</div>
           ` : ''}
         </div>
 
@@ -369,7 +369,7 @@ class SLMItemList extends LitElement {
         <div class="row-middle">
           <div class="row-name">${product.name}</div>
           ${showPrice && product.price ? html`
-            <div class="row-price">$${product.price.toFixed(2)}</div>
+            <div class="row-price">${formatCurrency(this.hass, product.price)}</div>
           ` : ''}
         </div>
 
