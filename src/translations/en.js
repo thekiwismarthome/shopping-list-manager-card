@@ -150,6 +150,7 @@ export const en = {
   'settings.notifications': 'Notifications',
   'settings.notifications_subtitle': 'List sharing, emails',
   'settings.preferences': 'Preferences',
+  'settings.language': 'Language',
   'settings.open_last': 'Open last used list at launch',
   'settings.keep_screen_on': 'Keep screen turned on',
   'settings.lists': 'Lists',
@@ -163,6 +164,9 @@ export const en = {
   'settings.app': 'App',
   'settings.integration_version': 'Integration version {version}',
   'settings.card_version': 'Card version {version}',
+  'language.system': 'Follow Home Assistant',
+  'language.en': 'English',
+  'language.nl': 'Dutch',
 
   'profile.name': 'Name',
   'profile.account': 'Home Assistant Account',

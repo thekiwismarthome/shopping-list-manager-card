@@ -130,6 +130,7 @@ class ShoppingListManagerCard extends LitElement {
     const defaults = {
       theme: 'auto',
       darkMode: 'system',
+      language: 'system',
       fontSize: 16,
       fontFamily: 'system',
       useSystemTextSize: true,
@@ -170,6 +171,18 @@ class ShoppingListManagerCard extends LitElement {
     }
 
     return defaults;
+  }
+
+  _localizeHass() {
+    const language = this.settings?.language;
+    if (!language || language === 'system') return this.hass;
+
+    const localizedHass = Object.create(this.hass || null);
+    Object.defineProperty(localizedHass, '__slmLanguage', {
+      value: language,
+      enumerable: false
+    });
+    return localizedHass;
   }
 
   saveSettings() {
@@ -560,7 +573,8 @@ class ShoppingListManagerCard extends LitElement {
   }
 
   async handleShareList() {
-    const listName = this.activeList?.name || 'Shopping List';
+    const localizeHass = this._localizeHass();
+    const listName = this.activeList?.name || t(localizeHass, 'shopping.default_list');
     const itemsList = this.items
       .filter(i => !i.checked)
       .map(i => `${i.quantity} ${i.unit} ${i.name}`)
@@ -594,10 +608,10 @@ class ShoppingListManagerCard extends LitElement {
           document.execCommand('copy');
           document.body.removeChild(ta);
         }
-        alert(t(this.hass, 'shopping.copied'));
+        alert(t(localizeHass, 'shopping.copied'));
       } catch (err) {
         console.error('Copy to clipboard failed:', err);
-        alert(t(this.hass, 'shopping.copy_failed', { text: shareText }));
+        alert(t(localizeHass, 'shopping.copy_failed', { text: shareText }));
       }
     }
   }
@@ -671,11 +685,12 @@ class ShoppingListManagerCard extends LitElement {
   }
 
   renderCurrentView() {
+    const localizeHass = this._localizeHass();
     switch (this.currentView) {
       case 'shopping':
         return html`
           <slm-list-header
-            .hass=${this.hass}
+            .hass=${localizeHass}
             .activeList=${this.activeList}
             .itemCount=${this.items.filter(i => !i.checked).length}
             .settings=${this.settings}
@@ -686,7 +701,7 @@ class ShoppingListManagerCard extends LitElement {
 
           <div class="content-area">
             <slm-search-bar
-              .hass=${this.hass}
+              .hass=${localizeHass}
               .api=${this.api}
               .settings=${this.settings}
               .categories=${this.categories}
@@ -697,7 +712,7 @@ class ShoppingListManagerCard extends LitElement {
 
             ${this.settings.viewMode === 'list' ? html`
               <slm-item-list
-                .hass=${this.hass}
+                .hass=${localizeHass}
                 .items=${this.items}
                 .categories=${this.categories}
                 .settings=${this.settings}
@@ -711,7 +726,7 @@ class ShoppingListManagerCard extends LitElement {
               ></slm-item-list>
             ` : html`
               <slm-item-grid
-                .hass=${this.hass}
+                .hass=${localizeHass}
                 .items=${this.items}
                 .categories=${this.categories}
                 .settings=${this.settings}
@@ -730,14 +745,14 @@ class ShoppingListManagerCard extends LitElement {
             <div class="total-amount">
               ${this.total.currency} $${this.total.total.toFixed(2)}
             </div>
-            <div class="total-count">${t(this.hass, 'shopping.items', { count: this.total.item_count })}</div>
+            <div class="total-count">${t(localizeHass, 'shopping.items', { count: this.total.item_count })}</div>
           </div>
         `;
 
       case 'lists':
         return html`
           <slm-lists-view
-            .hass=${this.hass}
+            .hass=${localizeHass}
             .api=${this.api}
             .lists=${this.lists}
             .activeList=${this.activeList}
@@ -754,7 +769,7 @@ class ShoppingListManagerCard extends LitElement {
         return html`
           <div class="content-area">
             <slm-loyalty-cards-view
-              .hass=${this.hass}
+              .hass=${localizeHass}
               .api=${this.api}
               .userId=${this._hass?.user?.id || null}
               .isAdmin=${this._hass?.user?.is_admin || false}
@@ -766,7 +781,7 @@ class ShoppingListManagerCard extends LitElement {
         return html`
           <div class="content-area">
             <slm-settings-view
-              .hass=${this.hass}
+              .hass=${localizeHass}
               .api=${this.api}
               .settings=${this.settings}
               .isEmbedded=${this.isEmbedded}
@@ -777,17 +792,18 @@ class ShoppingListManagerCard extends LitElement {
         `;
 
       default:
-        return html`<div>${t(this.hass, 'shopping.unknown_view')}</div>`;
+        return html`<div>${t(localizeHass, 'shopping.unknown_view')}</div>`;
     }
   }
 
   render() {
+    const localizeHass = this._localizeHass();
     if (this.loading) {
       return html`
         <ha-card>
           <div class="loading">
             <div class="spinner"></div>
-            <p>${t(this.hass, 'common.loading')}</p>
+            <p>${t(localizeHass, 'common.loading')}</p>
           </div>
         </ha-card>
       `;
@@ -800,14 +816,14 @@ class ShoppingListManagerCard extends LitElement {
         </div>
 
         <slm-bottom-nav
-          .hass=${this.hass}
+          .hass=${localizeHass}
           .currentView=${this.currentView}
           @nav-changed=${this.handleNavChange}
         ></slm-bottom-nav>
 
         ${this.showEditDialog ? html`
           <slm-edit-item-dialog
-            .hass=${this.hass}
+            .hass=${localizeHass}
             .api=${this.api}
             .item=${this.editingItem}
             .categories=${this.categories}

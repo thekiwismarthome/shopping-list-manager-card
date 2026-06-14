@@ -100,6 +100,27 @@ class SLMSettingsView extends LitElement {
 
           <div class="settings-item">
             <div class="item-content">
+              <div class="item-title">${t(this.hass, 'settings.language')}</div>
+            </div>
+            <select
+              class="language-select"
+              .value=${this.settings.language || 'system'}
+              @change=${(e) => this.handleSettingChange('language', e.target.value)}
+            >
+              <option value="system" ?selected=${!this.settings.language || this.settings.language === 'system'}>
+                ${t(this.hass, 'language.system')}
+              </option>
+              <option value="en" ?selected=${this.settings.language === 'en'}>
+                ${t(this.hass, 'language.en')}
+              </option>
+              <option value="nl" ?selected=${this.settings.language === 'nl'}>
+                ${t(this.hass, 'language.nl')}
+              </option>
+            </select>
+          </div>
+
+          <div class="settings-item">
+            <div class="item-content">
               <div class="item-title">${t(this.hass, 'settings.open_last')}</div>
             </div>
             <label class="toggle">
@@ -327,6 +348,17 @@ class SLMSettingsView extends LitElement {
     .chevron {
       font-size: 14px;
       opacity: 0.4;
+    }
+    .language-select {
+      max-width: 170px;
+      background: var(--slm-bg-elevated);
+      color: var(--slm-text-primary);
+      border: 1px solid var(--slm-border-subtle);
+      border-radius: 8px;
+      padding: 7px 10px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
     }
     .toggle {
       position: relative;

@@ -5,6 +5,7 @@ const TRANSLATIONS = { en, nl };
 
 function getLanguage(hass) {
   const language =
+    hass?.__slmLanguage ||
     hass?.locale?.language ||
     hass?.language ||
     hass?.selectedLanguage ||

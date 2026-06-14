@@ -150,6 +150,7 @@ export const nl = {
   'settings.notifications': 'Meldingen',
   'settings.notifications_subtitle': 'Lijsten delen, e-mails',
   'settings.preferences': 'Voorkeuren',
+  'settings.language': 'Taal',
   'settings.open_last': 'Laatst gebruikte lijst openen bij starten',
   'settings.keep_screen_on': 'Scherm ingeschakeld houden',
   'settings.lists': 'Lijsten',
@@ -163,6 +164,9 @@ export const nl = {
   'settings.app': 'App',
   'settings.integration_version': 'Integratieversie {version}',
   'settings.card_version': 'Kaartversie {version}',
+  'language.system': 'Home Assistant volgen',
+  'language.en': 'Engels',
+  'language.nl': 'Nederlands',
 
   'profile.name': 'Naam',
   'profile.account': 'Home Assistant-account',
