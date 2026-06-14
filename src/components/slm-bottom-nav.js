@@ -1,7 +1,9 @@
 import { LitElement, html, css } from 'lit';
+import { t } from '../localize.js';
 
 class SLMBottomNav extends LitElement {
   static properties = {
+    hass: { type: Object },
     currentView: { type: String }
   };
 
@@ -21,7 +23,7 @@ class SLMBottomNav extends LitElement {
           @click=${() => this.handleNavClick('shopping')}
         >
           <span class="emoji">🛒</span>
-          <span class="label">Shopping</span>
+          <span class="label">${t(this.hass, 'nav.shopping')}</span>
         </button>
 
         <button
@@ -29,7 +31,7 @@ class SLMBottomNav extends LitElement {
           @click=${() => this.handleNavClick('lists')}
         >
           <span class="emoji">📋</span>
-          <span class="label">Lists</span>
+          <span class="label">${t(this.hass, 'nav.lists')}</span>
         </button>
 
         <button
@@ -37,7 +39,7 @@ class SLMBottomNav extends LitElement {
           @click=${() => this.handleNavClick('loyalty')}
         >
           <span class="emoji">💳</span>
-          <span class="label">Loyalty</span>
+          <span class="label">${t(this.hass, 'nav.loyalty')}</span>
         </button>
 
         <button
@@ -45,7 +47,7 @@ class SLMBottomNav extends LitElement {
           @click=${() => this.handleNavClick('settings')}
         >
           <span class="emoji">⚙️</span>
-          <span class="label">Settings</span>
+          <span class="label">${t(this.hass, 'nav.settings')}</span>
         </button>
       </nav>
     `;
