@@ -1,7 +1,9 @@
 import { LitElement, html, css } from 'lit';
+import { t } from '../localize.js';
 
 class FontSettings extends LitElement {
   static properties = {
+    hass: { type: Object },
     currentFont: { type: String }
   };
 
@@ -23,11 +25,12 @@ class FontSettings extends LitElement {
   }
 
   render() {
+    const fontName = (font) => font.value === 'system' ? t(this.hass, 'appearance.system_default') : font.name;
     return html`
       <div class="overlay" @click=${() => this.dispatchEvent(new Event('close'))}>
         <div class="popup" @click=${(e) => e.stopPropagation()}>
           <div class="popup-header">
-            <h3>Font Family</h3>
+            <h3>${t(this.hass, 'appearance.font_family')}</h3>
           </div>
 
           <div class="popup-content">
@@ -37,7 +40,7 @@ class FontSettings extends LitElement {
                 style="font-family: ${font.value}"
                 @click=${() => this.handleSelect(font.value)}
               >
-                <span>${font.name}</span>
+                <span>${fontName(font)}</span>
                 ${this.currentFont === font.value ? html`
                   <ha-icon class="check" icon="mdi:check"></ha-icon>
                 ` : ''}

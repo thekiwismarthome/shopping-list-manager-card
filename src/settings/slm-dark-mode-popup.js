@@ -1,7 +1,9 @@
 import { LitElement, html, css } from 'lit';
+import { t } from '../localize.js';
 
 class DarkModePopup extends LitElement {
   static properties = {
+    hass: { type: Object },
     currentMode: { type: String }
   };
 
@@ -18,7 +20,7 @@ class DarkModePopup extends LitElement {
       <div class="overlay" @click=${() => this.dispatchEvent(new Event('close'))}>
         <div class="popup" @click=${(e) => e.stopPropagation()}>
           <div class="popup-header">
-            <h3>Dark Mode</h3>
+            <h3>${t(this.hass, 'appearance.dark_mode')}</h3>
           </div>
 
           <div class="popup-content">
@@ -27,7 +29,7 @@ class DarkModePopup extends LitElement {
               @click=${() => this.handleSelect('on')}
             >
               <ha-icon icon="mdi:weather-night"></ha-icon>
-              <span>On</span>
+              <span>${t(this.hass, 'appearance.on')}</span>
               ${this.currentMode === 'on' ? html`
                 <ha-icon class="check" icon="mdi:check"></ha-icon>
               ` : ''}
@@ -38,7 +40,7 @@ class DarkModePopup extends LitElement {
               @click=${() => this.handleSelect('off')}
             >
               <ha-icon icon="mdi:weather-sunny"></ha-icon>
-              <span>Off</span>
+              <span>${t(this.hass, 'appearance.off')}</span>
               ${this.currentMode === 'off' ? html`
                 <ha-icon class="check" icon="mdi:check"></ha-icon>
               ` : ''}
@@ -49,7 +51,7 @@ class DarkModePopup extends LitElement {
               @click=${() => this.handleSelect('system')}
             >
               <ha-icon icon="mdi:cellphone"></ha-icon>
-              <span>As on Device</span>
+              <span>${t(this.hass, 'appearance.system')}</span>
               ${this.currentMode === 'system' ? html`
                 <ha-icon class="check" icon="mdi:check"></ha-icon>
               ` : ''}

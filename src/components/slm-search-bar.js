@@ -1,11 +1,13 @@
 import { LitElement, html, css } from 'lit';
 import { Html5Qrcode } from 'html5-qrcode';
+import { formatCurrency, t } from '../localize.js';
 
 const UNITS = ['units', 'kg', 'g', 'L', 'mL', 'pack', 'loaf', 'dozen', 'ea', 'pkt', 'tray', 'bottle', 'can', 'bunch', 'roll', 'bar'];
 
 class SLMSearchBar extends LitElement {
   static properties = {
     api: { type: Object },
+    hass: { type: Object },
     settings: { type: Object },
     categories: { type: Array },
     activeListId: { type: String },
@@ -198,7 +200,7 @@ class SLMSearchBar extends LitElement {
     });
 
     const label = document.createElement('p');
-    label.textContent = 'Point camera at product barcode';
+    label.textContent = t(this.hass, 'scanner.product_barcode');
     Object.assign(label.style, { color: '#fff', fontSize: '16px', margin: '0 0 12px 0' });
 
     const scanRegion = document.createElement('div');
@@ -211,7 +213,7 @@ class SLMSearchBar extends LitElement {
     });
 
     const flipBtn = document.createElement('button');
-    flipBtn.textContent = '⇄ Flip Camera';
+    flipBtn.textContent = `⇄ ${t(this.hass, 'scanner.flip_camera')}`;
     Object.assign(flipBtn.style, {
       padding: '10px 20px', background: 'rgba(255,255,255,0.15)',
       border: '1px solid rgba(255,255,255,0.4)', borderRadius: '8px',
@@ -224,7 +226,7 @@ class SLMSearchBar extends LitElement {
     });
 
     const cancelBtn = document.createElement('button');
-    cancelBtn.textContent = '✕ Cancel';
+    cancelBtn.textContent = `✕ ${t(this.hass, 'common.cancel')}`;
     Object.assign(cancelBtn.style, {
       padding: '10px 24px', background: '#fff',
       border: 'none', borderRadius: '8px', fontSize: '15px', cursor: 'pointer'
@@ -250,12 +252,12 @@ class SLMSearchBar extends LitElement {
 
   _showScannerFileFallback(host, label, scanRegion, btnRow, flipBtn) {
     // Replace live-stream UI with a capture-input button
-    label.textContent = 'Take a photo of the barcode';
+    label.textContent = t(this.hass, 'scanner.take_photo');
     scanRegion.innerHTML = '';
     flipBtn.remove();
 
     const hint = document.createElement('p');
-    hint.textContent = 'Live camera unavailable (HTTP). Use the button below to photograph the barcode.';
+    hint.textContent = t(this.hass, 'scanner.live_unavailable');
     Object.assign(hint.style, {
       color: 'rgba(255,255,255,0.6)', fontSize: '13px',
       textAlign: 'center', maxWidth: '320px', margin: '0 0 16px 0'
@@ -268,7 +270,7 @@ class SLMSearchBar extends LitElement {
     fileInput.style.display = 'none';
 
     const photoBtn = document.createElement('button');
-    photoBtn.textContent = '📷 Open Camera';
+    photoBtn.textContent = `📷 ${t(this.hass, 'scanner.open_camera')}`;
     Object.assign(photoBtn.style, {
       padding: '12px 28px', background: '#fff', border: 'none',
       borderRadius: '8px', fontSize: '15px', cursor: 'pointer', fontWeight: '600'
@@ -285,16 +287,16 @@ class SLMSearchBar extends LitElement {
       const file = e.target.files?.[0];
       if (!file) return;
       photoBtn.disabled = true;
-      photoBtn.textContent = 'Scanning…';
+      photoBtn.textContent = t(this.hass, 'scanner.scanning');
       errorMsg.style.display = 'none';
       try {
         const result = await this._scannerInstance.scanFile(file, true);
         this.handleBarcodeScanned(result);
       } catch {
-        errorMsg.textContent = 'No barcode found — try again with a clearer photo.';
+        errorMsg.textContent = t(this.hass, 'scanner.not_found');
         errorMsg.style.display = 'block';
         photoBtn.disabled = false;
-        photoBtn.textContent = '📷 Open Camera';
+        photoBtn.textContent = `📷 ${t(this.hass, 'scanner.open_camera')}`;
         // Reset input so the same file can be reselected
         fileInput.value = '';
       }
@@ -446,7 +448,7 @@ class SLMSearchBar extends LitElement {
           <span class="search-icon">🔍</span>
           <input
             type="text"
-            placeholder="Search or add products..."
+            placeholder=${t(this.hass, 'search.placeholder')}
             .value=${this.searchQuery}
             @input=${this.handleSearch}
             @focus=${() => this.showResults = this.searchQuery.length > 0}
@@ -458,7 +460,7 @@ class SLMSearchBar extends LitElement {
               this._showCreateForm = false;
             }}>✖</button>
           ` : ''}
-          <button class="scan-btn" title="Scan barcode" @click=${() => this.startBarcodeScanner()}>
+          <button class="scan-btn" title=${t(this.hass, 'search.scan_barcode')} @click=${() => this.startBarcodeScanner()}>
             <ha-icon icon="mdi:barcode-scan"></ha-icon>
           </button>
         </div>
@@ -471,8 +473,8 @@ class SLMSearchBar extends LitElement {
               <button class="result-item add-quick" @click=${this.handleAddCustom}>
                 <div class="no-image add-plus">➕</div>
                 <div class="result-info">
-                  <div class="result-name">Add "${this.searchQuery}"</div>
-                  <div class="result-subtitle">quick add to list</div>
+                  <div class="result-name">${t(this.hass, 'search.add_query', { query: this.searchQuery })}</div>
+                  <div class="result-subtitle">${t(this.hass, 'search.quick_add')}</div>
                 </div>
               </button>
             ` : ''}
@@ -482,8 +484,8 @@ class SLMSearchBar extends LitElement {
               <div class="create-form">
                 <div class="create-form-title">
                   ${this._oftLoading ? html`
-                    <span class="oft-loading">⏳ Looking up on OpenFoodFacts…</span>
-                  ` : 'Create new product'}
+                    <span class="oft-loading">⏳ ${t(this.hass, 'search.oft_lookup')}</span>
+                  ` : t(this.hass, 'search.create_new_product')}
                 </div>
 
                 ${this._createImageUrl ? html`
@@ -495,7 +497,7 @@ class SLMSearchBar extends LitElement {
                 <input
                   class="create-input"
                   type="text"
-                  placeholder="Product name"
+                  placeholder=${t(this.hass, 'search.product_name')}
                   .value=${this._createName}
                   @input=${(e) => this._createName = e.target.value}
                   ?disabled=${this._oftLoading}
@@ -518,7 +520,7 @@ class SLMSearchBar extends LitElement {
                     class="create-input"
                     type="text"
                     inputmode="decimal"
-                    placeholder="Price (optional)"
+                    placeholder=${t(this.hass, 'search.price_optional')}
                     .value=${this._createPrice}
                     @input=${(e) => this._createPrice = e.target.value}
                     ?disabled=${this._oftLoading}
@@ -540,14 +542,14 @@ class SLMSearchBar extends LitElement {
                     class="create-input barcode-input"
                     type="text"
                     inputmode="numeric"
-                    placeholder="Barcode (optional)"
+                    placeholder=${t(this.hass, 'search.barcode_optional')}
                     .value=${this._createBarcode}
                     @input=${(e) => this._createBarcode = e.target.value}
                     ?disabled=${this._oftLoading}
                   />
                   <button
                     class="barcode-lookup-btn"
-                    title="Search OpenFoodFacts by barcode"
+                    title=${t(this.hass, 'edit.search_oft_barcode')}
                     ?disabled=${this._oftLoading || !this._createBarcode?.trim()}
                     @click=${this.handleLookupBarcode}
                   >
@@ -556,17 +558,17 @@ class SLMSearchBar extends LitElement {
                 </div>
 
                 <div class="create-actions">
-                  <button class="create-btn secondary" @click=${this.handleCancelCreate}>Cancel</button>
+                  <button class="create-btn secondary" @click=${this.handleCancelCreate}>${t(this.hass, 'common.cancel')}</button>
                   <button
                     class="create-btn primary"
                     @click=${this.handleCreateAndAdd}
                     ?disabled=${this._oftLoading || !this._createName.trim()}
-                  >Create &amp; Add</button>
+                  >${t(this.hass, 'search.create_and_add')}</button>
                 </div>
               </div>
             ` : this.searchResults.length > 0 ? html`
               <!-- Search results below the add row -->
-              <div class="results-divider">Matching products</div>
+              <div class="results-divider">${t(this.hass, 'search.matching_products')}</div>
               ${this.searchResults.map(product => html`
                 <button class="result-item" @click=${() => this.handleProductSelect(product)}>
                   ${product.image_url ? html`
@@ -577,7 +579,7 @@ class SLMSearchBar extends LitElement {
                   <div class="result-info">
                     <div class="result-name">${product.name}</div>
                     ${product.price ? html`
-                      <div class="result-price">$${product.price.toFixed(2)}</div>
+                      <div class="result-price">${formatCurrency(this.hass, product.price)}</div>
                     ` : ''}
                   </div>
                   <span class="add-icon">➕</span>
@@ -588,8 +590,8 @@ class SLMSearchBar extends LitElement {
               <button class="result-item create-product" @click=${this.handleShowCreateForm}>
                 <div class="no-image">🆕</div>
                 <div class="result-info">
-                  <div class="result-name">Create product "${this.searchQuery}"</div>
-                  <div class="result-subtitle">save to catalog with category &amp; price</div>
+                  <div class="result-name">${t(this.hass, 'search.create_product', { query: this.searchQuery })}</div>
+                  <div class="result-subtitle">${t(this.hass, 'search.create_product_subtitle')}</div>
                 </div>
                 <span class="add-icon">➕</span>
               </button>

@@ -1,4 +1,5 @@
 import { LitElement, html, css } from 'lit';
+import { t } from '../localize.js';
 
 class ProfileSettings extends LitElement {
   static properties = {
@@ -12,30 +13,30 @@ class ProfileSettings extends LitElement {
           <button class="back-btn" @click=${() => this.dispatchEvent(new Event('back'))}>
             <ha-icon icon="mdi:arrow-left"></ha-icon>
           </button>
-          <h2>Profile</h2>
+          <h2>${t(this.hass, 'settings.profile')}</h2>
         </div>
 
         <div class="profile-content">
           <div class="profile-avatar">
             <div class="avatar-circle">
-              ${this.hass.user?.name?.charAt(0).toUpperCase() || 'U'}
+              ${this.hass.user?.name?.charAt(0).toUpperCase() || t(this.hass, 'settings.user').charAt(0)}
             </div>
           </div>
 
           <div class="profile-info">
             <div class="info-item">
-              <label>Name</label>
-              <div class="info-value">${this.hass.user?.name || 'User'}</div>
+              <label>${t(this.hass, 'profile.name')}</label>
+              <div class="info-value">${this.hass.user?.name || t(this.hass, 'settings.user')}</div>
             </div>
 
             <div class="info-item">
-              <label>Home Assistant Account</label>
-              <div class="info-value">${this.hass.user?.is_admin ? 'Administrator' : 'User'}</div>
+              <label>${t(this.hass, 'profile.account')}</label>
+              <div class="info-value">${this.hass.user?.is_admin ? t(this.hass, 'profile.administrator') : t(this.hass, 'settings.user')}</div>
             </div>
           </div>
 
           <div class="info-notice">
-            Profile information is managed through Home Assistant settings.
+            ${t(this.hass, 'profile.notice')}
           </div>
         </div>
       </div>

@@ -1,8 +1,10 @@
 import { LitElement, html, css } from 'lit';
+import { formatCurrency, t } from '../../localize.js';
 
 class SLMSearchBar extends LitElement {
   static properties = {
     api: { type: Object },
+    hass: { type: Object },
     settings: { type: Object },
     categories: { type: Array },
     activeListId: { type: String },
@@ -98,7 +100,7 @@ class SLMSearchBar extends LitElement {
           <span class="search-icon">🔍</span>
           <input
             type="text"
-            placeholder="Search or add products..."
+            placeholder=${t(this.hass, 'search.placeholder')}
             .value=${this.searchQuery}
             @input=${this.handleSearch}
             @focus=${() => this.showResults = this.searchQuery.length > 0}
@@ -125,7 +127,7 @@ class SLMSearchBar extends LitElement {
                   <div class="result-info">
                     <div class="result-name">${product.name}</div>
                     ${product.price ? html`
-                      <div class="result-price">$${product.price.toFixed(2)}</div>
+                      <div class="result-price">${formatCurrency(this.hass, product.price)}</div>
                     ` : ''}
                   </div>
                   <span class="add-icon">➕</span>
@@ -137,8 +139,8 @@ class SLMSearchBar extends LitElement {
                   <span class="emoji">📝</span>
                 </div>
                 <div class="result-info">
-                  <div class="result-name">Add "${this.searchQuery}"</div>
-                  <div class="result-subtitle">as custom product</div>
+                  <div class="result-name">${t(this.hass, 'search.add_query', { query: this.searchQuery })}</div>
+                  <div class="result-subtitle">${t(this.hass, 'search.as_custom_product')}</div>
                 </div>
                 <span class="add-icon">➕</span>
               </button>

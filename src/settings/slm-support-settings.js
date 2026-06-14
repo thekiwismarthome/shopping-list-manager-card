@@ -1,7 +1,9 @@
 import { LitElement, html, css } from 'lit';
+import { t } from '../localize.js';
 
 class SupportSettings extends LitElement {
   static properties = {
+    hass: { type: Object },
     slmVersion:  { type: String },
     slmcVersion: { type: String },
   };
@@ -19,7 +21,7 @@ class SupportSettings extends LitElement {
           <button class="back-btn" @click=${() => this.dispatchEvent(new Event('back'))}>
             <ha-icon icon="mdi:arrow-left"></ha-icon>
           </button>
-          <h2>FAQ & Support</h2>
+          <h2>${t(this.hass, 'settings.faq_support')}</h2>
         </div>
 
         <div class="support-list">
@@ -32,8 +34,8 @@ class SupportSettings extends LitElement {
               <ha-icon icon="mdi:help-circle"></ha-icon>
             </div>
             <div class="item-content">
-              <div class="item-title">FAQ</div>
-              <div class="item-subtitle">Frequently asked questions</div>
+              <div class="item-title">${t(this.hass, 'support.faq')}</div>
+              <div class="item-subtitle">${t(this.hass, 'support.faq_desc')}</div>
             </div>
             <ha-icon icon="mdi:open-in-new"></ha-icon>
           </a>
@@ -47,8 +49,8 @@ class SupportSettings extends LitElement {
               <ha-icon icon="mdi:bug"></ha-icon>
             </div>
             <div class="item-content">
-              <div class="item-title">Report a Problem</div>
-              <div class="item-subtitle">Submit an issue on GitHub</div>
+              <div class="item-title">${t(this.hass, 'support.report')}</div>
+              <div class="item-subtitle">${t(this.hass, 'support.report_desc')}</div>
             </div>
             <ha-icon icon="mdi:open-in-new"></ha-icon>
           </a>
@@ -62,8 +64,8 @@ class SupportSettings extends LitElement {
               <ha-icon icon="mdi:github"></ha-icon>
             </div>
             <div class="item-content">
-              <div class="item-title">GitHub Repository</div>
-              <div class="item-subtitle">View source code</div>
+              <div class="item-title">${t(this.hass, 'support.github')}</div>
+              <div class="item-subtitle">${t(this.hass, 'support.github_desc')}</div>
             </div>
             <ha-icon icon="mdi:open-in-new"></ha-icon>
           </a>
@@ -74,7 +76,7 @@ class SupportSettings extends LitElement {
             </div>
             <div class="item-content">
               <div class="item-title">Shopping List Manager</div>
-              <div class="item-subtitle">Integration version ${this.slmVersion}</div>
+              <div class="item-subtitle">${t(this.hass, 'settings.integration_version', { version: this.slmVersion })}</div>
             </div>
           </div>
 
@@ -84,7 +86,7 @@ class SupportSettings extends LitElement {
             </div>
             <div class="item-content">
               <div class="item-title">SLM Card</div>
-              <div class="item-subtitle">Card version ${this.slmcVersion}</div>
+              <div class="item-subtitle">${t(this.hass, 'settings.card_version', { version: this.slmcVersion })}</div>
             </div>
           </div>
         </div>

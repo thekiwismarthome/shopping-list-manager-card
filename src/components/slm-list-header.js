@@ -1,7 +1,9 @@
 import { LitElement, html, css } from 'lit';
+import { t } from '../localize.js';
 
 class SLMListHeader extends LitElement {
   static properties = {
+    hass: { type: Object },
     activeList: { type: Object },
     itemCount: { type: Number },
     settings: { type: Object },
@@ -70,7 +72,7 @@ class SLMListHeader extends LitElement {
           <ha-icon icon="mdi:arrow-left"></ha-icon>
         </button>
 
-        <h2>${this.activeList?.name || 'Shopping List'}</h2>
+        <h2>${this.activeList?.name || t(this.hass, 'shopping.default_list')}</h2>
 
         <div class="header-actions">
           <button class="action-btn" @click=${this.handleShare}>
@@ -83,39 +85,39 @@ class SLMListHeader extends LitElement {
             ${this._menuOpen ? html`
               <div class="menu-dropdown" @click=${e => e.stopPropagation()}>
 
-                <div class="menu-section-label">View</div>
+                <div class="menu-section-label">${t(this.hass, 'header.view')}</div>
                 <div class="menu-toggle-row">
                   <button
                     class="toggle-btn ${viewMode === 'tile' ? 'active' : ''}"
                     @click=${() => { this._dispatchSetting('viewMode', 'tile'); this._menuOpen = false; }}
-                  >🔲 Tiles</button>
+                  >🔲 ${t(this.hass, 'header.tiles')}</button>
                   <button
                     class="toggle-btn ${viewMode === 'list' ? 'active' : ''}"
                     @click=${() => { this._dispatchSetting('viewMode', 'list'); this._menuOpen = false; }}
-                  >☰ List</button>
+                  >☰ ${t(this.hass, 'header.list')}</button>
                 </div>
 
-                <div class="menu-section-label">Sort</div>
+                <div class="menu-section-label">${t(this.hass, 'header.sort')}</div>
                 <div class="menu-toggle-row">
                   <button
                     class="toggle-btn ${sortMode === 'category' ? 'active' : ''}"
                     @click=${() => { this._dispatchSetting('sortMode', 'category'); this._menuOpen = false; }}
-                  >By Category</button>
+                  >${t(this.hass, 'header.by_category')}</button>
                   <button
                     class="toggle-btn ${sortMode === 'alphabetical' ? 'active' : ''}"
                     @click=${() => { this._dispatchSetting('sortMode', 'alphabetical'); this._menuOpen = false; }}
-                  >A–Z</button>
+                  >${t(this.hass, 'header.alphabetical')}</button>
                 </div>
 
                 <div class="menu-divider"></div>
 
                 <button class="menu-switch-row" @click=${() => this._dispatchSetting('showRecentlyUsed', !showRecent)}>
-                  <span class="menu-switch-label">Recently Used</span>
+                  <span class="menu-switch-label">${t(this.hass, 'shopping.recently_used')}</span>
                   <span class="switch ${showRecent ? 'on' : 'off'}">${showRecent ? '✓' : '✕'}</span>
                 </button>
 
                 <button class="menu-switch-row" @click=${() => this._dispatchSetting('showPriceOnTile', !showPrice)}>
-                  <span class="menu-switch-label">Show Price</span>
+                  <span class="menu-switch-label">${t(this.hass, 'header.show_price')}</span>
                   <span class="switch ${showPrice ? 'on' : 'off'}">${showPrice ? '✓' : '✕'}</span>
                 </button>
 

@@ -1,8 +1,10 @@
 import { LitElement, html, css } from 'lit';
+import { t } from '../localize.js';
 
 class CategorySettings extends LitElement {
   static properties = {
     api: { type: Object },
+    hass: { type: Object },
     categories: { type: Array },
     showAddDialog: { type: Boolean },
     newCategory: { type: Object }
@@ -25,7 +27,7 @@ class CategorySettings extends LitElement {
   async handleSaveCategory() {
     if (this.newCategory.name.trim()) {
       // Add category via API (to be implemented)
-      alert('Category management coming soon!');
+      alert(t(this.hass, 'categories.coming_soon'));
       this.showAddDialog = false;
       this.newCategory = { name: '', icon: 'mdi:shape', color: '#4CAF50' };
     }
@@ -38,17 +40,17 @@ class CategorySettings extends LitElement {
           <button class="back-btn" @click=${() => this.dispatchEvent(new Event('back'))}>
             <ha-icon icon="mdi:arrow-left"></ha-icon>
           </button>
-          <h2>Manage Categories</h2>
+          <h2>${t(this.hass, 'categories.title')}</h2>
         </div>
 
         <div class="category-actions">
           <button class="action-btn" @click=${this.handleAddCategory}>
             <ha-icon icon="mdi:plus"></ha-icon>
-            <span>Add Category</span>
+            <span>${t(this.hass, 'categories.add')}</span>
           </button>
           <button class="action-btn">
             <ha-icon icon="mdi:swap-vertical"></ha-icon>
-            <span>Reorder</span>
+            <span>${t(this.hass, 'categories.reorder')}</span>
           </button>
         </div>
 
@@ -72,23 +74,23 @@ class CategorySettings extends LitElement {
           <div class="overlay" @click=${() => this.showAddDialog = false}>
             <div class="dialog" @click=${(e) => e.stopPropagation()}>
               <div class="dialog-header">
-                <h3>Add Category</h3>
+                <h3>${t(this.hass, 'categories.add')}</h3>
                 <button @click=${() => this.showAddDialog = false}>
                   <ha-icon icon="mdi:close"></ha-icon>
                 </button>
               </div>
               <div class="dialog-content">
                 <label>
-                  Category Name
+                  ${t(this.hass, 'categories.name')}
                   <input 
                     type="text" 
                     .value=${this.newCategory.name}
                     @input=${(e) => this.newCategory = { ...this.newCategory, name: e.target.value }}
-                    placeholder="e.g., Snacks"
+                    placeholder=${t(this.hass, 'categories.name_placeholder')}
                   />
                 </label>
                 <label>
-                  Icon
+                  ${t(this.hass, 'categories.icon')}
                   <input 
                     type="text" 
                     .value=${this.newCategory.icon}
@@ -97,7 +99,7 @@ class CategorySettings extends LitElement {
                   />
                 </label>
                 <label>
-                  Color
+                  ${t(this.hass, 'categories.color')}
                   <input 
                     type="color" 
                     .value=${this.newCategory.color}
@@ -106,8 +108,8 @@ class CategorySettings extends LitElement {
                 </label>
               </div>
               <div class="dialog-footer">
-                <button class="cancel-btn" @click=${() => this.showAddDialog = false}>Cancel</button>
-                <button class="save-btn" @click=${this.handleSaveCategory}>Add</button>
+                <button class="cancel-btn" @click=${() => this.showAddDialog = false}>${t(this.hass, 'common.cancel')}</button>
+                <button class="save-btn" @click=${this.handleSaveCategory}>${t(this.hass, 'common.add')}</button>
               </div>
             </div>
           </div>

@@ -1,10 +1,12 @@
 import { LitElement, html, css } from 'lit';
+import { formatCurrency, t } from '../localize.js';
 
 const UNITS = ['units', 'kg', 'g', 'L', 'mL', 'pack', 'bunch', 'dozen', 'bottle', 'can', 'bag', 'box', 'loaf', 'slice'];
 
 class SLMEditItemDialog extends LitElement {
   static properties = {
     api: { type: Object },
+    hass: { type: Object },
     item: { type: Object },
     categories: { type: Array },
     editedItem: { type: Object },
@@ -89,7 +91,7 @@ class SLMEditItemDialog extends LitElement {
   }
 
   handleDelete() {
-    if (confirm(`Delete ${this.item.name}?`)) {
+    if (confirm(t(this.hass, 'edit.confirm_delete', { name: this.item.name }))) {
       this.dispatchEvent(new CustomEvent('delete-item', {
         detail: { itemId: this.item.id },
         bubbles: true,
@@ -164,14 +166,17 @@ class SLMEditItemDialog extends LitElement {
       const data = await this.api.searchOpenFoodFacts(name, 5);
       const products = (data?.products || []).filter(p => p.product_name?.trim());
       if (products.length === 0) {
-        this._oftStatus = 'No results found on OpenFoodFacts.';
+        this._oftStatus = t(this.hass, 'edit.no_oft_results');
       } else {
         this._oftResults = products;
-        this._oftStatus = `${products.length} result${products.length > 1 ? 's' : ''} found — tap one to apply`;
+        this._oftStatus = t(this.hass, 'edit.oft_results', {
+          count: products.length,
+          plural: products.length > 1 ? 's' : ''
+        });
       }
     } catch (err) {
       console.warn('OFT search failed:', err);
-      this._oftStatus = 'OpenFoodFacts lookup failed.';
+      this._oftStatus = t(this.hass, 'edit.oft_lookup_failed');
     }
 
     this._oftLoading = false;
@@ -193,7 +198,7 @@ class SLMEditItemDialog extends LitElement {
         if (p.price) updates.price = p.price;
         if (p.image_url) { updates.image_url = p.image_url; this.imagePreview = p.image_url; }
         this.editedItem = { ...this.editedItem, ...updates };
-        this._oftStatus = `Found in local catalog: "${p.name}" ✓`;
+        this._oftStatus = `${t(this.hass, 'edit.local_barcode_found', { name: p.name })} ✓`;
         this._oftLoading = false;
         return;
       }
@@ -205,14 +210,14 @@ class SLMEditItemDialog extends LitElement {
     try {
       const data = await this.api.fetchOpenFoodFactsByBarcode(barcode);
       if (data.status !== 1 || !data.product?.product_name?.trim()) {
-        this._oftStatus = 'Barcode not found on OpenFoodFacts.';
+        this._oftStatus = t(this.hass, 'edit.barcode_not_found');
       } else {
         this._oftResults = [data.product];
-        this._oftStatus = 'Found on OpenFoodFacts — tap to apply';
+        this._oftStatus = t(this.hass, 'edit.oft_found');
       }
     } catch (err) {
       console.warn('OFT barcode search failed:', err);
-      this._oftStatus = 'OpenFoodFacts lookup failed.';
+      this._oftStatus = t(this.hass, 'edit.oft_lookup_failed');
     }
 
     this._oftLoading = false;
@@ -241,7 +246,7 @@ class SLMEditItemDialog extends LitElement {
     }
 
     this.editedItem = { ...this.editedItem, ...updates };
-    this._oftStatus = 'Updated from OpenFoodFacts ✓';
+    this._oftStatus = `${t(this.hass, 'edit.updated_from_oft')} ✓`;
     this._oftLoading = false;
   }
 
@@ -285,13 +290,13 @@ class SLMEditItemDialog extends LitElement {
       <div class="overlay" @click=${this.handleClose}>
         <div class="dialog" @click=${(e) => e.stopPropagation()}>
           <div class="dialog-header">
-            <h3>Edit Item</h3>
+            <h3>${t(this.hass, 'edit.title')}</h3>
             <button class="close-btn" @click=${this.handleClose}>✕</button>
           </div>
 
           <div class="dialog-content">
             <div class="form-group">
-              <label>Product Name</label>
+              <label>${t(this.hass, 'edit.product_name')}</label>
               <input
                 type="text"
                 .value=${this.editedItem.name || ''}
@@ -304,7 +309,7 @@ class SLMEditItemDialog extends LitElement {
               >
                 <ha-icon icon=${this._oftLoading ? 'mdi:loading' : 'mdi:cloud-search'}
                   class=${this._oftLoading ? 'spin' : ''}></ha-icon>
-                ${this._oftLoading ? 'Searching…' : 'Search OFT by name'}
+                ${this._oftLoading ? t(this.hass, 'common.searching') : t(this.hass, 'edit.search_oft_name')}
               </button>
 
               ${this._oftStatus ? html`<div class="oft-status">${this._oftStatus}</div>` : ''}
@@ -322,32 +327,32 @@ class SLMEditItemDialog extends LitElement {
                         <div class="oft-result-name">${p.product_name}</div>
                         <div class="oft-result-meta">
                           ${this._getCategoryName(this._mapOftCategory(p.categories_tags || []))}
-                          ${p.price ? html` &bull; $${p.price}` : ''}
+                          ${p.price ? html` &bull; ${formatCurrency(this.hass, p.price)}` : ''}
                         </div>
                       </div>
                       <ha-icon icon="mdi:check-circle-outline" class="oft-apply-icon"></ha-icon>
                     </button>
                   `)}
                   <button class="oft-dismiss" @click=${() => this._oftResults = []}>
-                    Dismiss
+                    ${t(this.hass, 'edit.dismiss')}
                   </button>
                 </div>
               ` : ''}
             </div>
 
             <div class="form-group">
-              <label>Barcode</label>
+              <label>${t(this.hass, 'edit.barcode')}</label>
               <div class="barcode-row">
                 <input
                   type="text"
                   inputmode="numeric"
-                  placeholder="Barcode number (optional)"
+                  placeholder=${t(this.hass, 'edit.barcode_placeholder')}
                   .value=${this.editedItem.barcode || ''}
                   @input=${(e) => this.editedItem = { ...this.editedItem, barcode: e.target.value }}
                 />
                 <button
                   class="barcode-search-btn"
-                  title="Search OpenFoodFacts by barcode"
+                  title=${t(this.hass, 'edit.search_oft_barcode')}
                   ?disabled=${this._oftLoading || !this.editedItem.barcode?.trim()}
                   @click=${this.handleSearchByBarcode}
                 >
@@ -358,7 +363,7 @@ class SLMEditItemDialog extends LitElement {
             </div>
 
             <div class="form-group">
-              <label>Category</label>
+              <label>${t(this.hass, 'edit.category')}</label>
               <select
                 .value=${this.editedItem.category_id || 'other'}
                 @change=${(e) => this.editedItem = { ...this.editedItem, category_id: e.target.value }}
@@ -373,7 +378,7 @@ class SLMEditItemDialog extends LitElement {
 
             <div class="form-row">
               <div class="form-group half">
-                <label>Quantity</label>
+                <label>${t(this.hass, 'edit.quantity')}</label>
                 <div class="qty-stepper">
                   <button class="qty-btn" @click=${() => this.handleQtyChange(-1)}>−</button>
                   <span class="qty-value">${this.editedItem.quantity || 1}</span>
@@ -382,15 +387,15 @@ class SLMEditItemDialog extends LitElement {
               </div>
 
               <div class="form-group half">
-                <label>Unit</label>
+                <label>${t(this.hass, 'edit.unit')}</label>
                 <select .value=${selectUnit} @change=${this.handleUnitSelect}>
                   ${UNITS.map(u => html`<option value="${u}" ?selected=${u === selectUnit}>${u}</option>`)}
-                  <option value="__other__" ?selected=${this._customUnit}>Other…</option>
+                  <option value="__other__" ?selected=${this._customUnit}>${t(this.hass, 'edit.other')}</option>
                 </select>
                 ${this._customUnit ? html`
                   <input
                     type="text"
-                    placeholder="e.g. jar, punnet…"
+                    placeholder=${t(this.hass, 'edit.custom_unit_placeholder')}
                     .value=${currentUnit}
                     @input=${(e) => this.editedItem = { ...this.editedItem, unit: e.target.value }}
                     style="margin-top: 6px;"
@@ -400,7 +405,7 @@ class SLMEditItemDialog extends LitElement {
             </div>
 
             <div class="form-group">
-              <label>Unit Price ($)</label>
+              <label>${t(this.hass, 'edit.unit_price')}</label>
               <input
                 type="text"
                 inputmode="decimal"
@@ -410,16 +415,16 @@ class SLMEditItemDialog extends LitElement {
               />
               ${this.editedItem.price && this.editedItem.price !== '' ? html`
                 <div class="price-info">
-                  <span>Total:</span>
-                  <span class="price-value">$${(parseFloat(this.editedItem.price) * (this.editedItem.quantity || 1)).toFixed(2)}</span>
+                  <span>${t(this.hass, 'dialog.total')}</span>
+                  <span class="price-value">${formatCurrency(this.hass, parseFloat(this.editedItem.price) * (this.editedItem.quantity || 1))}</span>
                 </div>
               ` : ''}
             </div>
 
             <div class="form-group">
-              <label>Notes</label>
+              <label>${t(this.hass, 'edit.notes')}</label>
               <textarea
-                placeholder="Add notes (optional)..."
+                placeholder=${t(this.hass, 'edit.notes_placeholder')}
                 .value=${this.editedItem.note || ''}
                 @input=${(e) => this.editedItem = { ...this.editedItem, note: e.target.value }}
                 rows="3"
@@ -427,12 +432,12 @@ class SLMEditItemDialog extends LitElement {
             </div>
 
             <div class="form-group image-section">
-              <label>Product Image</label>
+              <label>${t(this.hass, 'edit.product_image')}</label>
 
               ${this.imagePreview ? html`
                 <div class="image-preview-wrap">
                   <img class="image-preview" src="${this.imagePreview}" alt="Product image" />
-                  <button class="clear-image-btn" @click=${this.handleClearImage} title="Remove image">✕</button>
+                  <button class="clear-image-btn" @click=${this.handleClearImage} title=${t(this.hass, 'edit.remove_image')}>✕</button>
                 </div>
               ` : ''}
 
@@ -440,11 +445,11 @@ class SLMEditItemDialog extends LitElement {
                 <input
                   id="image-url-input"
                   type="text"
-                  placeholder="Paste image URL..."
+                  placeholder=${t(this.hass, 'edit.image_url_placeholder')}
                   .value=${this.editedItem.image_url && !this.editedItem.image_url.startsWith('data:') ? this.editedItem.image_url : ''}
                   @input=${this.handleImageUrlInput}
                 />
-                <button class="browse-btn" @click=${this.handleFilePick} title="Browse local file">
+                <button class="browse-btn" @click=${this.handleFilePick} title=${t(this.hass, 'edit.browse_local_file')}>
                   📁
                 </button>
               </div>
@@ -460,10 +465,10 @@ class SLMEditItemDialog extends LitElement {
 
           <div class="dialog-footer">
             <button class="action-btn danger" @click=${this.handleDelete}>
-              Delete
+              ${t(this.hass, 'common.delete')}
             </button>
             <button class="action-btn primary" @click=${this.handleSave}>
-              Save
+              ${t(this.hass, 'common.save')}
             </button>
           </div>
         </div>
