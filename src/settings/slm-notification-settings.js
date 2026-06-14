@@ -1,7 +1,9 @@
 import { LitElement, html, css } from 'lit';
+import { t } from '../localize.js';
 
 class NotificationSettings extends LitElement {
   static properties = {
+    hass: { type: Object },
     settings: { type: Object }
   };
 
@@ -21,15 +23,15 @@ class NotificationSettings extends LitElement {
           <button class="back-btn" @click=${() => this.dispatchEvent(new Event('back'))}>
             <ha-icon icon="mdi:arrow-left"></ha-icon>
           </button>
-          <h2>Notifications</h2>
+          <h2>${t(this.hass, 'settings.notifications')}</h2>
         </div>
 
         <div class="settings-list">
           <div class="settings-item">
             <div class="item-content">
-              <div class="item-title">List Sharing</div>
+              <div class="item-title">${t(this.hass, 'notifications.list_sharing')}</div>
               <div class="item-description">
-                Get notified when somebody shares a list with you or makes changes on shared lists
+                ${t(this.hass, 'notifications.list_sharing_desc')}
               </div>
             </div>
             <label class="toggle">
@@ -44,9 +46,9 @@ class NotificationSettings extends LitElement {
 
           <div class="settings-item">
             <div class="item-content">
-              <div class="item-title">E-Mails</div>
+              <div class="item-title">${t(this.hass, 'notifications.emails')}</div>
               <div class="item-description">
-                Get notified about changes to your shared lists
+                ${t(this.hass, 'notifications.emails_desc')}
               </div>
             </div>
             <label class="toggle">

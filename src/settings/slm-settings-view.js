@@ -1,5 +1,6 @@
 import { LitElement, html, css } from 'lit';
 import { CARD_VERSION } from 'virtual:card-version';
+import { t } from '../localize.js';
 import './slm-profile-settings.js';
 import './slm-appearance-settings.js';
 import './slm-notification-settings.js';
@@ -58,7 +59,7 @@ class SLMSettingsView extends LitElement {
     return html`
       <div class="settings-main">
         <div class="settings-header">
-          <h2>Settings</h2>
+          <h2>${t(this.hass, 'settings.title')}</h2>
         </div>
 
         <div class="settings-list">
@@ -67,8 +68,8 @@ class SLMSettingsView extends LitElement {
               <span class="emoji">👤</span>
             </div>
             <div class="item-content">
-              <div class="item-title">Profile</div>
-              <div class="item-subtitle">${this.hass.user?.name || 'User'}</div>
+              <div class="item-title">${t(this.hass, 'settings.profile')}</div>
+              <div class="item-subtitle">${this.hass.user?.name || t(this.hass, 'settings.user')}</div>
             </div>
             <span class="chevron">></span>
           </button>
@@ -78,8 +79,8 @@ class SLMSettingsView extends LitElement {
               <span class="emoji">🎨</span>
             </div>
             <div class="item-content">
-              <div class="item-title">Appearance</div>
-              <div class="item-subtitle">Theme, tiles, fonts</div>
+              <div class="item-title">${t(this.hass, 'settings.appearance')}</div>
+              <div class="item-subtitle">${t(this.hass, 'settings.appearance_subtitle')}</div>
             </div>
             <span class="chevron">></span>
           </button>
@@ -89,17 +90,17 @@ class SLMSettingsView extends LitElement {
               <span class="emoji">🔔</span>
             </div>
             <div class="item-content">
-              <div class="item-title">Notifications</div>
-              <div class="item-subtitle">List sharing, emails</div>
+              <div class="item-title">${t(this.hass, 'settings.notifications')}</div>
+              <div class="item-subtitle">${t(this.hass, 'settings.notifications_subtitle')}</div>
             </div>
             <span class="chevron">></span>
           </button>
 
-          <div class="section-header">Preferences</div>
+          <div class="section-header">${t(this.hass, 'settings.preferences')}</div>
 
           <div class="settings-item">
             <div class="item-content">
-              <div class="item-title">Open last used list at launch</div>
+              <div class="item-title">${t(this.hass, 'settings.open_last')}</div>
             </div>
             <label class="toggle">
               <input 
@@ -113,7 +114,7 @@ class SLMSettingsView extends LitElement {
 
           <div class="settings-item">
             <div class="item-content">
-              <div class="item-title">Keep screen turned on</div>
+              <div class="item-title">${t(this.hass, 'settings.keep_screen_on')}</div>
             </div>
             <label class="toggle">
               <input 
@@ -125,15 +126,15 @@ class SLMSettingsView extends LitElement {
             </label>
           </div>
 
-          <div class="section-header">Lists</div>
+          <div class="section-header">${t(this.hass, 'settings.lists')}</div>
 
           <button class="settings-item" @click=${() => this.handleNavigation('data')}>
             <div class="item-icon">
               <span class="emoji">🌏</span>
             </div>
             <div class="item-content">
-              <div class="item-title">Region &amp; Catalog</div>
-              <div class="item-subtitle">Country-specific products and pricing</div>
+              <div class="item-title">${t(this.hass, 'settings.region_catalog')}</div>
+              <div class="item-subtitle">${t(this.hass, 'settings.region_catalog_subtitle')}</div>
             </div>
             <span class="chevron">></span>
           </button>
@@ -143,20 +144,20 @@ class SLMSettingsView extends LitElement {
               <span class="emoji">📦</span>
             </div>
             <div class="item-content">
-              <div class="item-title">Manage Categories</div>
-              <div class="item-subtitle">${this.categories.length} categories</div>
+              <div class="item-title">${t(this.hass, 'settings.categories')}</div>
+              <div class="item-subtitle">${t(this.hass, 'settings.categories_count', { count: this.categories.length })}</div>
             </div>
             <span class="chevron">></span>
           </button>
 
-          <div class="section-header">Support</div>
+          <div class="section-header">${t(this.hass, 'settings.support')}</div>
 
           <button class="settings-item" @click=${() => this.handleNavigation('support')}>
             <div class="item-icon">
               <span class="emoji">❓</span>
             </div>
             <div class="item-content">
-              <div class="item-title">FAQ & Support</div>
+              <div class="item-title">${t(this.hass, 'settings.faq_support')}</div>
             </div>
             <span class="chevron">></span>
           </button>
@@ -166,23 +167,23 @@ class SLMSettingsView extends LitElement {
               <span class="emoji">🔄</span>
             </div>
             <div class="item-content">
-              <div class="item-title">Refresh</div>
+              <div class="item-title">${t(this.hass, 'settings.refresh')}</div>
             </div>
           </button>
 
-          <div class="section-header">App</div>
+          <div class="section-header">${t(this.hass, 'settings.app')}</div>
 
           <div class="settings-item">
             <div class="item-content">
               <div class="item-title">Shopping List Manager</div>
-              <div class="item-subtitle">Integration version ${this._slmVersion}</div>
+              <div class="item-subtitle">${t(this.hass, 'settings.integration_version', { version: this._slmVersion })}</div>
             </div>
           </div>
 
           <div class="settings-item">
             <div class="item-content">
               <div class="item-title">SLM Card</div>
-              <div class="item-subtitle">Card version ${this._slmcVersion}</div>
+              <div class="item-subtitle">${t(this.hass, 'settings.card_version', { version: this._slmcVersion })}</div>
             </div>
           </div>
         </div>
@@ -203,6 +204,7 @@ class SLMSettingsView extends LitElement {
       case 'appearance':
         return html`
           <slm-appearance-settings
+            .hass=${this.hass}
             .settings=${this.settings}
             .isEmbedded=${this.isEmbedded}
             @settings-changed=${(e) => this.dispatchEvent(e)}
@@ -213,6 +215,7 @@ class SLMSettingsView extends LitElement {
       case 'notifications':
         return html`
           <slm-notification-settings
+            .hass=${this.hass}
             .settings=${this.settings}
             @settings-changed=${(e) => this.dispatchEvent(e)}
             @back=${() => this.currentSection = 'main'}
@@ -222,6 +225,7 @@ class SLMSettingsView extends LitElement {
       case 'categories':
         return html`
           <slm-category-settings
+            .hass=${this.hass}
             .api=${this.api}
             .categories=${this.categories}
             @back=${() => this.currentSection = 'main'}
@@ -231,6 +235,7 @@ class SLMSettingsView extends LitElement {
       case 'support':
         return html`
           <slm-support-settings
+            .hass=${this.hass}
             .slmVersion=${this._slmVersion}
             .slmcVersion=${this._slmcVersion}
             @back=${() => this.currentSection = 'main'}
@@ -240,6 +245,7 @@ class SLMSettingsView extends LitElement {
       case 'data':
         return html`
           <slm-data-settings
+            .hass=${this.hass}
             .api=${this.api}
             @back=${() => this.currentSection = 'main'}
           ></slm-data-settings>

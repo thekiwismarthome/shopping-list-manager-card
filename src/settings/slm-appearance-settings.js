@@ -1,9 +1,11 @@
 import { LitElement, html, css } from 'lit';
+import { t } from '../localize.js';
 import './slm-dark-mode-popup.js';
 import './slm-font-settings.js';
 
 class SLMAppearanceSettings extends LitElement {
   static properties = {
+    hass: { type: Object },
     settings: { type: Object },
     isEmbedded: { type: Boolean },
     showDarkModePopup: { type: Boolean },
@@ -41,13 +43,13 @@ class SLMAppearanceSettings extends LitElement {
           <button class="back-btn" @click=${() => this.dispatchEvent(new Event('back'))}>
             <ha-icon icon="mdi:arrow-left"></ha-icon>
           </button>
-          <h2>Appearance</h2>
+          <h2>${t(this.hass, 'settings.appearance')}</h2>
         </div>
 
         <div class="settings-list">
           <button class="settings-item" @click=${() => this.showDarkModePopup = true}>
             <div class="item-content">
-              <div class="item-title">Dark Mode</div>
+              <div class="item-title">${t(this.hass, 'appearance.dark_mode')}</div>
               <div class="item-subtitle">${this.getDarkModeLabel()}</div>
             </div>
             <ha-icon icon="mdi:chevron-right"></ha-icon>
@@ -55,7 +57,7 @@ class SLMAppearanceSettings extends LitElement {
 
           <div class="settings-item">
             <div class="item-content">
-              <div class="item-title">Theme</div>
+              <div class="item-title">${t(this.hass, 'appearance.theme')}</div>
               <div class="item-subtitle">
                 ${this._themeLabel(this.settings.theme)}
               </div>
@@ -66,12 +68,12 @@ class SLMAppearanceSettings extends LitElement {
               @change=${(e) =>
         this.handleSettingChange('theme', e.target.value)}
             >
-              <optgroup label="All Modes">
+              <optgroup label=${t(this.hass, 'appearance.all_modes')}>
                 <option value="soft" ?selected=${!this.settings.theme || this.settings.theme === 'soft'}>
                   Soft Pastel
                 </option>
               </optgroup>
-              <optgroup label="Light Themes">
+              <optgroup label=${t(this.hass, 'appearance.light_themes')}>
                 <option value="arctic" ?selected=${this.settings.theme === 'arctic'}>
                   🧊 Arctic
                 </option>
@@ -85,7 +87,7 @@ class SLMAppearanceSettings extends LitElement {
                   🌊 Ocean Blue
                 </option>
               </optgroup>
-              <optgroup label="Dark Themes">
+              <optgroup label=${t(this.hass, 'appearance.dark_themes')}>
                 <option value="midnight" ?selected=${this.settings.theme === 'midnight'}>
                   🌊 Midnight Ocean
                 </option>
@@ -99,11 +101,11 @@ class SLMAppearanceSettings extends LitElement {
             </select>
           </div>
 
-          <div class="section-header">Display</div>
+          <div class="section-header">${t(this.hass, 'appearance.display')}</div>
 
           <div class="settings-item">
             <div class="item-content">
-              <div class="item-title">Use Emojis Instead of Icons</div>
+              <div class="item-title">${t(this.hass, 'appearance.use_emojis')}</div>
             </div>
             <label class="toggle">
               <input 
@@ -117,7 +119,7 @@ class SLMAppearanceSettings extends LitElement {
 
           <div class="settings-item">
             <div class="item-content full-width">
-              <div class="item-title">Tiles Per Row</div>
+              <div class="item-title">${t(this.hass, 'appearance.tiles_per_row')}</div>
               <div class="tile-options">
                 ${[2, 3, 4, 5, 8, 10].map(num => html`
                   <button
@@ -131,11 +133,11 @@ class SLMAppearanceSettings extends LitElement {
             </div>
           </div>
 
-          <div class="section-header">Recently Used</div>
+          <div class="section-header">${t(this.hass, 'shopping.recently_used')}</div>
 
           <div class="settings-item">
             <div class="item-content full-width">
-              <div class="item-title">Recently Used Products</div>
+              <div class="item-title">${t(this.hass, 'appearance.recent_products')}</div>
               <input
                 type="range"
                 min="4"
@@ -145,16 +147,16 @@ class SLMAppearanceSettings extends LitElement {
                 @input=${(e) => this.handleSettingChange('recentProductsCount', parseInt(e.target.value))}
                 class="size-slider"
               />
-              <div class="size-value">${this.settings.recentProductsCount} products</div>
+              <div class="size-value">${t(this.hass, 'appearance.products', { count: this.settings.recentProductsCount })}</div>
             </div>
           </div>
 
-          <div class="section-header">Product Images</div>
+          <div class="section-header">${t(this.hass, 'appearance.product_images')}</div>
 
           <div class="settings-item">
             <div class="item-content full-width">
-              <div class="item-title">Local HA Image Path</div>
-              <div class="item-subtitle">Auto-match images by product name slug</div>
+              <div class="item-title">${t(this.hass, 'appearance.local_image_path')}</div>
+              <div class="item-subtitle">${t(this.hass, 'appearance.local_image_hint')}</div>
               <input
                 class="text-input"
                 type="text"
@@ -165,11 +167,11 @@ class SLMAppearanceSettings extends LitElement {
             </div>
           </div>
 
-          <div class="section-header">Font</div>
+          <div class="section-header">${t(this.hass, 'appearance.font')}</div>
 
           <div class="settings-item">
             <div class="item-content">
-              <div class="item-title">Use system text size</div>
+              <div class="item-title">${t(this.hass, 'appearance.use_system_text_size')}</div>
             </div>
             <label class="toggle">
               <input 
@@ -184,7 +186,7 @@ class SLMAppearanceSettings extends LitElement {
           ${!this.settings.useSystemTextSize ? html`
             <div class="settings-item">
               <div class="item-content full-width">
-                <div class="item-title">Font Size</div>
+                <div class="item-title">${t(this.hass, 'appearance.font_size')}</div>
                 <input
                   type="range"
                   min="12"
@@ -200,9 +202,9 @@ class SLMAppearanceSettings extends LitElement {
 
           <div class="settings-item">
             <div class="item-content full-width">
-              <div class="item-title">Font Weight</div>
+              <div class="item-title">${t(this.hass, 'appearance.font_weight')}</div>
               <div class="tile-options">
-                ${[['light', 'Light'], ['normal', 'Regular'], ['bold', 'Bold']].map(([val, label]) => html`
+                ${[['light', t(this.hass, 'appearance.light')], ['normal', t(this.hass, 'appearance.regular')], ['bold', t(this.hass, 'appearance.bold')]].map(([val, label]) => html`
                   <button
                     class="tile-option ${(this.settings.fontWeight || 'normal') === val ? 'selected' : ''}"
                     style="font-weight: ${val === 'light' ? '300' : val === 'bold' ? '700' : '400'}"
@@ -215,7 +217,7 @@ class SLMAppearanceSettings extends LitElement {
 
           <button class="settings-item" @click=${() => this.showFontSettings = true}>
             <div class="item-content">
-              <div class="item-title">Font Family</div>
+              <div class="item-title">${t(this.hass, 'appearance.font_family')}</div>
               <div class="item-subtitle">${this.settings.fontFamily}</div>
             </div>
             <ha-icon icon="mdi:chevron-right"></ha-icon>
@@ -224,6 +226,7 @@ class SLMAppearanceSettings extends LitElement {
 
         ${this.showDarkModePopup ? html`
           <slm-dark-mode-popup
+            .hass=${this.hass}
             .currentMode=${this.settings.darkMode}
             @mode-selected=${(e) => {
           this.handleSettingChange('darkMode', e.detail.mode);
@@ -235,6 +238,7 @@ class SLMAppearanceSettings extends LitElement {
 
         ${this.showFontSettings ? html`
           <slm-font-settings
+            .hass=${this.hass}
             .currentFont=${this.settings.fontFamily}
             @font-selected=${(e) => {
           this.handleSettingChange('fontFamily', e.detail.font);
@@ -249,10 +253,10 @@ class SLMAppearanceSettings extends LitElement {
 
   getDarkModeLabel() {
     switch (this.settings.darkMode) {
-      case 'on': return 'On';
-      case 'off': return 'Off';
-      case 'system': return 'As on Device';
-      default: return 'As on Device';
+      case 'on': return t(this.hass, 'appearance.on');
+      case 'off': return t(this.hass, 'appearance.off');
+      case 'system': return t(this.hass, 'appearance.system');
+      default: return t(this.hass, 'appearance.system');
     }
   }
 

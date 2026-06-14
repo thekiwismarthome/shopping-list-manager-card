@@ -1,9 +1,11 @@
 import { LitElement, html, css } from 'lit';
+import { t } from '../../localize.js';
 import './slm-list-card.js';
 
 class SLMListsView extends LitElement {
   static properties = {
     api: { type: Object },
+    hass: { type: Object },
     lists: { type: Array },
     activeList: { type: Object },
     items: { type: Array },
@@ -139,7 +141,7 @@ class SLMListsView extends LitElement {
 
     switch (action) {
       case 'rename':
-        const newName = prompt('Enter new list name:');
+        const newName = prompt(t(this.hass, 'lists.rename_prompt'));
         if (newName) {
           await this.api.updateList(listId, { name: newName });
           this.dispatchEvent(new CustomEvent('lists-updated', {
@@ -150,7 +152,7 @@ class SLMListsView extends LitElement {
         break;
 
       case 'delete':
-        if (confirm('Delete this list?')) {
+        if (confirm(t(this.hass, 'lists.delete_confirm'))) {
           await this.api.deleteList(listId);
           this.dispatchEvent(new CustomEvent('lists-updated', {
             bubbles: true,
@@ -164,7 +166,7 @@ class SLMListsView extends LitElement {
         break;
 
       case 'copy':
-        alert('Copy feature coming soon!');
+        alert(t(this.hass, 'lists.copy_soon'));
         break;
     }
   }
@@ -190,27 +192,28 @@ class SLMListsView extends LitElement {
     return html`
       <div class="lists-view">
         <div class="header">
-          <h2>My Lists</h2>
+          <h2>${t(this.hass, 'lists.title')}</h2>
           <button class="create-btn" @click=${this.handleCreateList}>
             <span class="emoji">➕</span>
-            New List
+            ${t(this.hass, 'lists.new')}
           </button>
         </div>
 
         ${this.lists.length === 0 ? html`
           <div class="empty">
             <div class="empty-emoji">📋</div>
-            <p>No lists yet</p>
-            <p class="hint">Create your first shopping list</p>
+            <p>${t(this.hass, 'lists.empty')}</p>
+            <p class="hint">${t(this.hass, 'lists.empty_hint')}</p>
             <button class="primary-btn" @click=${this.handleCreateList}>
               <span class="emoji">➕</span>
-              Create List
+              ${t(this.hass, 'lists.create')}
             </button>
           </div>
         ` : html`
           <div class="lists-grid">
             ${this.lists.map(list => html`
               <slm-list-card
+                .hass=${this.hass}
                 .list=${list}
                 .isActive=${list.id === this.activeList?.id}
                 .itemCount=${list.id === this.activeList?.id
@@ -237,15 +240,15 @@ class SLMListsView extends LitElement {
           <div class="overlay" @click=${this._closeMembersDialog}>
             <div class="dialog" @click=${(e) => e.stopPropagation()}>
               <div class="dialog-header">
-                <h3>Manage Members</h3>
+                <h3>${t(this.hass, 'lists.manage_members')}</h3>
                 <button @click=${this._closeMembersDialog}><span class="emoji">✖️</span></button>
               </div>
               <div class="dialog-content members-content">
-                <p class="members-hint">Select who else can see and edit this list.</p>
+                <p class="members-hint">${t(this.hass, 'lists.members_hint')}</p>
                 ${this._membersLoading ? html`
-                  <div class="members-loading">Loading users…</div>
+                  <div class="members-loading">${t(this.hass, 'lists.loading_users')}</div>
                 ` : this._haUsers.filter(u => u.id !== this._managingList?.owner_id).length === 0 ? html`
-                  <div class="members-loading">No other users found.</div>
+                  <div class="members-loading">${t(this.hass, 'lists.no_users')}</div>
                 ` : this._haUsers
                   .filter(u => u.id !== this._managingList?.owner_id)
                   .map(user => html`
@@ -263,7 +266,7 @@ class SLMListsView extends LitElement {
                 }
               </div>
               <div class="dialog-footer">
-                <button class="save-btn" @click=${this._closeMembersDialog}>Done</button>
+                <button class="save-btn" @click=${this._closeMembersDialog}>${t(this.hass, 'common.done')}</button>
               </div>
             </div>
           </div>
@@ -273,22 +276,22 @@ class SLMListsView extends LitElement {
           <div class="overlay" @click=${() => this.showCreateDialog = false}>
             <div class="dialog" @click=${(e) => e.stopPropagation()}>
               <div class="dialog-header">
-                <h3>Create New List</h3>
+                <h3>${t(this.hass, 'lists.create_new')}</h3>
                 <button @click=${() => this.showCreateDialog = false}>
                   <span class="emoji">✖️</span>
                 </button>
               </div>
               <div class="dialog-content">
-                <label>List Name</label>
+                <label>${t(this.hass, 'lists.name')}</label>
                 <input
                   type="text"
-                  placeholder="e.g., Weekly Shopping"
+                  placeholder=${t(this.hass, 'lists.name_placeholder')}
                   .value=${this.newListName}
                   @input=${(e) => this.newListName = e.target.value}
                   autofocus
                 />
 
-                <label>Icon</label>
+                <label>${t(this.hass, 'lists.icon')}</label>
                 <div class="icon-picker">
                   ${['mdi:cart', 'mdi:home', 'mdi:food', 'mdi:shopping', 'mdi:store'].map(icon => html`
                     <button
@@ -307,12 +310,12 @@ class SLMListsView extends LitElement {
                     @change=${(e) => this._newListPrivate = e.target.checked}
                   />
                   <ha-icon icon="mdi:lock"></ha-icon>
-                  Private — only visible to me (and members I add)
+                  ${t(this.hass, 'lists.private')}
                 </label>
               </div>
               <div class="dialog-footer">
-                <button class="cancel-btn" @click=${() => this.showCreateDialog = false}>Cancel</button>
-                <button class="save-btn" @click=${this.handleSaveNewList}>Create</button>
+                <button class="cancel-btn" @click=${() => this.showCreateDialog = false}>${t(this.hass, 'common.cancel')}</button>
+                <button class="save-btn" @click=${this.handleSaveNewList}>${t(this.hass, 'common.create')}</button>
               </div>
             </div>
           </div>

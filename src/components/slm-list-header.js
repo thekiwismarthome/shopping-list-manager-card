@@ -90,11 +90,11 @@ class SLMListHeader extends LitElement {
                   <button
                     class="toggle-btn ${viewMode === 'tile' ? 'active' : ''}"
                     @click=${() => { this._dispatchSetting('viewMode', 'tile'); this._menuOpen = false; }}
-                  >🔲 Tiles</button>
+                  >🔲 ${t(this.hass, 'header.tiles')}</button>
                   <button
                     class="toggle-btn ${viewMode === 'list' ? 'active' : ''}"
                     @click=${() => { this._dispatchSetting('viewMode', 'list'); this._menuOpen = false; }}
-                  >☰ List</button>
+                  >☰ ${t(this.hass, 'header.list')}</button>
                 </div>
 
                 <div class="menu-section-label">${t(this.hass, 'header.sort')}</div>
@@ -106,7 +106,7 @@ class SLMListHeader extends LitElement {
                   <button
                     class="toggle-btn ${sortMode === 'alphabetical' ? 'active' : ''}"
                     @click=${() => { this._dispatchSetting('sortMode', 'alphabetical'); this._menuOpen = false; }}
-                  >A–Z</button>
+                  >${t(this.hass, 'header.alphabetical')}</button>
                 </div>
 
                 <div class="menu-divider"></div>

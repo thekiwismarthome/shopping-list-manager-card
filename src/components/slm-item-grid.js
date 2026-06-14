@@ -1,4 +1,5 @@
 import { LitElement, html, css } from 'lit';
+import { t } from '../localize.js';
 import './slm-item-tile.js';
 
 class SLMItemGrid extends LitElement {
@@ -9,6 +10,7 @@ class SLMItemGrid extends LitElement {
 
   static properties = {
     items: { type: Array },
+    hass: { type: Object },
     categories: { type: Array },
     settings: { type: Object },
     api: { type: Object },
@@ -121,8 +123,8 @@ class SLMItemGrid extends LitElement {
         ${groupedItems.length === 0 && this._recentItems.length === 0 ? html`
           <div class="empty">
             <div class="empty-emoji">🛒</div>
-            <p>Your shopping list is empty</p>
-            <p class="hint">Search for products to add items</p>
+            <p>${t(this.hass, 'shopping.empty')}</p>
+            <p class="hint">${t(this.hass, 'shopping.empty_hint')}</p>
           </div>
         ` : ''}
 
@@ -139,6 +141,7 @@ class SLMItemGrid extends LitElement {
               <div class="items-grid">
                 ${group.items.map(item => html`
                   <slm-item-tile
+                    .hass=${this.hass}
                     .item=${item}
                     .categoryColor=${color}
                     .settings=${this.settings}
@@ -159,11 +162,12 @@ class SLMItemGrid extends LitElement {
             ${(() => { const rc = this.getRecentColor(); return html`
               <div class="category-header" style="${this.getCategoryHeaderStyle(rc)}">
                 <span class="emoji">⏱️</span>
-                <span class="category-name" style="color: ${rc}">Recently Used</span>
+                <span class="category-name" style="color: ${rc}">${t(this.hass, 'shopping.recently_used')}</span>
               </div>
               <div class="items-grid">
                 ${this._recentItems.map(product => html`
                   <slm-item-tile
+                    .hass=${this.hass}
                     .item=${product}
                     .categoryColor=${rc}
                     .isRecentlyUsed=${true}

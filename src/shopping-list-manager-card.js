@@ -594,10 +594,10 @@ class ShoppingListManagerCard extends LitElement {
           document.execCommand('copy');
           document.body.removeChild(ta);
         }
-        alert('List copied to clipboard!');
+        alert(t(this.hass, 'shopping.copied'));
       } catch (err) {
         console.error('Copy to clipboard failed:', err);
-        alert('Could not copy to clipboard. Please copy manually:\n\n' + shareText);
+        alert(t(this.hass, 'shopping.copy_failed', { text: shareText }));
       }
     }
   }

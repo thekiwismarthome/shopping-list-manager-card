@@ -1,10 +1,12 @@
 import { LitElement, html, css } from 'lit';
+import { t } from '../localize.js';
 import { PRODUCT_ICON_MAP } from '../icons/product-icon-map.js';
 import { PRODUCT_ICONS } from '../icons/product-icons.js';
 
 class SLMItemList extends LitElement {
   static properties = {
     items: { type: Array },
+    hass: { type: Object },
     categories: { type: Array },
     settings: { type: Object },
     api: { type: Object },
@@ -388,8 +390,8 @@ class SLMItemList extends LitElement {
       return html`
         <div class="empty">
           <div class="empty-emoji">🛒</div>
-          <p>Your shopping list is empty</p>
-          <p class="hint">Search for products to add items</p>
+          <p>${t(this.hass, 'shopping.empty')}</p>
+          <p class="hint">${t(this.hass, 'shopping.empty_hint')}</p>
         </div>
       `;
     }
@@ -416,7 +418,7 @@ class SLMItemList extends LitElement {
           <div class="list-section">
             <div class="category-header" style="${this.getCategoryHeaderStyle(recentColor)}">
               <span class="cat-emoji">⏱️</span>
-              <span class="cat-name" style="color: ${recentColor}">Recently Used</span>
+              <span class="cat-name" style="color: ${recentColor}">${t(this.hass, 'shopping.recently_used')}</span>
             </div>
             ${this._recentItems.map(product => this.renderRecentRow(product))}
           </div>

@@ -1,8 +1,10 @@
 import { LitElement, html, css } from 'lit';
+import { t } from '../localize.js';
 
 class AddItemDialog extends LitElement {
   static properties = {
     api: { type: Object },
+    hass: { type: Object },
     categories: { type: Array },
     searchQuery: { type: String },
     searchResults: { type: Array },
@@ -79,7 +81,7 @@ class AddItemDialog extends LitElement {
       <div class="overlay" @click=${this.handleClose}>
         <div class="dialog" @click=${(e) => e.stopPropagation()}>
           <div class="dialog-header">
-            <h3>Add Item</h3>
+            <h3>${t(this.hass, 'dialog.add_item')}</h3>
             <button class="close-btn" @click=${this.handleClose}>
               <ha-icon icon="mdi:close"></ha-icon>
             </button>
@@ -90,7 +92,7 @@ class AddItemDialog extends LitElement {
               <div class="search-section">
                 <input
                   type="text"
-                  placeholder="Search products..."
+                  placeholder=${t(this.hass, 'dialog.search_products')}
                   .value=${this.searchQuery}
                   @input=${this.handleSearch}
                   autofocus
@@ -118,11 +120,11 @@ class AddItemDialog extends LitElement {
                   </div>
                 ` : ''}
 
-                <div class="divider">OR</div>
+                <div class="divider">${t(this.hass, 'dialog.or')}</div>
 
                 <input
                   type="text"
-                  placeholder="Add custom item..."
+                  placeholder=${t(this.hass, 'dialog.add_custom_item')}
                   .value=${this.customName}
                   @input=${(e) => this.customName = e.target.value}
                 />
@@ -146,7 +148,7 @@ class AddItemDialog extends LitElement {
 
                 ${this.selectedProduct.price ? html`
                   <div class="total-price">
-                    Total: $${(this.selectedProduct.price * this.quantity).toFixed(2)}
+                    ${t(this.hass, 'dialog.total')} $${(this.selectedProduct.price * this.quantity).toFixed(2)}
                   </div>
                 ` : ''}
               </div>
@@ -154,13 +156,13 @@ class AddItemDialog extends LitElement {
           </div>
 
           <div class="dialog-footer">
-            <button class="cancel-btn" @click=${this.handleClose}>Cancel</button>
+            <button class="cancel-btn" @click=${this.handleClose}>${t(this.hass, 'common.cancel')}</button>
             <button 
               class="add-btn" 
               @click=${this.handleAdd}
               ?disabled=${!this.selectedProduct && !this.customName}
             >
-              Add to List
+              ${t(this.hass, 'dialog.add_to_list')}
             </button>
           </div>
         </div>

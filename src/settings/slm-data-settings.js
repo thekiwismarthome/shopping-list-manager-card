@@ -1,8 +1,10 @@
 import { LitElement, html, css } from 'lit';
+import { t } from '../localize.js';
 
 class SLMDataSettings extends LitElement {
   static properties = {
     api: { type: Object },
+    hass: { type: Object },
     _currentCountry: { type: String, state: true },
     _availableCountries: { type: Object, state: true },
     _loading: { type: Boolean, state: true },
@@ -37,7 +39,7 @@ class SLMDataSettings extends LitElement {
       this._currentCountry = result.country;
       this._availableCountries = result.available_countries || {};
     } catch (err) {
-      this._errorMessage = 'Failed to load region settings.';
+      this._errorMessage = t(this.hass, 'data.load_failed');
       console.error('[SLM] Failed to load integration settings:', err);
     } finally {
       this._loading = false;
@@ -59,9 +61,14 @@ class SLMDataSettings extends LitElement {
       URL.revokeObjectURL(url);
       const productCount = (data.user_products || []).length;
       const listCount = (data.lists || []).length;
-      this._backupStatus = `success:Exported ${productCount} custom product${productCount !== 1 ? 's' : ''} and ${listCount} list${listCount !== 1 ? 's' : ''}`;
+      this._backupStatus = `success:${t(this.hass, 'data.export_success', {
+        products: productCount,
+        productPlural: productCount !== 1 ? 's' : '',
+        lists: listCount,
+        listPlural: listCount !== 1 ? 's' : ''
+      })}`;
     } catch (err) {
-      this._backupStatus = 'error:Export failed. Please try again.';
+      this._backupStatus = `error:${t(this.hass, 'data.export_failed')}`;
       console.error('[SLM] Export failed:', err);
     } finally {
       this._backupWorking = false;
@@ -79,14 +86,21 @@ class SLMDataSettings extends LitElement {
       const text = await file.text();
       const data = JSON.parse(text);
       if (!data.slm_backup_version) {
-        this._backupStatus = 'error:Invalid backup file.';
+        this._backupStatus = `error:${t(this.hass, 'data.invalid_backup')}`;
         return;
       }
       const result = await this.api.importData(data);
       const { products, lists, items } = result.imported || {};
-      this._backupStatus = `success:Imported ${products} product${products !== 1 ? 's' : ''}, ${lists} list${lists !== 1 ? 's' : ''}, ${items} item${items !== 1 ? 's' : ''}. Reload to see changes.`;
+      this._backupStatus = `success:${t(this.hass, 'data.import_success', {
+        products,
+        productPlural: products !== 1 ? 's' : '',
+        lists,
+        listPlural: lists !== 1 ? 's' : '',
+        items,
+        itemPlural: items !== 1 ? 's' : ''
+      })}`;
     } catch (err) {
-      this._backupStatus = 'error:Import failed. Make sure the file is a valid backup.';
+      this._backupStatus = `error:${t(this.hass, 'data.import_failed')}`;
       console.error('[SLM] Import failed:', err);
     } finally {
       this._backupWorking = false;
@@ -98,7 +112,7 @@ class SLMDataSettings extends LitElement {
 
     const countryName = this._availableCountries[code] || code;
     const confirmed = confirm(
-      `Switch to ${countryName}?\n\nDefault catalog products will be replaced with ${countryName} products. Your custom products are kept.`
+      t(this.hass, 'data.switch_confirm', { country: countryName })
     );
     if (!confirmed) return;
 
@@ -108,9 +122,9 @@ class SLMDataSettings extends LitElement {
     try {
       const result = await this.api.setCountry(code);
       this._currentCountry = result.country;
-      this._successMessage = `✓ Switched to ${countryName} — ${result.products_loaded} products loaded`;
+      this._successMessage = `✓ ${t(this.hass, 'data.switch_success', { country: countryName, count: result.products_loaded })}`;
     } catch (err) {
-      this._errorMessage = 'Failed to switch region. Please try again.';
+      this._errorMessage = t(this.hass, 'data.switch_failed');
       console.error('[SLM] Failed to set country:', err);
     } finally {
       this._saving = false;
@@ -124,19 +138,19 @@ class SLMDataSettings extends LitElement {
           <button class="back-btn" @click=${() => this.dispatchEvent(new Event('back'))}>
             <ha-icon icon="mdi:arrow-left"></ha-icon>
           </button>
-          <h2>Region &amp; Catalog</h2>
+          <h2>${t(this.hass, 'settings.region_catalog')}</h2>
         </div>
 
         ${this._loading ? html`
-          <div class="loading">Loading…</div>
+          <div class="loading">${t(this.hass, 'common.loading_short')}</div>
         ` : html`
           <div class="settings-list">
-            <div class="section-header">Product Catalog Region</div>
+            <div class="section-header">${t(this.hass, 'data.catalog_region')}</div>
 
             <div class="settings-item">
               <div class="item-content">
-                <div class="item-title">Region</div>
-                <div class="item-subtitle">Country-specific products and pricing</div>
+                <div class="item-title">${t(this.hass, 'data.region')}</div>
+                <div class="item-subtitle">${t(this.hass, 'settings.region_catalog_subtitle')}</div>
               </div>
               <select
                 class="region-select"
@@ -160,49 +174,45 @@ class SLMDataSettings extends LitElement {
             ` : ''}
 
             ${this._saving ? html`
-              <div class="message info">Switching catalog…</div>
+              <div class="message info">${t(this.hass, 'data.switching')}</div>
             ` : ''}
 
-            <div class="section-header">About</div>
+            <div class="section-header">${t(this.hass, 'data.about')}</div>
             <div class="settings-item">
               <div class="item-content">
-                <div class="item-title">How it works</div>
+                <div class="item-title">${t(this.hass, 'data.how_it_works')}</div>
                 <div class="item-subtitle">
-                  Switching region replaces the default product catalog (names, prices, brands)
-                  with one suited to your country. Any products you've created or customised
-                  are preserved. The change takes effect immediately — no restart needed.
+                  ${t(this.hass, 'data.how_it_works_desc')}
                 </div>
               </div>
             </div>
 
-            <div class="section-header">Backup &amp; Restore</div>
+            <div class="section-header">${t(this.hass, 'data.backup_restore')}</div>
 
             <div class="settings-item backup-item">
               <div class="item-content full-width">
-                <div class="item-title">Export Data</div>
+                <div class="item-title">${t(this.hass, 'data.export_data')}</div>
                 <div class="item-subtitle">
-                  Download your custom products and lists as a JSON file.
-                  Catalog products are excluded — they reload automatically.
+                  ${t(this.hass, 'data.export_desc')}
                 </div>
                 <button
                   class="action-btn"
                   ?disabled=${this._backupWorking}
                   @click=${this._handleExport}
                 >
-                  Download backup
+                  ${t(this.hass, 'data.download_backup')}
                 </button>
               </div>
             </div>
 
             <div class="settings-item backup-item">
               <div class="item-content full-width">
-                <div class="item-title">Import Data</div>
+                <div class="item-title">${t(this.hass, 'data.import_data')}</div>
                 <div class="item-subtitle">
-                  Restore from a backup file. Existing data is kept — only missing
-                  products and lists are added.
+                  ${t(this.hass, 'data.import_desc')}
                 </div>
                 <label class="action-btn ${this._backupWorking ? 'disabled' : ''}">
-                  Choose backup file
+                  ${t(this.hass, 'data.choose_backup')}
                   <input
                     type="file"
                     accept=".json,application/json"
@@ -221,7 +231,7 @@ class SLMDataSettings extends LitElement {
             ` : ''}
 
             ${this._backupWorking ? html`
-              <div class="message info">Working…</div>
+              <div class="message info">${t(this.hass, 'common.working')}</div>
             ` : ''}
 
           </div>

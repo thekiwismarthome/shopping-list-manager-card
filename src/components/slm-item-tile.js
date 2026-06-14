@@ -5,6 +5,7 @@ import { PRODUCT_ICONS } from '../icons/product-icons.js';
 class SLMItemTile extends LitElement {
   static properties = {
     item: { type: Object },
+    hass: { type: Object },
     categoryColor: { type: String },
     isRecentlyUsed: { type: Boolean },
     settings: { type: Object },

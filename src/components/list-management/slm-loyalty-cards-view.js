@@ -2,10 +2,12 @@ import { LitElement, html, css } from 'lit';
 import JsBarcode from 'jsbarcode';
 import { Html5Qrcode } from 'html5-qrcode';
 import qrcode from 'qrcode-generator';
+import { t } from '../../localize.js';
 
 class SLMLoyaltyCardsView extends LitElement {
   static properties = {
     api: { type: Object },
+    hass: { type: Object },
     userId: { type: String },
     isAdmin: { type: Boolean },
     cards: { type: Array },
@@ -161,13 +163,13 @@ class SLMLoyaltyCardsView extends LitElement {
       display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center'
     });
     const label = document.createElement('p');
-    label.textContent = 'Point camera at barcode';
+    label.textContent = t(this.hass, 'scanner.barcode');
     Object.assign(label.style, { color: '#fff', fontSize: '16px', margin: '0 0 12px 0' });
     const scanRegion = document.createElement('div');
     scanRegion.id = 'slm-scanner-region';
     Object.assign(scanRegion.style, { width: '100%', maxWidth: '400px' });
     const cancelBtn = document.createElement('button');
-    cancelBtn.textContent = '✕ Cancel';
+    cancelBtn.textContent = `✕ ${t(this.hass, 'common.cancel')}`;
     Object.assign(cancelBtn.style, {
       marginTop: '20px', padding: '10px 28px', fontSize: '16px', fontWeight: '600',
       background: '#fff', color: '#333', border: 'none', borderRadius: '10px', cursor: 'pointer'
@@ -196,11 +198,11 @@ class SLMLoyaltyCardsView extends LitElement {
   }
 
   _showScannerFileFallback(host, label, scanRegion, isEdit) {
-    label.textContent = 'Take a photo of the barcode';
+    label.textContent = t(this.hass, 'scanner.take_photo');
     scanRegion.innerHTML = '';
 
     const hint = document.createElement('p');
-    hint.textContent = 'Live camera unavailable (HTTP). Use the button below to photograph the barcode.';
+    hint.textContent = t(this.hass, 'scanner.live_unavailable');
     Object.assign(hint.style, {
       color: 'rgba(255,255,255,0.6)', fontSize: '13px',
       textAlign: 'center', maxWidth: '320px', margin: '0 0 16px 0'
@@ -213,7 +215,7 @@ class SLMLoyaltyCardsView extends LitElement {
     fileInput.style.display = 'none';
 
     const photoBtn = document.createElement('button');
-    photoBtn.textContent = '📷 Open Camera';
+    photoBtn.textContent = `📷 ${t(this.hass, 'scanner.open_camera')}`;
     Object.assign(photoBtn.style, {
       padding: '12px 28px', background: '#fff', border: 'none',
       borderRadius: '8px', fontSize: '15px', cursor: 'pointer', fontWeight: '600'
@@ -230,7 +232,7 @@ class SLMLoyaltyCardsView extends LitElement {
       const file = e.target.files?.[0];
       if (!file) return;
       photoBtn.disabled = true;
-      photoBtn.textContent = 'Scanning…';
+      photoBtn.textContent = t(this.hass, 'scanner.scanning');
       errorMsg.style.display = 'none';
       try {
         const decodedText = await this._scannerInstance.scanFile(file, true);
@@ -241,10 +243,10 @@ class SLMLoyaltyCardsView extends LitElement {
         }
         this.stopBarcodeScanner();
       } catch {
-        errorMsg.textContent = 'No barcode found — try again with a clearer photo.';
+        errorMsg.textContent = t(this.hass, 'scanner.not_found');
         errorMsg.style.display = 'block';
         photoBtn.disabled = false;
-        photoBtn.textContent = '📷 Open Camera';
+        photoBtn.textContent = `📷 ${t(this.hass, 'scanner.open_camera')}`;
         fileInput.value = '';
       }
     });
@@ -331,7 +333,7 @@ class SLMLoyaltyCardsView extends LitElement {
   }
 
   async handleDeleteCard(cardId) {
-    if (!confirm('Delete this loyalty card?')) return;
+    if (!confirm(t(this.hass, 'loyalty.delete_confirm'))) return;
     try {
       await this.api.deleteLoyaltyCard(cardId);
       this.cards = this.cards.filter(c => c.id !== cardId);
@@ -344,7 +346,7 @@ class SLMLoyaltyCardsView extends LitElement {
 
   async handleDuplicateCard(card) {
     const cardData = {
-      name: `${card.name} (Copy)`,
+      name: `${card.name} (${t(this.hass, 'loyalty.copy_suffix')})`,
       number: card.number,
       barcode: card.barcode,
       logo: card.logo,
@@ -399,24 +401,24 @@ class SLMLoyaltyCardsView extends LitElement {
     return html`
       <div class="loyalty-view">
         <div class="header">
-          <h2>Loyalty Cards</h2>
+          <h2>${t(this.hass, 'loyalty.title')}</h2>
           <div class="header-actions">
-            <button class="add-btn" @click=${this.handleAddCard} title="Add card">
+            <button class="add-btn" @click=${this.handleAddCard} title=${t(this.hass, 'loyalty.add_card')}>
               <ha-icon icon="mdi:plus"></ha-icon>
             </button>
-            <button class="icon-btn" @click=${this.handleViewMenuClick} title="View options">
+            <button class="icon-btn" @click=${this.handleViewMenuClick} title=${t(this.hass, 'loyalty.view_options')}>
               <ha-icon icon="mdi:dots-vertical"></ha-icon>
             </button>
           </div>
         </div>
 
-        ${this._loading ? html`<div class="loading">Loading...</div>` : ''}
+        ${this._loading ? html`<div class="loading">${t(this.hass, 'common.loading')}</div>` : ''}
 
         ${!this._loading && this.cards.length === 0 ? html`
           <div class="empty">
             <div class="empty-emoji">💳</div>
-            <p>No loyalty cards yet</p>
-            <p class="hint">Add your store loyalty cards for quick access</p>
+            <p>${t(this.hass, 'loyalty.empty')}</p>
+            <p class="hint">${t(this.hass, 'loyalty.empty_hint')}</p>
           </div>
         ` : this._viewMode === 'tile' ? this.renderTileGrid() : this.renderCardGrid()}
 
@@ -496,11 +498,11 @@ class SLMLoyaltyCardsView extends LitElement {
         <div class="view-menu-popup" style="left: ${this._viewMenuX}px; top: ${this._viewMenuY}px;">
           <button class="${this._viewMode === 'card' ? 'active' : ''}" @click=${(e) => { e.stopPropagation(); this.setViewMode('card'); }}>
             <ha-icon icon="mdi:card-text"></ha-icon>
-            Card View
+            ${t(this.hass, 'loyalty.card_view')}
           </button>
           <button class="${this._viewMode === 'tile' ? 'active' : ''}" @click=${(e) => { e.stopPropagation(); this.setViewMode('tile'); }}>
             <ha-icon icon="mdi:view-grid"></ha-icon>
-            Tile View
+            ${t(this.hass, 'loyalty.tile_view')}
           </button>
         </div>
       </div>
@@ -513,63 +515,63 @@ class SLMLoyaltyCardsView extends LitElement {
       <div class="overlay" @click=${() => this.showAddDialog = false}>
         <form class="dialog" @click=${(e) => e.stopPropagation()} @submit=${this.handleSaveNewCard}>
           <div class="dialog-header">
-            <h3>Add Loyalty Card</h3>
+            <h3>${t(this.hass, 'loyalty.add_title')}</h3>
             <button type="button" @click=${() => this.showAddDialog = false}>✖️</button>
           </div>
           <div class="dialog-content">
             <label>
-              Store Name
-              <input type="text" name="name" placeholder="e.g., Countdown" .value=${card.name} required />
+              ${t(this.hass, 'loyalty.store_name')}
+              <input type="text" name="name" placeholder=${t(this.hass, 'loyalty.store_placeholder')} .value=${card.name} required />
             </label>
             <label>
-              Card Number
+              ${t(this.hass, 'loyalty.card_number')}
               <div class="scan-row">
-                <input type="text" name="number" placeholder="Card/Member number" .value=${card.number} required />
-                <button type="button" class="scan-btn" title="Scan barcode" @click=${() => this.startBarcodeScanner(false)}>📷</button>
+                <input type="text" name="number" placeholder=${t(this.hass, 'loyalty.card_number_placeholder')} .value=${card.number} required />
+                <button type="button" class="scan-btn" title=${t(this.hass, 'search.scan_barcode')} @click=${() => this.startBarcodeScanner(false)}>📷</button>
               </div>
             </label>
             <label>
-              Code Value
-              <input type="text" name="barcode" placeholder="Auto-generated from number" .value=${card.barcode} />
+              ${t(this.hass, 'loyalty.code_value')}
+              <input type="text" name="barcode" placeholder=${t(this.hass, 'loyalty.code_placeholder')} .value=${card.barcode} />
             </label>
             <label>
-              Code Type
+              ${t(this.hass, 'loyalty.code_type')}
               <div class="type-row">
                 <label class="type-option">
                   <input type="radio" name="barcode_type_add" value="barcode"
                     .checked=${card.barcode_type !== 'qrcode'}
                     @change=${() => this.newCard = { ...this.newCard, barcode_type: 'barcode' }} />
                   <ha-icon icon="mdi:barcode"></ha-icon>
-                  Barcode
+                  ${t(this.hass, 'loyalty.barcode')}
                 </label>
                 <label class="type-option">
                   <input type="radio" name="barcode_type_add" value="qrcode"
                     .checked=${card.barcode_type === 'qrcode'}
                     @change=${() => this.newCard = { ...this.newCard, barcode_type: 'qrcode' }} />
                   <ha-icon icon="mdi:qrcode"></ha-icon>
-                  QR Code
+                  ${t(this.hass, 'loyalty.qrcode')}
                 </label>
               </div>
             </label>
             <label>
-              Shop Logo URL (optional)
+              ${t(this.hass, 'loyalty.logo_url')}
               <input type="url" name="logo" placeholder="https://..." .value=${card.logo || ''} />
             </label>
             <label>
-              Notes
-              <textarea name="notes" placeholder="Additional notes..." rows="3" .value=${card.notes || ''}></textarea>
+              ${t(this.hass, 'loyalty.notes')}
+              <textarea name="notes" placeholder=${t(this.hass, 'loyalty.notes_placeholder')} rows="3" .value=${card.notes || ''}></textarea>
             </label>
             <label>
-              Card Color
+              ${t(this.hass, 'loyalty.card_color')}
               <input type="color" name="color" .value=${card.color} />
             </label>
             <label class="toggle-label">
-              <span>Private (only visible to you)</span>
+              <span>${t(this.hass, 'loyalty.private')}</span>
               <input type="checkbox" .checked=${card.private} @change=${(e) => this.newCard = { ...this.newCard, private: e.target.checked }} />
             </label>
           </div>
           <div class="dialog-footer">
-            <button type="submit" class="action-btn primary">Add</button>
+            <button type="submit" class="action-btn primary">${t(this.hass, 'common.add')}</button>
           </div>
         </form>
       </div>
@@ -582,71 +584,71 @@ class SLMLoyaltyCardsView extends LitElement {
       <div class="overlay" @click=${() => { this.showEditDialog = false; this.editingCard = null; }}>
         <form class="dialog" @click=${(e) => e.stopPropagation()} @submit=${this.handleSaveEditCard}>
           <div class="dialog-header">
-            <h3>Edit Card</h3>
+            <h3>${t(this.hass, 'loyalty.edit_title')}</h3>
             <button type="button" @click=${() => { this.showEditDialog = false; this.editingCard = null; }}>✖️</button>
           </div>
           <div class="dialog-content">
             <label>
-              Store Name
-              <input type="text" name="name" placeholder="e.g., Countdown" .value=${card.name} required />
+              ${t(this.hass, 'loyalty.store_name')}
+              <input type="text" name="name" placeholder=${t(this.hass, 'loyalty.store_placeholder')} .value=${card.name} required />
             </label>
             <label>
-              Card Number
+              ${t(this.hass, 'loyalty.card_number')}
               <div class="scan-row">
-                <input type="text" name="number" placeholder="Card/Member number" .value=${card.number} required />
-                <button type="button" class="scan-btn" title="Scan barcode" @click=${() => this.startBarcodeScanner(true)}>📷</button>
+                <input type="text" name="number" placeholder=${t(this.hass, 'loyalty.card_number_placeholder')} .value=${card.number} required />
+                <button type="button" class="scan-btn" title=${t(this.hass, 'search.scan_barcode')} @click=${() => this.startBarcodeScanner(true)}>📷</button>
               </div>
             </label>
             <label>
-              Code Value
-              <input type="text" name="barcode" placeholder="Auto-generated from number" .value=${card.barcode} />
+              ${t(this.hass, 'loyalty.code_value')}
+              <input type="text" name="barcode" placeholder=${t(this.hass, 'loyalty.code_placeholder')} .value=${card.barcode} />
             </label>
             <label>
-              Code Type
+              ${t(this.hass, 'loyalty.code_type')}
               <div class="type-row">
                 <label class="type-option">
                   <input type="radio" name="barcode_type_edit" value="barcode"
                     .checked=${card.barcode_type !== 'qrcode'}
                     @change=${() => this.editingCard = { ...this.editingCard, barcode_type: 'barcode' }} />
                   <ha-icon icon="mdi:barcode"></ha-icon>
-                  Barcode
+                  ${t(this.hass, 'loyalty.barcode')}
                 </label>
                 <label class="type-option">
                   <input type="radio" name="barcode_type_edit" value="qrcode"
                     .checked=${card.barcode_type === 'qrcode'}
                     @change=${() => this.editingCard = { ...this.editingCard, barcode_type: 'qrcode' }} />
                   <ha-icon icon="mdi:qrcode"></ha-icon>
-                  QR Code
+                  ${t(this.hass, 'loyalty.qrcode')}
                 </label>
               </div>
             </label>
             <label>
-              Shop Logo URL (optional)
+              ${t(this.hass, 'loyalty.logo_url')}
               <input type="url" name="logo" placeholder="https://..." .value=${card.logo || ''} />
             </label>
             <label>
-              Notes
-              <textarea name="notes" placeholder="Additional notes..." rows="3" .value=${card.notes || ''}></textarea>
+              ${t(this.hass, 'loyalty.notes')}
+              <textarea name="notes" placeholder=${t(this.hass, 'loyalty.notes_placeholder')} rows="3" .value=${card.notes || ''}></textarea>
             </label>
             <label>
-              Card Color
+              ${t(this.hass, 'loyalty.card_color')}
               <input type="color" name="color" .value=${card.color} />
             </label>
           </div>
           <div class="dialog-footer">
             <button type="button" class="action-btn secondary" @click=${() => this.handleDuplicateCard(card)}>
-              Duplicate
+              ${t(this.hass, 'common.duplicate')}
             </button>
             ${this._canManageMembers(card) ? html`
               <button type="button" class="action-btn secondary" @click=${(e) => { e.preventDefault(); this.showEditDialog = false; this.handleOpenMembers(card); }}>
                 <ha-icon icon="mdi:account-multiple"></ha-icon>
-                Members
+                ${t(this.hass, 'loyalty.members')}
               </button>
             ` : ''}
             <button type="button" class="action-btn danger" @click=${() => this.handleDeleteCard(card.id)}>
-              Delete
+              ${t(this.hass, 'common.delete')}
             </button>
-            <button type="submit" class="action-btn primary">Save</button>
+            <button type="submit" class="action-btn primary">${t(this.hass, 'common.save')}</button>
           </div>
         </form>
       </div>
@@ -661,13 +663,13 @@ class SLMLoyaltyCardsView extends LitElement {
       <div class="overlay" @click=${() => { this.showMembersDialog = false; this.membersCard = null; }}>
         <form class="dialog" @click=${(e) => e.stopPropagation()} @submit=${this.handleSaveMembers}>
           <div class="dialog-header">
-            <h3>Manage Members</h3>
+            <h3>${t(this.hass, 'lists.manage_members')}</h3>
             <button type="button" @click=${() => { this.showMembersDialog = false; this.membersCard = null; }}>✖️</button>
           </div>
           <div class="dialog-content">
-            <p class="members-hint">Select which users can see "${card.name}"</p>
+            <p class="members-hint">${t(this.hass, 'loyalty.members_hint', { name: card.name })}</p>
             ${otherUsers.length === 0 ? html`
-              <p class="no-users">No other users found.</p>
+              <p class="no-users">${t(this.hass, 'lists.no_users')}</p>
             ` : otherUsers.map(user => html`
               <label class="user-row">
                 <input type="checkbox" class="member-checkbox" .value=${user.id} .checked=${allowedSet.has(user.id)} />
@@ -677,9 +679,9 @@ class SLMLoyaltyCardsView extends LitElement {
           </div>
           <div class="dialog-footer">
             <button type="button" class="action-btn secondary" @click=${() => { this.showMembersDialog = false; this.membersCard = null; }}>
-              Cancel
+              ${t(this.hass, 'common.cancel')}
             </button>
-            <button type="submit" class="action-btn primary">Save</button>
+            <button type="submit" class="action-btn primary">${t(this.hass, 'common.save')}</button>
           </div>
         </form>
       </div>
@@ -704,7 +706,7 @@ class SLMLoyaltyCardsView extends LitElement {
               `}
             </div>
           ` : ''}
-          <p class="tap-hint">Tap anywhere to close</p>
+          <p class="tap-hint">${t(this.hass, 'loyalty.tap_close')}</p>
         </div>
       </div>
     `;

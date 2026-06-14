@@ -1,8 +1,10 @@
 import { LitElement, html, css } from 'lit';
+import { t } from '../../localize.js';
 
 class SLMListCard extends LitElement {
   static properties = {
     list: { type: Object },
+    hass: { type: Object },
     isActive: { type: Boolean },
     itemCount: { type: Number },
     totalCost: { type: Number },
@@ -91,7 +93,7 @@ class SLMListCard extends LitElement {
       >
 
         ${this.isActive ? html`
-          <div class="active-badge">Active</div>
+          <div class="active-badge">${t(this.hass, 'lists.active')}</div>
         ` : ''}
 
         ${this._isPrivate ? html`
@@ -121,21 +123,21 @@ class SLMListCard extends LitElement {
           <div class="menu-popup" style="left: ${this.menuX}px; top: ${this.menuY}px;">
             <button @click=${(e) => this.handleAction('rename', e)}>
               <ha-icon icon="mdi:pencil"></ha-icon>
-              Rename
+              ${t(this.hass, 'common.rename')}
             </button>
             ${this._canManageMembers ? html`
               <button @click=${(e) => this.handleAction('members', e)}>
                 <ha-icon icon="mdi:account-multiple"></ha-icon>
-                Manage Members
+                ${t(this.hass, 'lists.manage_members')}
               </button>
             ` : ''}
             <button @click=${(e) => this.handleAction('copy', e)}>
               <ha-icon icon="mdi:content-copy"></ha-icon>
-              Copy
+              ${t(this.hass, 'lists.copy')}
             </button>
             <button class="danger" @click=${(e) => this.handleAction('delete', e)}>
               <ha-icon icon="mdi:delete"></ha-icon>
-              Delete
+              ${t(this.hass, 'common.delete')}
             </button>
           </div>
         </div>
