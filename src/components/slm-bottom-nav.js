@@ -1,6 +1,9 @@
 import { LitElement, html, css } from 'lit';
+import { t, I18nController } from '../services/translator.js';
 
 class SLMBottomNav extends LitElement {
+  _i18n = new I18nController(this);
+
   static properties = {
     currentView: { type: String }
   };
@@ -21,7 +24,7 @@ class SLMBottomNav extends LitElement {
           @click=${() => this.handleNavClick('shopping')}
         >
           <span class="emoji">🛒</span>
-          <span class="label">Shopping</span>
+          <span class="label">${t('Shopping')}</span>
         </button>
 
         <button
@@ -29,7 +32,7 @@ class SLMBottomNav extends LitElement {
           @click=${() => this.handleNavClick('lists')}
         >
           <span class="emoji">📋</span>
-          <span class="label">Lists</span>
+          <span class="label">${t('Lists')}</span>
         </button>
 
         <button
@@ -37,7 +40,7 @@ class SLMBottomNav extends LitElement {
           @click=${() => this.handleNavClick('loyalty')}
         >
           <span class="emoji">💳</span>
-          <span class="label">Loyalty</span>
+          <span class="label">${t('Loyalty')}</span>
         </button>
 
         <button
@@ -45,7 +48,7 @@ class SLMBottomNav extends LitElement {
           @click=${() => this.handleNavClick('settings')}
         >
           <span class="emoji">⚙️</span>
-          <span class="label">Settings</span>
+          <span class="label">${t('Settings')}</span>
         </button>
       </nav>
     `;

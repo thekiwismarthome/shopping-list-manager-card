@@ -1,9 +1,12 @@
 import { LitElement, html, css } from 'lit';
+import { t, I18nController } from '../services/translator.js';
 import { Html5Qrcode } from 'html5-qrcode';
 
 const UNITS = ['units', 'kg', 'g', 'L', 'mL', 'pack', 'loaf', 'dozen', 'ea', 'pkt', 'tray', 'bottle', 'can', 'bunch', 'roll', 'bar'];
 
 class SLMSearchBar extends LitElement {
+  _i18n = new I18nController(this);
+
   static properties = {
     api: { type: Object },
     settings: { type: Object },
@@ -448,7 +451,7 @@ class SLMSearchBar extends LitElement {
           <span class="search-icon">🔍</span>
           <input
             type="text"
-            placeholder="Search or add products..."
+            .placeholder=${t('Search products…')}
             .value=${this.searchQuery}
             @input=${this.handleSearch}
             @focus=${() => this.showResults = this.searchQuery.length > 0}
@@ -558,7 +561,7 @@ class SLMSearchBar extends LitElement {
                 </div>
 
                 <div class="create-actions">
-                  <button class="create-btn secondary" @click=${this.handleCancelCreate}>Cancel</button>
+                  <button class="create-btn secondary" @click=${this.handleCancelCreate}>${t('Cancel')}</button>
                   <button
                     class="create-btn primary"
                     @click=${this.handleCreateAndAdd}

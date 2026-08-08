@@ -1,6 +1,6 @@
 import { LitElement, html, css } from 'lit';
 import { ShoppingListAPI } from './services/api.js';
-import { loadTranslations, getLanguageCode, createT } from './services/translator.js';
+import { loadTranslations, getLanguageCode, setTranslations, t } from './services/translator.js';
 import './components/slm-bottom-nav.js';
 import './components/slm-list-header.js';
 import './components/slm-search-bar.js';
@@ -28,7 +28,6 @@ class ShoppingListManagerCard extends LitElement {
     categories: { type: Array },
     total: { type: Object },
     _currencySymbol: { type: String, state: true },
-    _t: { type: Object, state: true },
     loading: { type: Boolean },
     showAddDialog: { type: Boolean },
     showEditDialog: { type: Boolean },
@@ -89,7 +88,6 @@ class ShoppingListManagerCard extends LitElement {
     this._haTodoLastItems = {};
     this._haTodoSyncTimers = {};
     this._currencySymbol = '$';
-    this._t = (s) => s;
     this._integrationSettings = null;
   }
 
@@ -277,17 +275,15 @@ class ShoppingListManagerCard extends LitElement {
     const region = customRegions[activeCountry];
     if (!region) {
       this._currencySymbol = '$';
-      this._t = (s) => s;
+      setTranslations(null);
       return;
     }
-    if (region.currency_symbol) {
-      this._currencySymbol = region.currency_symbol;
-    }
+    this._currencySymbol = region.currency_symbol || '$';
     if (region.language && getLanguageCode(region.language)) {
       const translations = await loadTranslations(region.language);
-      this._t = createT(translations);
+      setTranslations(translations);
     } else {
-      this._t = (s) => s;
+      setTranslations(null);
     }
   }
 
@@ -926,7 +922,7 @@ class ShoppingListManagerCard extends LitElement {
             <div class="total-amount">
               ${this._currencySymbol}${this.total.total.toFixed(2)}
             </div>
-            <div class="total-count">${this.total.item_count} ${this._t('items')}</div>
+            <div class="total-count">${this.total.item_count} ${t('items')}</div>
           </div>
         `;
 

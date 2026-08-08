@@ -1,71 +1,96 @@
-// Language name (as typed by user) → BCP-47 code
+// Module-level singleton — all components share one translation table.
+let _translations = {};
+const _hosts = new Set();
+
+export function t(str) {
+  return _translations[str] ?? str;
+}
+
+export function setTranslations(translations) {
+  _translations = translations || {};
+  for (const host of _hosts) host.requestUpdate();
+}
+
+// Lit reactive controller — add to any LitElement to receive translation updates.
+export class I18nController {
+  constructor(host) {
+    this.host = host;
+    host.addController(this);
+  }
+  hostConnected() { _hosts.add(this.host); }
+  hostDisconnected() { _hosts.delete(this.host); }
+  hostUpdate() {}
+}
+
+// --- Language lookup ---
 const LANG_MAP = {
   afrikaans: 'af', albanian: 'sq', arabic: 'ar', armenian: 'hy',
   azerbaijani: 'az', basque: 'eu', belarusian: 'be', bengali: 'bn',
   bosnian: 'bs', bulgarian: 'bg', catalan: 'ca', chinese: 'zh',
   mandarin: 'zh', cantonese: 'zh', croatian: 'hr', czech: 'cs',
-  danish: 'da', dutch: 'nl', flemish: 'nl', english: 'en',
-  estonian: 'et', finnish: 'fi', french: 'fr', galician: 'gl',
-  georgian: 'ka', german: 'de', greek: 'el', gujarati: 'gu',
-  haitian: 'ht', hebrew: 'he', hindi: 'hi', hungarian: 'hu',
-  icelandic: 'is', indonesian: 'id', irish: 'ga', italian: 'it',
-  japanese: 'ja', kannada: 'kn', kazakh: 'kk', korean: 'ko',
-  latvian: 'lv', lithuanian: 'lt', macedonian: 'mk', malay: 'ms',
-  maltese: 'mt', marathi: 'mr', mongolian: 'mn', nepali: 'ne',
-  norwegian: 'no', persian: 'fa', farsi: 'fa', polish: 'pl',
-  portuguese: 'pt', punjabi: 'pa', romanian: 'ro', russian: 'ru',
-  serbian: 'sr', sinhalese: 'si', sinhala: 'si', slovak: 'sk',
-  slovenian: 'sl', spanish: 'es', swahili: 'sw', swedish: 'sv',
-  tagalog: 'tl', filipino: 'tl', tamil: 'ta', telugu: 'te',
-  thai: 'th', turkish: 'tr', ukrainian: 'uk', urdu: 'ur',
-  uzbek: 'uz', vietnamese: 'vi', welsh: 'cy', xhosa: 'xh',
-  zulu: 'zu',
+  danish: 'da', dutch: 'nl', flemish: 'nl', estonian: 'et',
+  finnish: 'fi', french: 'fr', galician: 'gl', georgian: 'ka',
+  german: 'de', greek: 'el', gujarati: 'gu', haitian: 'ht',
+  hebrew: 'he', hindi: 'hi', hungarian: 'hu', icelandic: 'is',
+  indonesian: 'id', irish: 'ga', italian: 'it', japanese: 'ja',
+  kannada: 'kn', kazakh: 'kk', korean: 'ko', latvian: 'lv',
+  lithuanian: 'lt', macedonian: 'mk', malay: 'ms', maltese: 'mt',
+  marathi: 'mr', mongolian: 'mn', nepali: 'ne', norwegian: 'no',
+  persian: 'fa', farsi: 'fa', polish: 'pl', portuguese: 'pt',
+  punjabi: 'pa', romanian: 'ro', russian: 'ru', serbian: 'sr',
+  sinhalese: 'si', sinhala: 'si', slovak: 'sk', slovenian: 'sl',
+  spanish: 'es', swahili: 'sw', swedish: 'sv', tagalog: 'tl',
+  filipino: 'tl', tamil: 'ta', telugu: 'te', thai: 'th',
+  turkish: 'tr', ukrainian: 'uk', urdu: 'ur', uzbek: 'uz',
+  vietnamese: 'vi', welsh: 'cy', xhosa: 'xh', zulu: 'zu',
 };
-
-// Strings to translate — keys are canonical English strings used throughout the card
-export const UI_STRINGS = [
-  // Navigation & chrome
-  'Back', 'Settings', 'Done', 'Loading…',
-  // List actions
-  'Add item', 'Clear checked', 'Search', 'Sort', 'Filter',
-  'No items yet', 'Add your first item to get started',
-  'items', 'item',
-  // Item actions
-  'Delete', 'Edit', 'Save', 'Cancel', 'Confirm',
-  'Add to list', 'Scan barcode', 'Custom',
-  // Fields
-  'Price', 'Unit', 'Quantity', 'Name', 'Brand', 'Notes',
-  // Product search
-  'Search products…', 'Searching…', 'No results', 'Add custom item',
-  // Categories
-  'Categories', 'All', 'Uncategorised',
-  // Lists
-  'Shopping Lists', 'My Lists', 'New list', 'Rename', 'Manage lists',
-  // Settings labels
-  'Region & Catalog', 'Active Region', 'Custom Regions', 'Add custom region',
-  'Save region', 'Built-in', 'Custom', 'Language', 'Currency symbol',
-  'Backup & Restore', 'Export Data', 'Import Data', 'Download backup',
-  'Choose backup file', 'Working…',
-  // Loyalty
-  'Loyalty Cards', 'Add card',
-  // Misc
-  'HA Todo Sync', 'Link lists to Home Assistant todo',
-];
-
-const CACHE_PREFIX = 'slm_i18n_v1_';
-const MYMEMORY_URL = 'https://api.mymemory.translated.net/get';
 
 export function getLanguageCode(languageName) {
   if (!languageName) return null;
   const key = languageName.trim().toLowerCase();
-  if (Object.values(LANG_MAP).includes(key)) return key; // already a code
+  if (/^[a-z]{2,3}(-[a-z]{2,4})?$/i.test(key)) return key; // already a BCP-47 code
   return LANG_MAP[key] || null;
 }
 
+// All translatable strings in the UI
+export const UI_STRINGS = [
+  // Bottom nav
+  'Shopping', 'Lists', 'Loyalty', 'Settings',
+  // List header
+  'Shopping List', 'View', 'Sort', 'Tiles', 'List', 'By Category', 'A–Z',
+  'Recently Used', 'Show Price',
+  // Search bar
+  'Search products…', 'Searching…', 'No results', 'Add custom item',
+  'Name', 'Price', 'Unit', 'Category', 'Brand', 'Barcode',
+  'Save', 'Cancel', 'Search OFT by name', 'Add to list',
+  // Item list
+  'Your shopping list is empty', 'items', 'item',
+  // Settings main
+  'Profile', 'Appearance', 'Theme, tiles, fonts',
+  'Notifications', 'List sharing, emails',
+  'Preferences', 'Open last used list at launch', 'Keep screen turned on',
+  'Region & Catalog', 'Country-specific products and pricing',
+  'Manage Categories', 'categories',
+  'HA Todo Sync', 'Link lists to Home Assistant todo',
+  'Support', 'FAQ & Support', 'Refresh', 'App',
+  'Shopping List Manager', 'SLM Card',
+  // Data settings
+  'Active Region', 'Custom Regions', 'Add custom region', 'Save region',
+  'Built-in', 'Custom', 'Language', 'Currency symbol',
+  'Backup & Restore', 'Export Data', 'Import Data',
+  'Download backup', 'Choose backup file', 'Working…',
+  'Switching catalog…', 'Loading…', 'Back', 'Done',
+  // General
+  'Delete', 'Edit', 'Confirm', 'Close',
+];
+
+// --- API fetch (MyMemory, free, no key required) ---
+const MYMEMORY_URL = 'https://api.mymemory.translated.net/get';
+const CACHE_PREFIX = 'slm_i18n_v2_';
+
 async function translateOne(text, langCode) {
   try {
-    const url = `${MYMEMORY_URL}?q=${encodeURIComponent(text)}&langpair=en|${langCode}`;
-    const res = await fetch(url);
+    const res = await fetch(`${MYMEMORY_URL}?q=${encodeURIComponent(text)}&langpair=en|${langCode}`);
     if (!res.ok) return text;
     const json = await res.json();
     if (json.responseStatus !== 200) return text;
@@ -75,9 +100,9 @@ async function translateOne(text, langCode) {
   }
 }
 
-async function fetchTranslations(langCode, strings) {
-  // Run in parallel, cap concurrency to 5 at a time to avoid rate limits
+async function fetchAll(langCode, strings) {
   const results = {};
+  // Batch 5 at a time to avoid rate limits
   for (let i = 0; i < strings.length; i += 5) {
     const batch = strings.slice(i, i + 5);
     const translated = await Promise.all(batch.map(s => translateOne(s, langCode)));
@@ -95,20 +120,15 @@ export async function loadTranslations(languageName) {
     const cached = localStorage.getItem(cacheKey);
     if (cached) {
       const parsed = JSON.parse(cached);
-      if (parsed?.v === 1 && parsed?.strings) return parsed.strings;
+      if (parsed?.v === 2 && parsed?.strings) return parsed.strings;
     }
   } catch { /* ignore */ }
 
-  const strings = await fetchTranslations(langCode, UI_STRINGS);
+  const strings = await fetchAll(langCode, UI_STRINGS);
 
   try {
-    localStorage.setItem(cacheKey, JSON.stringify({ v: 1, lang: langCode, strings }));
+    localStorage.setItem(cacheKey, JSON.stringify({ v: 2, lang: langCode, strings }));
   } catch { /* storage full */ }
 
   return strings;
-}
-
-export function createT(translations) {
-  if (!translations) return (s) => s;
-  return (s) => translations[s] ?? s;
 }

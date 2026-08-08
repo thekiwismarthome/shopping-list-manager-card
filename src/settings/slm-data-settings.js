@@ -115,8 +115,9 @@ class SLMDataSettings extends LitElement {
   async _handleCountrySelect(code) {
     if (code === this._currentCountry || this._saving) return;
 
-    const countryName = this._availableCountries[code] || code;
-    const isCustom = !!this._customRegions[code];
+    const customRegion = this._customRegions[code];
+    const countryName = customRegion?.name || this._availableCountries[code] || code;
+    const isCustom = !!customRegion;
     const msg = isCustom
       ? `Switch to custom region "${countryName}"?\n\nBuilt-in catalog products will be removed. Add your own products after switching.`
       : `Switch to ${countryName}?\n\nDefault catalog products will be replaced with ${countryName} products. Your custom products are kept.`;
@@ -239,9 +240,9 @@ class SLMDataSettings extends LitElement {
                 </optgroup>
                 ${customEntries.length > 0 ? html`
                   <optgroup label="Custom">
-                    ${customEntries.map(([code, name]) => html`
+                    ${customEntries.map(([code, region]) => html`
                       <option value=${code} ?selected=${this._currentCountry === code}>
-                        ${code} — ${name}
+                        ${code} — ${region.name}
                       </option>
                     `)}
                   </optgroup>

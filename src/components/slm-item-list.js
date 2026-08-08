@@ -1,8 +1,11 @@
 import { LitElement, html, css } from 'lit';
+import { t, I18nController } from '../services/translator.js';
 import { PRODUCT_ICON_MAP } from '../icons/product-icon-map.js';
 import { PRODUCT_ICONS } from '../icons/product-icons.js';
 
 class SLMItemList extends LitElement {
+  _i18n = new I18nController(this);
+
   static properties = {
     items: { type: Array },
     categories: { type: Array },
@@ -390,7 +393,7 @@ class SLMItemList extends LitElement {
       return html`
         <div class="empty">
           <div class="empty-emoji">🛒</div>
-          <p>Your shopping list is empty</p>
+          <p>${t('Your shopping list is empty')}</p>
           <p class="hint">Search for products to add items</p>
         </div>
       `;
