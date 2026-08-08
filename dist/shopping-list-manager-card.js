@@ -4968,7 +4968,168 @@ const C=globalThis,A=t=>t,I=C.trustedTypes,S=I?I.createPolicy("lit-html",{create
       opacity: 0.5;
       cursor: default;
     }
-  `}customElements.define("slm-data-settings",oa);class sa extends st{static properties={hass:{type:Object},api:{type:Object},settings:{type:Object},isEmbedded:{type:Boolean},categories:{type:Array},currentSection:{type:String},_slmVersion:{type:String},_slmcVersion:{type:String}};constructor(){super(),this.currentSection="main",this._slmVersion="…",this._slmcVersion="…"}updated(t){t.has("hass")&&this.hass&&"…"===this._slmVersion&&this.hass.callWS({type:"hacs/repositories/list"}).then(t=>{const e=t.find(t=>"thekiwismarthome/shopping-list-manager"===t.full_name),i=t.find(t=>"thekiwismarthome/shopping-list-manager-card"===t.full_name);this._slmVersion=e?.installed_version??"—",this._slmcVersion=i?.installed_version??Ys}).catch(()=>{this._slmVersion="—",this._slmcVersion=Ys})}handleSettingChange(t,e){this.dispatchEvent(new CustomEvent("settings-changed",{detail:{[t]:e},bubbles:!0,composed:!0}))}handleNavigation(t){this.currentSection=t}renderMainSettings(){return z`
+  `}customElements.define("slm-data-settings",oa);class sa extends st{static properties={hass:{type:Object},settings:{type:Object},lists:{type:Array},_todoEntities:{type:Array,state:!0}};constructor(){super(),this._todoEntities=[]}connectedCallback(){super.connectedCallback(),this._loadTodoEntities()}updated(t){t.has("hass")&&this.hass&&this._loadTodoEntities()}_loadTodoEntities(){this.hass?.states&&(this._todoEntities=Object.entries(this.hass.states).filter(([t])=>t.startsWith("todo.")).map(([t,e])=>({entityId:t,name:e.attributes?.friendly_name||t})).sort((t,e)=>t.name.localeCompare(e.name)))}_getLinkedEntity(t){return this.settings?.haTodoSync?.[t]||""}_handleEntityChange(t,e){const i={...this.settings?.haTodoSync||{}};e?i[t]=e:delete i[t],this.dispatchEvent(new CustomEvent("settings-changed",{detail:{haTodoSync:i},bubbles:!0,composed:!0}))}render(){const t=this.lists||[];return z`
+      <div class="ha-sync-settings">
+        <div class="header">
+          <button class="back-btn" @click=${()=>this.dispatchEvent(new Event("back"))}>
+            <ha-icon icon="mdi:arrow-left"></ha-icon>
+          </button>
+          <h2>HA Todo Sync</h2>
+        </div>
+
+        <div class="settings-list">
+          <div class="section-header">Link Lists to HA Todo</div>
+
+          <div class="info-item">
+            <div class="item-subtitle">
+              Link each shopping list to a Home Assistant todo list. Items added, checked,
+              or removed in SLM will be mirrored to the linked HA todo list.
+            </div>
+          </div>
+
+          ${0===this._todoEntities.length?z`
+            <div class="settings-item">
+              <div class="item-content">
+                <div class="item-title">No todo lists found</div>
+                <div class="item-subtitle">
+                  No HA todo entities were detected. Make sure the
+                  "To-do List" integration is enabled in Home Assistant.
+                </div>
+              </div>
+            </div>
+          `:0===t.length?z`
+            <div class="settings-item">
+              <div class="item-content">
+                <div class="item-title">No lists</div>
+                <div class="item-subtitle">Create a shopping list first.</div>
+              </div>
+            </div>
+          `:t.map(t=>z`
+            <div class="settings-item">
+              <div class="item-content">
+                <div class="item-title">${t.name}</div>
+                ${this._getLinkedEntity(t.id)?z`
+                  <div class="item-subtitle linked">
+                    Linked to ${this._todoEntities.find(e=>e.entityId===this._getLinkedEntity(t.id))?.name||this._getLinkedEntity(t.id)}
+                  </div>
+                `:""}
+              </div>
+              <select
+                class="entity-select"
+                @change=${e=>this._handleEntityChange(t.id,e.target.value)}
+              >
+                <option value="" ?selected=${!this._getLinkedEntity(t.id)}>None</option>
+                ${this._todoEntities.map(e=>z`
+                  <option
+                    value=${e.entityId}
+                    ?selected=${this._getLinkedEntity(t.id)===e.entityId}
+                  >
+                    ${e.name}
+                  </option>
+                `)}
+              </select>
+            </div>
+          `)}
+
+          <div class="section-header">How it works</div>
+          <div class="settings-item">
+            <div class="item-content">
+              <div class="item-subtitle">
+                Changes flow one way: SLM → HA. Adding an item in SLM adds it to the
+                HA todo list. Checking an item marks it complete. Deleting an item
+                removes it. Changes made directly in the HA todo list do not
+                automatically appear in SLM.
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    `}static styles=o`
+    :host {
+      display: block;
+    }
+    .ha-sync-settings {
+      padding-bottom: 20px;
+    }
+    .header {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      padding: 12px;
+      border-bottom: 1px solid var(--slm-border-subtle);
+    }
+    .back-btn {
+      background: none;
+      border: none;
+      padding: 8px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      color: var(--slm-text-primary);
+      -webkit-tap-highlight-color: transparent;
+    }
+    ha-icon {
+      color: var(--slm-text-primary);
+      --icon-primary-color: var(--slm-text-primary);
+    }
+    .header h2 {
+      margin: 0;
+      font-size: 20px;
+      font-weight: 700;
+      color: var(--slm-text-primary);
+    }
+    .section-header {
+      padding: 14px 16px 6px;
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--slm-text-primary);
+      opacity: 0.55;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+    }
+    .info-item {
+      padding: 10px 16px 14px;
+      border-bottom: 1px solid var(--slm-border-subtle);
+    }
+    .settings-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 14px 16px;
+      border-bottom: 1px solid var(--slm-border-subtle);
+      box-sizing: border-box;
+    }
+    .item-content {
+      flex: 1;
+      min-width: 0;
+    }
+    .item-title {
+      font-weight: 600;
+      font-size: 14px;
+      margin-bottom: 2px;
+      color: var(--slm-text-primary);
+    }
+    .item-subtitle {
+      font-size: 12px;
+      color: var(--slm-text-secondary);
+      line-height: 1.5;
+    }
+    .item-subtitle.linked {
+      color: var(--slm-accent-secondary, #81c784);
+    }
+    .entity-select {
+      background: var(--slm-bg-elevated);
+      color: var(--slm-text-primary);
+      border: 1px solid var(--slm-border-subtle);
+      border-radius: 8px;
+      padding: 7px 10px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      flex-shrink: 0;
+      max-width: 160px;
+    }
+  `}customElements.define("slm-ha-sync-settings",sa);class aa extends st{static properties={hass:{type:Object},api:{type:Object},settings:{type:Object},isEmbedded:{type:Boolean},categories:{type:Array},lists:{type:Array},currentSection:{type:String},_slmVersion:{type:String},_slmcVersion:{type:String}};constructor(){super(),this.currentSection="main",this._slmVersion="…",this._slmcVersion="…"}updated(t){t.has("hass")&&this.hass&&"…"===this._slmVersion&&this.hass.callWS({type:"hacs/repositories/list"}).then(t=>{const e=t.find(t=>"thekiwismarthome/shopping-list-manager"===t.full_name),i=t.find(t=>"thekiwismarthome/shopping-list-manager-card"===t.full_name);this._slmVersion=e?.installed_version??"—",this._slmcVersion=i?.installed_version??Ys}).catch(()=>{this._slmVersion="—",this._slmcVersion=Ys})}handleSettingChange(t,e){this.dispatchEvent(new CustomEvent("settings-changed",{detail:{[t]:e},bubbles:!0,composed:!0}))}handleNavigation(t){this.currentSection=t}renderMainSettings(){return z`
       <div class="settings-main">
         <div class="settings-header">
           <h2>Settings</h2>
@@ -5062,6 +5223,17 @@ const C=globalThis,A=t=>t,I=C.trustedTypes,S=I?I.createPolicy("lit-html",{create
             <span class="chevron">></span>
           </button>
 
+          <button class="settings-item" @click=${()=>this.handleNavigation("ha-sync")}>
+            <div class="item-icon">
+              <span class="emoji">🔗</span>
+            </div>
+            <div class="item-content">
+              <div class="item-title">HA Todo Sync</div>
+              <div class="item-subtitle">Link lists to Home Assistant todo</div>
+            </div>
+            <span class="chevron">></span>
+          </button>
+
           <div class="section-header">Support</div>
 
           <button class="settings-item" @click=${()=>this.handleNavigation("support")}>
@@ -5135,6 +5307,14 @@ const C=globalThis,A=t=>t,I=C.trustedTypes,S=I?I.createPolicy("lit-html",{create
             .api=${this.api}
             @back=${()=>this.currentSection="main"}
           ></slm-data-settings>
+        `;case"ha-sync":return z`
+          <slm-ha-sync-settings
+            .hass=${this.hass}
+            .settings=${this.settings}
+            .lists=${this.lists}
+            @settings-changed=${t=>this.dispatchEvent(t)}
+            @back=${()=>this.currentSection="main"}
+          ></slm-ha-sync-settings>
         `;default:return this.renderMainSettings()}}static styles=o`
     :host {
       display: block;
@@ -5248,7 +5428,7 @@ const C=globalThis,A=t=>t,I=C.trustedTypes,S=I?I.createPolicy("lit-html",{create
     input:checked + .slider:before {
       transform: translateX(22px);
     }
-  `}customElements.define("slm-settings-view",sa);const aa=new Map;class ca extends st{static properties={hass:{type:Object},config:{type:Object},isEmbedded:{type:Boolean},currentView:{type:String},lists:{type:Array},activeList:{type:Object},items:{type:Array},categories:{type:Array},total:{type:Object},loading:{type:Boolean},showAddDialog:{type:Boolean},showEditDialog:{type:Boolean},editingItem:{type:Object},settings:{type:Object},isEmbedded:{type:Boolean}};set hass(t){this._hass=t,this.api&&(this.api.hass=t),t?.config?.currency&&!this.total.currency&&(this.total={...this.total,currency:t.config.currency});const e=t?.user?.id;e&&this._settingsUserId!==e&&(this._settingsUserId=e,this.settings=this.loadSettings()),!this._subscribed&&t?.connection&&(this._subscribed=!0,this.subscribeToUpdates())}get hass(){return this._hass}constructor(){super(),this.isEmbedded=!1,this.currentView="shopping",this.lists=[],this.activeList=null,this.recentItems=[],this.items=[],this.categories=[],this.total={total:0,currency:"",item_count:0},this.loading=!0,this.showAddDialog=!1,this.showEditDialog=!1,this.editingItem=null,this._settingsUserId=null,this._baseCardId=null,this._cardId=null,this._assignedCardId=null,this.settings=this.loadSettings(),this.isEmbedded=!1,this._subscribed=!1}connectedCallback(){if(super.connectedCallback(),!this._assignedCardId&&this._baseCardId){const t=aa.get(this._baseCardId)??0;aa.set(this._baseCardId,t+1),this._assignedCardId=0===t?this._baseCardId:`${this._baseCardId}_${t}`}else if(this._assignedCardId&&this._baseCardId){const t=aa.get(this._baseCardId)??0;aa.set(this._baseCardId,t+1)}if(this._assignedCardId){const t=this._cardId;this._cardId=this._assignedCardId,this._cardId!==t&&this._settingsUserId&&(this.settings=this.loadSettings(),this.applyColorScheme(),this.requestUpdate())}}_hashConfig(t){const e=JSON.stringify(t);let i=0;for(let t=0;t<e.length;t++)i=(i<<5)-i+e.charCodeAt(t),i|=0;return Math.abs(i).toString(36)}_getSettingsKey(){const t=["slm_settings"];return this._settingsUserId&&t.push(this._settingsUserId),this._cardId&&t.push(this._cardId),t.join("_")}loadSettings(){const t={theme:"auto",darkMode:"system",fontSize:16,fontFamily:"system",useSystemTextSize:!0,openLastUsedList:!0,keepScreenOn:!1,notifications:{listSharing:!0,emails:!0},recentProductsCount:8,tilesPerRow:this.isEmbedded?8:3,useEmojis:!0,colorScheme:"pastel",viewMode:"tile",sortMode:"category",showRecentlyUsed:!0,showPriceOnTile:!0,localImagePath:"/local/images/groceries",fontWeight:"normal"},e=this._getSettingsKey(),i=localStorage.getItem(e);if(i)return{...t,...JSON.parse(i)};if(this._cardId&&this._settingsUserId){const i=`slm_settings_${this._settingsUserId}`,r=localStorage.getItem(i);if(r){const i={...t,...JSON.parse(r)};return localStorage.setItem(e,JSON.stringify(i)),i}}return t}saveSettings(){const t=this._getSettingsKey();localStorage.setItem(t,JSON.stringify(this.settings))}async firstUpdated(){this.api=new ct(this.hass),await this.loadData(),this.applyColorScheme(),this.settings.keepScreenOn&&this.acquireWakeLock(),this._visibilityHandler=()=>{this.settings.keepScreenOn&&"visible"===document.visibilityState&&this.acquireWakeLock()},document.addEventListener("visibilitychange",this._visibilityHandler)}disconnectedCallback(){if(super.disconnectedCallback(),this.releaseWakeLock(),document.removeEventListener("visibilitychange",this._visibilityHandler),this._baseCardId){const t=aa.get(this._baseCardId)??1;aa.set(this._baseCardId,Math.max(0,t-1))}}async acquireWakeLock(){if("wakeLock"in navigator)try{this._wakeLock=await navigator.wakeLock.request("screen"),this._wakeLock.addEventListener("release",()=>{this._wakeLock=null})}catch(t){console.warn("[SLM] Wake lock failed:",t.message)}}releaseWakeLock(){this._wakeLock?.release(),this._wakeLock=null}applyColorScheme(){const t=this.settings.darkMode;"on"===t?this.setAttribute("data-theme","dark"):"off"===t?this.setAttribute("data-theme","light"):this.removeAttribute("data-theme");const e=this.settings.theme;e&&"soft"!==e?this.setAttribute("data-theme-name",e):this.removeAttribute("data-theme-name"),this.settings.useSystemTextSize?this.style.removeProperty("--slm-font-size-base"):this.style.setProperty("--slm-font-size-base",`${this.settings.fontSize}px`);this.style.setProperty("--slm-font-weight-base",{light:"300",normal:"400",bold:"700"}[this.settings.fontWeight]||"400")}async loadData(){try{this.loading=!0;const t=await this.api.getLists();this.lists=t.lists||[];const e=`slm_last_list_${this._settingsUserId||"default"}`;if(this.settings.openLastUsedList){const t=localStorage.getItem(e);this.activeList=this.lists.find(e=>e.id===t)||this.lists.find(t=>t.active)||this.lists[0]}else this.activeList=this.lists.find(t=>t.active)||this.lists[0];const i=await this.api.getCategories();this.categories=i.categories,this.activeList&&await this.loadActiveListData()}catch(t){console.error("Failed to load data:",t)}finally{this.loading=!1}}async loadActiveListData(){if(!this.activeList)return;const t=await this.api.getItems(this.activeList.id);this.items=t.items;const e=await this.api.getListTotal(this.activeList.id);this.total=e;const i=`slm_last_list_${this._settingsUserId||"default"}`;localStorage.setItem(i,this.activeList.id)}async _refreshTotal(){if(this.activeList)try{const t=await this.api.getListTotal(this.activeList.id);this.total=t}catch(t){console.warn("[SLM] Failed to refresh total:",t)}}async handleListChange(t){const e=t.detail.listId;await this.api.setActiveList(e),this.activeList=this.lists.find(t=>t.id===e),await this.loadActiveListData(),this.currentView="shopping"}async handleItemClick(t){const{itemId:e}=t.detail,i=this.items.find(t=>t.id===e);if(!i||i.checked)return;const r=this.items;this.items=this.items.map(t=>t.id===e?{...t,quantity:t.quantity+1,_pending:!0}:t);try{await this.api.incrementItem(e,1),this.items=this.items.map(t=>t.id===e?{...t,_pending:!1}:t)}catch(t){console.error("[SLM] Failed to increment item:",t),this.items=r}}async handleItemDecrease(t){const{itemId:e}=t.detail,i=this.items.find(t=>t.id===e);if(!i)return;const r=this.items;if(i.quantity>1){this.items=this.items.map(t=>t.id===e?{...t,quantity:t.quantity-1,_pending:!0}:t);try{await this.api.incrementItem(e,-1),this.items=this.items.map(t=>t.id===e?{...t,_pending:!1}:t)}catch(t){console.error("[SLM] Failed to decrement item:",t),this.items=r}}else{this.items=this.items.filter(t=>t.id!==e);try{await this.api.deleteItem(e),this._refreshTotal()}catch(t){console.error("[SLM] Failed to delete item:",t),this.items=r}}}async handleItemCheck(t){const{itemId:e,checked:i}=t.detail;if(i){const t=this.items.find(t=>t.id===e);t?.product_id&&this.trackRecentlyUsed(t.product_id)}const r=this.items;this.items=this.items.map(t=>t.id===e?{...t,checked:i,_pending:!0}:t);try{await this.api.checkItem(e,i),this.items=this.items.map(t=>t.id===e?{...t,_pending:!1}:t)}catch(t){console.error("[SLM] Failed to check item:",t),this.items=r}}async handleItemLongPress(t){this.editingItem=t.detail.item,this.showEditDialog=!0}async handleItemSwipeDelete(t){const{itemId:e}=t.detail,i=this.items.find(t=>t.id===e);i?.product_id&&this.untrackRecentlyUsed(i.product_id);const r=this.items;this.items=this.items.filter(t=>t.id!==e);try{await this.api.deleteItem(e),this._refreshTotal()}catch(t){console.error("[SLM] Failed to delete item:",t),this.items=r}}untrackRecentlyUsed(t){if(!t)return;const e="slm_recent_products",i=localStorage.getItem(e);if(!i)return;const r=JSON.parse(i).filter(e=>e!==t);localStorage.setItem(e,JSON.stringify(r))}async handleAddItem(t){const e={...t.detail};if(this.showAddDialog=!1,!e.product_id&&!e.fromRecentlyUsed)try{const t={name:e.name,category_id:e.category_id||"other"};e.price&&(t.price=parseFloat(e.price)),e.image_url&&(t.image_url=e.image_url);const i=await this.api.addProduct(t),r=i.product||i;r?.id&&(e.product_id=r.id)}catch(t){console.warn("[SLM] Could not auto-create product:",t)}const i=this.items.find(t=>t.product_id&&t.product_id===e.product_id&&!t.checked);try{if(e.fromRecentlyUsed)if(i)await this.api.updateItem(i.id,{quantity:1});else{const{fromRecentlyUsed:t,...i}=e,r={quantity:1};for(const[t,e]of Object.entries(i))null!=e&&(r[t]=e);await this.api.addItem(this.activeList.id,r)}else i?await this.api.updateItem(i.id,{quantity:i.quantity+1}):await this.api.addItem(this.activeList.id,e);this.trackRecentlyUsed(e.product_id),this._refreshTotal()}catch(t){console.error("[SLM] Failed to add item:",t)}}trackRecentlyUsed(t){if(!t)return;const e="slm_recent_products",i=localStorage.getItem(e),r=(i?JSON.parse(i):[]).filter(e=>e!==t);r.unshift(t);const n=r.slice(0,50);localStorage.setItem(e,JSON.stringify(n))}async _syncProductFromItemData(t,e){const i={};e.name&&(i.name=e.name),e.category_id&&(i.category_id=e.category_id),void 0!==e.price&&""!==e.price&&(i.price=parseFloat(e.price)||0),e.unit&&(i.default_unit=e.unit),void 0!==e.image_url&&(i.image_url=e.image_url),Object.keys(i).length>0&&await this.api.updateProduct(t,i)}async handleEditItem(t){const{itemId:e,data:i}=t.detail;if(this.editingItem?._isProductEdit)await this._syncProductFromItemData(this.editingItem.product_id,i);else{await this.api.updateItem(e,i);const t=this.items.find(t=>t.id===e);t?.product_id&&await this._syncProductFromItemData(t.product_id,i)}this._refreshTotal(),this.showEditDialog=!1,this.editingItem=null}handleNavChange(t){this.currentView=t.detail.view}handleSettingsChange(t){this.settings={...this.settings,...t.detail},this.saveSettings(),this.applyColorScheme(),this.settings.keepScreenOn?this.acquireWakeLock():this.releaseWakeLock(),this.requestUpdate()}handleMenuSettingChange(t){const{key:e,value:i}=t.detail;this.settings={...this.settings,[e]:i},this.saveSettings(),this.requestUpdate()}async handleCreateAndAddProduct(t){const{name:e,category_id:i,price:r,unit:n,barcode:o,image_url:s}=t.detail;try{const t={name:e,category_id:i};r&&(t.price=parseFloat(r)),o&&(t.barcode=o),s&&(t.image_url=s);const a=await this.api.addProduct(t),c=a.product||a,l={name:e,category_id:i,product_id:c.id,quantity:1,unit:n||"units"};r&&(l.price=parseFloat(r)),await this.api.addItem(this.activeList.id,l),c.id&&this.trackRecentlyUsed(c.id),this._refreshTotal()}catch(t){console.error("Failed to create product:",t)}}handleBackToLists(){this.currentView="lists"}async handleShareList(){const t=this.activeList?.name||"Shopping List",e=this.items.filter(t=>!t.checked).map(t=>`${t.quantity} ${t.unit} ${t.name}`).join("\n"),i=`${t}\n\n${e}`;if(navigator.share)try{await navigator.share({title:t,text:i})}catch(t){"AbortError"!==t.name&&console.error("Share failed:",t)}else try{if(navigator.clipboard?.writeText)await navigator.clipboard.writeText(i);else{const t=document.createElement("textarea");t.value=i,t.style.cssText="position:fixed;top:-9999px;left:-9999px;opacity:0",document.body.appendChild(t),t.focus(),t.select(),document.execCommand("copy"),document.body.removeChild(t)}alert("List copied to clipboard!")}catch(t){console.error("Copy to clipboard failed:",t),alert("Could not copy to clipboard. Please copy manually:\n\n"+i)}}async subscribeToUpdates(){if(this.hass?.connection)try{const t=await this.hass.connection.subscribeMessage(t=>this._applySubscriptionEvent(t),{type:"shopping_list_manager/subscribe"});this._unsubscribers=[t],console.log("[SLM] ✅ Subscribed to shopping list updates")}catch(t){console.error("[SLM] ❌ Failed to subscribe:",t)}}_applySubscriptionEvent(t){const e=t.event_type,i=t.data,r=this.activeList?.id;if("shopping_list_manager_item_added"===e){if(i.list_id!==r)return;this.items.find(t=>t.id===i.item.id)||(this.items=[...this.items,i.item]),this._refreshTotal()}else if("shopping_list_manager_item_updated"===e){if(i.list_id!==r)return;this.items=this.items.map(t=>t.id===i.item.id?{...i.item,_pending:!1}:t),this._refreshTotal()}else if("shopping_list_manager_item_checked"===e){const{item_id:t,item_ids:e,checked:n,list_id:o}=i;if(t){if(o&&o!==r)return;this.items=this.items.map(e=>e.id===t?{...e,checked:n,_pending:!1}:e)}else if(e){const t=new Set(e);this.items=this.items.map(e=>t.has(e.id)?{...e,checked:n,_pending:!1}:e)}}else if("shopping_list_manager_item_deleted"===e){const{item_id:t,action:e,list_id:n}=i;if("cleared_checked"===e){if(n!==r)return;this.items=this.items.filter(t=>!t.checked)}else t&&(this.items=this.items.filter(e=>e.id!==t));this._refreshTotal()}else"shopping_list_manager_list_updated"!==e&&"shopping_list_manager_list_deleted"!==e||this.loadData()}renderCurrentView(){switch(this.currentView){case"shopping":return z`
+  `}customElements.define("slm-settings-view",aa);const ca=new Map;class la extends st{static properties={hass:{type:Object},config:{type:Object},isEmbedded:{type:Boolean},currentView:{type:String},lists:{type:Array},activeList:{type:Object},items:{type:Array},categories:{type:Array},total:{type:Object},loading:{type:Boolean},showAddDialog:{type:Boolean},showEditDialog:{type:Boolean},editingItem:{type:Object},settings:{type:Object},isEmbedded:{type:Boolean}};set hass(t){this._hass=t,this.api&&(this.api.hass=t),t?.config?.currency&&!this.total.currency&&(this.total={...this.total,currency:t.config.currency});const e=t?.user?.id;e&&this._settingsUserId!==e&&(this._settingsUserId=e,this.settings=this.loadSettings()),!this._subscribed&&t?.connection&&(this._subscribed=!0,this.subscribeToUpdates())}get hass(){return this._hass}constructor(){super(),this.isEmbedded=!1,this.currentView="shopping",this.lists=[],this.activeList=null,this.recentItems=[],this.items=[],this.categories=[],this.total={total:0,currency:"",item_count:0},this.loading=!0,this.showAddDialog=!1,this.showEditDialog=!1,this.editingItem=null,this._settingsUserId=null,this._baseCardId=null,this._cardId=null,this._assignedCardId=null,this.settings=this.loadSettings(),this.isEmbedded=!1,this._subscribed=!1}connectedCallback(){if(super.connectedCallback(),!this._assignedCardId&&this._baseCardId){const t=ca.get(this._baseCardId)??0;ca.set(this._baseCardId,t+1),this._assignedCardId=0===t?this._baseCardId:`${this._baseCardId}_${t}`}else if(this._assignedCardId&&this._baseCardId){const t=ca.get(this._baseCardId)??0;ca.set(this._baseCardId,t+1)}if(this._assignedCardId){const t=this._cardId;this._cardId=this._assignedCardId,this._cardId!==t&&this._settingsUserId&&(this.settings=this.loadSettings(),this.applyColorScheme(),this.requestUpdate())}}_hashConfig(t){const e=JSON.stringify(t);let i=0;for(let t=0;t<e.length;t++)i=(i<<5)-i+e.charCodeAt(t),i|=0;return Math.abs(i).toString(36)}_getSettingsKey(){const t=["slm_settings"];return this._settingsUserId&&t.push(this._settingsUserId),this._cardId&&t.push(this._cardId),t.join("_")}loadSettings(){const t={theme:"auto",darkMode:"system",fontSize:16,fontFamily:"system",useSystemTextSize:!0,openLastUsedList:!0,keepScreenOn:!1,notifications:{listSharing:!0,emails:!0},recentProductsCount:8,tilesPerRow:this.isEmbedded?8:3,useEmojis:!0,colorScheme:"pastel",viewMode:"tile",sortMode:"category",showRecentlyUsed:!0,showPriceOnTile:!0,localImagePath:"/local/images/groceries",fontWeight:"normal",haTodoSync:{}},e=this._getSettingsKey(),i=localStorage.getItem(e);if(i)return{...t,...JSON.parse(i)};if(this._cardId&&this._settingsUserId){const i=`slm_settings_${this._settingsUserId}`,r=localStorage.getItem(i);if(r){const i={...t,...JSON.parse(r)};return localStorage.setItem(e,JSON.stringify(i)),i}}return t}saveSettings(){const t=this._getSettingsKey();localStorage.setItem(t,JSON.stringify(this.settings))}async firstUpdated(){this.api=new ct(this.hass),await this.loadData(),this.applyColorScheme(),this.settings.keepScreenOn&&this.acquireWakeLock(),this._visibilityHandler=()=>{this.settings.keepScreenOn&&"visible"===document.visibilityState&&this.acquireWakeLock()},document.addEventListener("visibilitychange",this._visibilityHandler)}disconnectedCallback(){if(super.disconnectedCallback(),this.releaseWakeLock(),document.removeEventListener("visibilitychange",this._visibilityHandler),this._baseCardId){const t=ca.get(this._baseCardId)??1;ca.set(this._baseCardId,Math.max(0,t-1))}}async acquireWakeLock(){if("wakeLock"in navigator)try{this._wakeLock=await navigator.wakeLock.request("screen"),this._wakeLock.addEventListener("release",()=>{this._wakeLock=null})}catch(t){console.warn("[SLM] Wake lock failed:",t.message)}}releaseWakeLock(){this._wakeLock?.release(),this._wakeLock=null}applyColorScheme(){const t=this.settings.darkMode;"on"===t?this.setAttribute("data-theme","dark"):"off"===t?this.setAttribute("data-theme","light"):this.removeAttribute("data-theme");const e=this.settings.theme;e&&"soft"!==e?this.setAttribute("data-theme-name",e):this.removeAttribute("data-theme-name"),this.settings.useSystemTextSize?this.style.removeProperty("--slm-font-size-base"):this.style.setProperty("--slm-font-size-base",`${this.settings.fontSize}px`);this.style.setProperty("--slm-font-weight-base",{light:"300",normal:"400",bold:"700"}[this.settings.fontWeight]||"400")}async loadData(){try{this.loading=!0;const t=await this.api.getLists();this.lists=t.lists||[];const e=`slm_last_list_${this._settingsUserId||"default"}`;if(this.settings.openLastUsedList){const t=localStorage.getItem(e);this.activeList=this.lists.find(e=>e.id===t)||this.lists.find(t=>t.active)||this.lists[0]}else this.activeList=this.lists.find(t=>t.active)||this.lists[0];const i=await this.api.getCategories();this.categories=i.categories,this.activeList&&await this.loadActiveListData()}catch(t){console.error("Failed to load data:",t)}finally{this.loading=!1}}async loadActiveListData(){if(!this.activeList)return;const t=await this.api.getItems(this.activeList.id);this.items=t.items;const e=await this.api.getListTotal(this.activeList.id);this.total=e;const i=`slm_last_list_${this._settingsUserId||"default"}`;localStorage.setItem(i,this.activeList.id)}async _refreshTotal(){if(this.activeList)try{const t=await this.api.getListTotal(this.activeList.id);this.total=t}catch(t){console.warn("[SLM] Failed to refresh total:",t)}}async handleListChange(t){const e=t.detail.listId;await this.api.setActiveList(e),this.activeList=this.lists.find(t=>t.id===e),await this.loadActiveListData(),this.currentView="shopping"}async handleItemClick(t){const{itemId:e}=t.detail,i=this.items.find(t=>t.id===e);if(!i||i.checked)return;const r=this.items;this.items=this.items.map(t=>t.id===e?{...t,quantity:t.quantity+1,_pending:!0}:t);try{await this.api.incrementItem(e,1),this.items=this.items.map(t=>t.id===e?{...t,_pending:!1}:t)}catch(t){console.error("[SLM] Failed to increment item:",t),this.items=r}}async handleItemDecrease(t){const{itemId:e}=t.detail,i=this.items.find(t=>t.id===e);if(!i)return;const r=this.items;if(i.quantity>1){this.items=this.items.map(t=>t.id===e?{...t,quantity:t.quantity-1,_pending:!0}:t);try{await this.api.incrementItem(e,-1),this.items=this.items.map(t=>t.id===e?{...t,_pending:!1}:t)}catch(t){console.error("[SLM] Failed to decrement item:",t),this.items=r}}else{this.items=this.items.filter(t=>t.id!==e);try{await this.api.deleteItem(e),this._refreshTotal();const t=this._getLinkedTodoEntity();t&&i?.name&&this._haTodoRemove(t,i.name)}catch(t){console.error("[SLM] Failed to delete item:",t),this.items=r}}}async handleItemCheck(t){const{itemId:e,checked:i}=t.detail,r=this.items.find(t=>t.id===e);i&&r?.product_id&&this.trackRecentlyUsed(r.product_id);const n=this.items;this.items=this.items.map(t=>t.id===e?{...t,checked:i,_pending:!0}:t);try{await this.api.checkItem(e,i),this.items=this.items.map(t=>t.id===e?{...t,_pending:!1}:t);const t=this._getLinkedTodoEntity();t&&r?.name&&this._haTodoCheck(t,r.name,i)}catch(t){console.error("[SLM] Failed to check item:",t),this.items=n}}async handleItemLongPress(t){this.editingItem=t.detail.item,this.showEditDialog=!0}async handleItemSwipeDelete(t){const{itemId:e}=t.detail,i=this.items.find(t=>t.id===e);i?.product_id&&this.untrackRecentlyUsed(i.product_id);const r=this.items;this.items=this.items.filter(t=>t.id!==e);try{await this.api.deleteItem(e),this._refreshTotal();const t=this._getLinkedTodoEntity();t&&i?.name&&this._haTodoRemove(t,i.name)}catch(t){console.error("[SLM] Failed to delete item:",t),this.items=r}}untrackRecentlyUsed(t){if(!t)return;const e="slm_recent_products",i=localStorage.getItem(e);if(!i)return;const r=JSON.parse(i).filter(e=>e!==t);localStorage.setItem(e,JSON.stringify(r))}async handleAddItem(t){const e={...t.detail};if(this.showAddDialog=!1,!e.product_id&&!e.fromRecentlyUsed)try{const t={name:e.name,category_id:e.category_id||"other"};e.price&&(t.price=parseFloat(e.price)),e.image_url&&(t.image_url=e.image_url);const i=await this.api.addProduct(t),r=i.product||i;r?.id&&(e.product_id=r.id)}catch(t){console.warn("[SLM] Could not auto-create product:",t)}const i=this.items.find(t=>t.product_id&&t.product_id===e.product_id&&!t.checked);try{if(e.fromRecentlyUsed)if(i)await this.api.updateItem(i.id,{quantity:1});else{const{fromRecentlyUsed:t,...i}=e,r={quantity:1};for(const[t,e]of Object.entries(i))null!=e&&(r[t]=e);await this.api.addItem(this.activeList.id,r)}else i?await this.api.updateItem(i.id,{quantity:i.quantity+1}):await this.api.addItem(this.activeList.id,e);if(this.trackRecentlyUsed(e.product_id),this._refreshTotal(),!i){const t=this._getLinkedTodoEntity();t&&e.name&&this._haTodoAdd(t,e.name)}}catch(t){console.error("[SLM] Failed to add item:",t)}}trackRecentlyUsed(t){if(!t)return;const e="slm_recent_products",i=localStorage.getItem(e),r=(i?JSON.parse(i):[]).filter(e=>e!==t);r.unshift(t);const n=r.slice(0,50);localStorage.setItem(e,JSON.stringify(n))}async _syncProductFromItemData(t,e){const i={};e.name&&(i.name=e.name),e.category_id&&(i.category_id=e.category_id),void 0!==e.price&&""!==e.price&&(i.price=parseFloat(e.price)||0),e.unit&&(i.default_unit=e.unit),void 0!==e.image_url&&(i.image_url=e.image_url),Object.keys(i).length>0&&await this.api.updateProduct(t,i)}async handleEditItem(t){const{itemId:e,data:i}=t.detail;if(this.editingItem?._isProductEdit)await this._syncProductFromItemData(this.editingItem.product_id,i);else{await this.api.updateItem(e,i);const t=this.items.find(t=>t.id===e);t?.product_id&&await this._syncProductFromItemData(t.product_id,i)}this._refreshTotal(),this.showEditDialog=!1,this.editingItem=null}handleNavChange(t){this.currentView=t.detail.view}handleSettingsChange(t){this.settings={...this.settings,...t.detail},this.saveSettings(),this.applyColorScheme(),this.settings.keepScreenOn?this.acquireWakeLock():this.releaseWakeLock(),this.requestUpdate()}handleMenuSettingChange(t){const{key:e,value:i}=t.detail;this.settings={...this.settings,[e]:i},this.saveSettings(),this.requestUpdate()}async handleCreateAndAddProduct(t){const{name:e,category_id:i,price:r,unit:n,barcode:o,image_url:s}=t.detail;try{const t={name:e,category_id:i};r&&(t.price=parseFloat(r)),o&&(t.barcode=o),s&&(t.image_url=s);const a=await this.api.addProduct(t),c=a.product||a,l={name:e,category_id:i,product_id:c.id,quantity:1,unit:n||"units"};r&&(l.price=parseFloat(r)),await this.api.addItem(this.activeList.id,l),c.id&&this.trackRecentlyUsed(c.id),this._refreshTotal()}catch(t){console.error("Failed to create product:",t)}}handleBackToLists(){this.currentView="lists"}async handleShareList(){const t=this.activeList?.name||"Shopping List",e=this.items.filter(t=>!t.checked).map(t=>`${t.quantity} ${t.unit} ${t.name}`).join("\n"),i=`${t}\n\n${e}`;if(navigator.share)try{await navigator.share({title:t,text:i})}catch(t){"AbortError"!==t.name&&console.error("Share failed:",t)}else try{if(navigator.clipboard?.writeText)await navigator.clipboard.writeText(i);else{const t=document.createElement("textarea");t.value=i,t.style.cssText="position:fixed;top:-9999px;left:-9999px;opacity:0",document.body.appendChild(t),t.focus(),t.select(),document.execCommand("copy"),document.body.removeChild(t)}alert("List copied to clipboard!")}catch(t){console.error("Copy to clipboard failed:",t),alert("Could not copy to clipboard. Please copy manually:\n\n"+i)}}_getLinkedTodoEntity(t){const e=t??this.activeList?.id;return this.settings?.haTodoSync?.[e]||null}async _findHATodoItemUid(t,e){try{const i=await this.hass.callWS({type:"todo/item/list",entity_id:t}),r=i?.items||[],n=e?.toLowerCase()||"",o=r.find(t=>t.summary?.toLowerCase()===n&&"completed"!==t.status);return o?.uid||null}catch(t){return console.warn("[SLM] Failed to fetch HA todo items:",t),null}}_haTodoAdd(t,e){t&&e&&this.hass.callService("todo","add_item",{item:e},{entity_id:t}).catch(t=>console.warn("[SLM] HA todo add failed:",t))}async _haTodoCheck(t,e,i){if(t&&e)try{const r=await this._findHATodoItemUid(t,e);if(!r)return;await this.hass.callService("todo","update_item",{item:r,status:i?"completed":"needs_action"},{entity_id:t})}catch(t){console.warn("[SLM] HA todo check failed:",t)}}async _haTodoRemove(t,e){if(t&&e)try{const i=await this._findHATodoItemUid(t,e);if(!i)return;await this.hass.callService("todo","remove_item",{item:i},{entity_id:t})}catch(t){console.warn("[SLM] HA todo remove failed:",t)}}async subscribeToUpdates(){if(this.hass?.connection)try{const t=await this.hass.connection.subscribeMessage(t=>this._applySubscriptionEvent(t),{type:"shopping_list_manager/subscribe"});this._unsubscribers=[t],console.log("[SLM] ✅ Subscribed to shopping list updates")}catch(t){console.error("[SLM] ❌ Failed to subscribe:",t)}}_applySubscriptionEvent(t){const e=t.event_type,i=t.data,r=this.activeList?.id;if("shopping_list_manager_item_added"===e){if(i.list_id!==r)return;this.items.find(t=>t.id===i.item.id)||(this.items=[...this.items,i.item]),this._refreshTotal()}else if("shopping_list_manager_item_updated"===e){if(i.list_id!==r)return;this.items=this.items.map(t=>t.id===i.item.id?{...i.item,_pending:!1}:t),this._refreshTotal()}else if("shopping_list_manager_item_checked"===e){const{item_id:t,item_ids:e,checked:n,list_id:o}=i;if(t){if(o&&o!==r)return;this.items=this.items.map(e=>e.id===t?{...e,checked:n,_pending:!1}:e)}else if(e){const t=new Set(e);this.items=this.items.map(e=>t.has(e.id)?{...e,checked:n,_pending:!1}:e)}}else if("shopping_list_manager_item_deleted"===e){const{item_id:t,action:e,list_id:n}=i;if("cleared_checked"===e){if(n!==r)return;this.items=this.items.filter(t=>!t.checked)}else t&&(this.items=this.items.filter(e=>e.id!==t));this._refreshTotal()}else"shopping_list_manager_list_updated"!==e&&"shopping_list_manager_list_deleted"!==e||this.loadData()}renderCurrentView(){switch(this.currentView){case"shopping":return z`
           <slm-list-header
             .activeList=${this.activeList}
             .itemCount=${this.items.filter(t=>!t.checked).length}
@@ -5329,6 +5509,7 @@ const C=globalThis,A=t=>t,I=C.trustedTypes,S=I?I.createPolicy("lit-html",{create
               .hass=${this.hass}
               .api=${this.api}
               .settings=${this.settings}
+              .lists=${this.lists}
               .isEmbedded=${this.isEmbedded}
               .categories=${this.categories}
               @settings-changed=${this.handleSettingsChange}
@@ -5928,4 +6109,4 @@ const C=globalThis,A=t=>t,I=C.trustedTypes,S=I?I.createPolicy("lit-html",{create
       --slm-cat-recent: #4a6b8c;
     }
 
-  `;setConfig(t){this.config=t;const e=this._hashConfig(t);e!==this._baseCardId&&(this._baseCardId=e,this._assignedCardId=null,this._cardId=e)}getCardSize(){return 12}}customElements.define("shopping-list-manager-card",ca);
+  `;setConfig(t){this.config=t;const e=this._hashConfig(t);e!==this._baseCardId&&(this._baseCardId=e,this._assignedCardId=null,this._cardId=e)}getCardSize(){return 12}}customElements.define("shopping-list-manager-card",la);

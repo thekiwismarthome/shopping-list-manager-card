@@ -6,6 +6,7 @@ import './slm-notification-settings.js';
 import './slm-category-settings.js';
 import './slm-support-settings.js';
 import './slm-data-settings.js';
+import './slm-ha-sync-settings.js';
 
 class SLMSettingsView extends LitElement {
   static properties = {
@@ -14,6 +15,7 @@ class SLMSettingsView extends LitElement {
     settings: { type: Object },
     isEmbedded: { type: Boolean },
     categories: { type: Array },
+    lists: { type: Array },
     currentSection: { type: String },
     _slmVersion:  { type: String },
     _slmcVersion: { type: String },
@@ -149,6 +151,17 @@ class SLMSettingsView extends LitElement {
             <span class="chevron">></span>
           </button>
 
+          <button class="settings-item" @click=${() => this.handleNavigation('ha-sync')}>
+            <div class="item-icon">
+              <span class="emoji">🔗</span>
+            </div>
+            <div class="item-content">
+              <div class="item-title">HA Todo Sync</div>
+              <div class="item-subtitle">Link lists to Home Assistant todo</div>
+            </div>
+            <span class="chevron">></span>
+          </button>
+
           <div class="section-header">Support</div>
 
           <button class="settings-item" @click=${() => this.handleNavigation('support')}>
@@ -243,6 +256,17 @@ class SLMSettingsView extends LitElement {
             .api=${this.api}
             @back=${() => this.currentSection = 'main'}
           ></slm-data-settings>
+        `;
+
+      case 'ha-sync':
+        return html`
+          <slm-ha-sync-settings
+            .hass=${this.hass}
+            .settings=${this.settings}
+            .lists=${this.lists}
+            @settings-changed=${(e) => this.dispatchEvent(e)}
+            @back=${() => this.currentSection = 'main'}
+          ></slm-ha-sync-settings>
         `;
 
       default:

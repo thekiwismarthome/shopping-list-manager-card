@@ -147,7 +147,8 @@ class ShoppingListManagerCard extends LitElement {
       showRecentlyUsed: true,
       showPriceOnTile: true,
       localImagePath: '/local/images/groceries',
-      fontWeight: 'normal'
+      fontWeight: 'normal',
+      haTodoSync: {}
     };
 
     const key = this._getSettingsKey();
@@ -345,6 +346,10 @@ class ShoppingListManagerCard extends LitElement {
       try {
         await this.api.deleteItem(itemId);
         this._refreshTotal();
+
+        // Mirror deletion to linked HA todo list (fire-and-forget)
+        const todoEntity = this._getLinkedTodoEntity();
+        if (todoEntity && item?.name) this._haTodoRemove(todoEntity, item.name);
       } catch (err) {
         console.error('[SLM] Failed to delete item:', err);
         this.items = prev;
@@ -354,15 +359,17 @@ class ShoppingListManagerCard extends LitElement {
 
   async handleItemCheck(e) {
     const { itemId, checked } = e.detail;
-    if (checked) {
-      const item = this.items.find(i => i.id === itemId);
-      if (item?.product_id) this.trackRecentlyUsed(item.product_id);
-    }
+    const item = this.items.find(i => i.id === itemId);
+    if (checked && item?.product_id) this.trackRecentlyUsed(item.product_id);
     const prev = this.items;
     this.items = this.items.map(i => i.id === itemId ? { ...i, checked, _pending: true } : i);
     try {
       await this.api.checkItem(itemId, checked);
       this.items = this.items.map(i => i.id === itemId ? { ...i, _pending: false } : i);
+
+      // Mirror check state to linked HA todo list (fire-and-forget)
+      const todoEntity = this._getLinkedTodoEntity();
+      if (todoEntity && item?.name) this._haTodoCheck(todoEntity, item.name, checked);
     } catch (err) {
       console.error('[SLM] Failed to check item:', err);
       this.items = prev;
@@ -384,6 +391,10 @@ class ShoppingListManagerCard extends LitElement {
     try {
       await this.api.deleteItem(itemId);
       this._refreshTotal();
+
+      // Mirror deletion to linked HA todo list (fire-and-forget)
+      const todoEntity = this._getLinkedTodoEntity();
+      if (todoEntity && item?.name) this._haTodoRemove(todoEntity, item.name);
     } catch (err) {
       console.error('[SLM] Failed to delete item:', err);
       this.items = prev;
@@ -453,6 +464,12 @@ class ShoppingListManagerCard extends LitElement {
       }
       this.trackRecentlyUsed(itemData.product_id);
       this._refreshTotal();
+
+      // Mirror to linked HA todo list (fire-and-forget, only for new items)
+      if (!existingItem) {
+        const todoEntity = this._getLinkedTodoEntity();
+        if (todoEntity && itemData.name) this._haTodoAdd(todoEntity, itemData.name);
+      }
     } catch (err) {
       console.error('[SLM] Failed to add item:', err);
     }
@@ -598,6 +615,56 @@ class ShoppingListManagerCard extends LitElement {
         console.error('Copy to clipboard failed:', err);
         alert('Could not copy to clipboard. Please copy manually:\n\n' + shareText);
       }
+    }
+  }
+
+  _getLinkedTodoEntity(listId) {
+    const id = listId ?? this.activeList?.id;
+    return this.settings?.haTodoSync?.[id] || null;
+  }
+
+  async _findHATodoItemUid(entityId, itemName) {
+    try {
+      const result = await this.hass.callWS({ type: 'todo/item/list', entity_id: entityId });
+      const items = result?.items || [];
+      const lower = itemName?.toLowerCase() || '';
+      const match = items.find(i => i.summary?.toLowerCase() === lower && i.status !== 'completed');
+      return match?.uid || null;
+    } catch (err) {
+      console.warn('[SLM] Failed to fetch HA todo items:', err);
+      return null;
+    }
+  }
+
+  _haTodoAdd(entityId, itemName) {
+    if (!entityId || !itemName) return;
+    this.hass.callService('todo', 'add_item', { item: itemName }, { entity_id: entityId })
+      .catch(err => console.warn('[SLM] HA todo add failed:', err));
+  }
+
+  async _haTodoCheck(entityId, itemName, checked) {
+    if (!entityId || !itemName) return;
+    try {
+      const uid = await this._findHATodoItemUid(entityId, itemName);
+      if (!uid) return;
+      await this.hass.callService(
+        'todo', 'update_item',
+        { item: uid, status: checked ? 'completed' : 'needs_action' },
+        { entity_id: entityId }
+      );
+    } catch (err) {
+      console.warn('[SLM] HA todo check failed:', err);
+    }
+  }
+
+  async _haTodoRemove(entityId, itemName) {
+    if (!entityId || !itemName) return;
+    try {
+      const uid = await this._findHATodoItemUid(entityId, itemName);
+      if (!uid) return;
+      await this.hass.callService('todo', 'remove_item', { item: uid }, { entity_id: entityId });
+    } catch (err) {
+      console.warn('[SLM] HA todo remove failed:', err);
     }
   }
 
@@ -762,6 +829,7 @@ class ShoppingListManagerCard extends LitElement {
               .hass=${this.hass}
               .api=${this.api}
               .settings=${this.settings}
+              .lists=${this.lists}
               .isEmbedded=${this.isEmbedded}
               .categories=${this.categories}
               @settings-changed=${this.handleSettingsChange}
