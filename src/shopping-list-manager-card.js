@@ -34,6 +34,7 @@ class ShoppingListManagerCard extends LitElement {
     isEmbedded: { type: Boolean }
   };
   set hass(hass) {
+    const prevHass = this._hass;
     this._hass = hass;
     if (this.api) {
       this.api.hass = hass;
@@ -52,6 +53,8 @@ class ShoppingListManagerCard extends LitElement {
       this._subscribed = true;
       this.subscribeToUpdates();
     }
+    // Detect HA todo entity state changes for bidirectional sync
+    this._checkHATodoStateChanges(prevHass, hass);
   }
 
   get hass() {
@@ -79,8 +82,9 @@ class ShoppingListManagerCard extends LitElement {
     this.settings = this.loadSettings();
     this.isEmbedded = false;
     this._subscribed = false;
-    this._haTodoSubs = {};
     this._suppressHASyncUntil = 0;
+    this._haTodoLastItems = {};
+    this._haTodoSyncTimers = {};
   }
 
   connectedCallback() {
@@ -149,8 +153,7 @@ class ShoppingListManagerCard extends LitElement {
       showRecentlyUsed: true,
       showPriceOnTile: true,
       localImagePath: '/local/images/groceries',
-      fontWeight: 'normal',
-      haTodoSync: {}
+      fontWeight: 'normal'
     };
 
     const key = this._getSettingsKey();
@@ -197,8 +200,8 @@ class ShoppingListManagerCard extends LitElement {
     this.releaseWakeLock();
     document.removeEventListener('visibilitychange', this._visibilityHandler);
 
-    for (const sub of Object.values(this._haTodoSubs)) sub.unsub?.();
-    this._haTodoSubs = {};
+    for (const t of Object.values(this._haTodoSyncTimers)) clearTimeout(t);
+    this._haTodoSyncTimers = {};
 
     // Decrement instance counter so position slots are correctly reclaimed
     if (this._baseCardId) {
@@ -276,8 +279,6 @@ class ShoppingListManagerCard extends LitElement {
       if (this.activeList) {
         await this.loadActiveListData();
       }
-
-      this._updateHATodoSubscriptions();
 
     } catch (err) {
       console.error('Failed to load data:', err);
@@ -543,7 +544,6 @@ class ShoppingListManagerCard extends LitElement {
     } else {
       this.releaseWakeLock();
     }
-    this._updateHATodoSubscriptions();
     this.requestUpdate();
   }
 
@@ -628,7 +628,7 @@ class ShoppingListManagerCard extends LitElement {
 
   _getLinkedTodoEntity(listId) {
     const id = listId ?? this.activeList?.id;
-    return this.settings?.haTodoSync?.[id] || null;
+    return this.lists.find(l => l.id === id)?.ha_todo_entity_id || null;
   }
 
   async _findHATodoItemUid(entityId, itemName) {
@@ -679,71 +679,47 @@ class ShoppingListManagerCard extends LitElement {
     }
   }
 
-  _updateHATodoSubscriptions() {
-    if (!this.hass?.connection) return;
-    const sync = this.settings?.haTodoSync || {};
-    const activeEntityIds = new Set(Object.values(sync));
-
-    // Unsubscribe from entities no longer linked
-    for (const [entityId, sub] of Object.entries(this._haTodoSubs)) {
-      if (!activeEntityIds.has(entityId)) {
-        sub.unsub?.();
-        delete this._haTodoSubs[entityId];
-      }
-    }
-
-    // Subscribe to newly linked entities
-    for (const entityId of activeEntityIds) {
-      if (!this._haTodoSubs[entityId]) {
-        this._subscribeHATodoEntity(entityId);
-      }
-    }
-  }
-
-  async _subscribeHATodoEntity(entityId) {
-    if (!this.hass?.connection || this._haTodoSubs[entityId]) return;
-
-    // Placeholder to prevent double-subscribe while async init runs
-    this._haTodoSubs[entityId] = { unsub: () => {}, lastItems: [] };
-
-    try {
-      const result = await this.hass.callWS({ type: 'todo/item/list', entity_id: entityId });
-      const lastItems = result?.items || [];
-
-      const unsub = await this.hass.connection.subscribeEvents(
-        (event) => {
-          if (event.data.entity_id === entityId) {
-            this._onHATodoChanged(entityId);
-          }
-        },
-        'state_changed'
-      );
-
-      this._haTodoSubs[entityId] = { unsub, lastItems };
-      console.log('[SLM] Subscribed to HA todo entity:', entityId);
-    } catch (err) {
-      console.warn('[SLM] Failed to subscribe to HA todo entity:', entityId, err);
-      delete this._haTodoSubs[entityId];
-    }
-  }
-
-  async _onHATodoChanged(entityId) {
-    // Skip if we just pushed a change from SLM to avoid echo loops
+  _checkHATodoStateChanges(prevHass, hass) {
+    if (!hass?.states || !prevHass?.states) return;
     if (Date.now() < this._suppressHASyncUntil) return;
 
-    // Find which SLM list this entity is linked to
-    const listId = Object.entries(this.settings?.haTodoSync || {})
-      .find(([, eid]) => eid === entityId)?.[0];
-    if (!listId || this.activeList?.id !== listId) return;
+    for (const list of (this.lists || [])) {
+      const entityId = list.ha_todo_entity_id;
+      if (!entityId) continue;
+      const prev = prevHass.states[entityId];
+      const curr = hass.states[entityId];
+      if (!curr || !prev) continue;
+      if (prev.last_changed !== curr.last_changed) {
+        this._debouncedHATodoSync(entityId, list.id);
+      }
+    }
+  }
+
+  _debouncedHATodoSync(entityId, listId) {
+    this._haTodoSyncTimers = this._haTodoSyncTimers || {};
+    clearTimeout(this._haTodoSyncTimers[entityId]);
+    this._haTodoSyncTimers[entityId] = setTimeout(() => {
+      this._onHATodoChanged(entityId, listId);
+    }, 300);
+  }
+
+  async _onHATodoChanged(entityId, listId) {
+    if (Date.now() < this._suppressHASyncUntil) return;
+    if (!this.activeList || this.activeList.id !== listId) return;
 
     try {
       const result = await this.hass.callWS({ type: 'todo/item/list', entity_id: entityId });
       const haItems = result?.items || [];
-      const prevItems = this._haTodoSubs[entityId]?.lastItems || [];
+      const prevItems = (this._haTodoLastItems || {})[entityId] ?? null;
 
-      if (this._haTodoSubs[entityId]) {
-        this._haTodoSubs[entityId].lastItems = haItems;
+      this._haTodoLastItems = this._haTodoLastItems || {};
+
+      // First call for this entity — just initialise the baseline, don't sync
+      if (prevItems === null) {
+        this._haTodoLastItems[entityId] = haItems;
+        return;
       }
+      this._haTodoLastItems[entityId] = haItems;
 
       const slmItems = this.items;
       let changed = false;
@@ -774,7 +750,7 @@ class ShoppingListManagerCard extends LitElement {
       for (const prevItem of prevItems) {
         const nameLower = prevItem.summary?.toLowerCase();
         if (!nameLower || currNames.has(nameLower)) continue;
-        const slmMatch = slmItems.find(i => i.name?.toLowerCase() === nameLower);
+        const slmMatch = slmItems.find(i => i.name?.toLowerCase() === nameLower && !i.checked);
         if (slmMatch) {
           await this.api.deleteItem(slmMatch.id);
           changed = true;
@@ -953,6 +929,7 @@ class ShoppingListManagerCard extends LitElement {
               .isEmbedded=${this.isEmbedded}
               .categories=${this.categories}
               @settings-changed=${this.handleSettingsChange}
+              @lists-updated=${() => this.loadData()}
             ></slm-settings-view>
           </div>
         `;

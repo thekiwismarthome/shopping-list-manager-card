@@ -3,14 +3,16 @@ import { LitElement, html, css } from 'lit';
 class SLMHaSyncSettings extends LitElement {
   static properties = {
     hass: { type: Object },
-    settings: { type: Object },
+    api: { type: Object },
     lists: { type: Array },
     _todoEntities: { type: Array, state: true },
+    _saving: { type: String, state: true },
   };
 
   constructor() {
     super();
     this._todoEntities = [];
+    this._saving = null;
   }
 
   connectedCallback() {
@@ -35,22 +37,21 @@ class SLMHaSyncSettings extends LitElement {
       .sort((a, b) => a.name.localeCompare(b.name));
   }
 
-  _getLinkedEntity(listId) {
-    return this.settings?.haTodoSync?.[listId] || '';
+  _getLinkedEntity(list) {
+    return list?.ha_todo_entity_id || '';
   }
 
-  _handleEntityChange(listId, entityId) {
-    const haTodoSync = { ...(this.settings?.haTodoSync || {}) };
-    if (entityId) {
-      haTodoSync[listId] = entityId;
-    } else {
-      delete haTodoSync[listId];
+  async _handleEntityChange(list, entityId) {
+    if (!this.api) return;
+    this._saving = list.id;
+    try {
+      await this.api.updateList(list.id, { ha_todo_entity_id: entityId || null });
+      this.dispatchEvent(new CustomEvent('lists-updated', { bubbles: true, composed: true }));
+    } catch (err) {
+      console.error('[SLM] Failed to save HA todo link:', err);
+    } finally {
+      this._saving = null;
     }
-    this.dispatchEvent(new CustomEvent('settings-changed', {
-      detail: { haTodoSync },
-      bubbles: true,
-      composed: true,
-    }));
   }
 
   render() {
@@ -69,8 +70,9 @@ class SLMHaSyncSettings extends LitElement {
 
           <div class="info-item">
             <div class="item-subtitle">
-              Link each shopping list to a Home Assistant todo list. Items added, checked,
-              or removed in SLM will be mirrored to the linked HA todo list.
+              Link each shopping list to a Home Assistant todo list.
+              Changes sync both ways — items added, checked, or removed in either place
+              are mirrored to the other. This setting is stored globally on the server.
             </div>
           </div>
 
@@ -95,26 +97,31 @@ class SLMHaSyncSettings extends LitElement {
             <div class="settings-item">
               <div class="item-content">
                 <div class="item-title">${list.name}</div>
-                ${this._getLinkedEntity(list.id) ? html`
+                ${this._getLinkedEntity(list) ? html`
                   <div class="item-subtitle linked">
-                    Linked to ${this._todoEntities.find(e => e.entityId === this._getLinkedEntity(list.id))?.name || this._getLinkedEntity(list.id)}
+                    Linked to ${this._todoEntities.find(e => e.entityId === this._getLinkedEntity(list))?.name || this._getLinkedEntity(list)}
                   </div>
                 ` : ''}
               </div>
-              <select
-                class="entity-select"
-                @change=${(e) => this._handleEntityChange(list.id, e.target.value)}
-              >
-                <option value="" ?selected=${!this._getLinkedEntity(list.id)}>None</option>
-                ${this._todoEntities.map(entity => html`
-                  <option
-                    value=${entity.entityId}
-                    ?selected=${this._getLinkedEntity(list.id) === entity.entityId}
-                  >
-                    ${entity.name}
-                  </option>
-                `)}
-              </select>
+              ${this._saving === list.id ? html`
+                <span class="saving">Saving…</span>
+              ` : html`
+                <select
+                  class="entity-select"
+                  ?disabled=${!!this._saving}
+                  @change=${(e) => this._handleEntityChange(list, e.target.value)}
+                >
+                  <option value="" ?selected=${!this._getLinkedEntity(list)}>None</option>
+                  ${this._todoEntities.map(entity => html`
+                    <option
+                      value=${entity.entityId}
+                      ?selected=${this._getLinkedEntity(list) === entity.entityId}
+                    >
+                      ${entity.name}
+                    </option>
+                  `)}
+                </select>
+              `}
             </div>
           `)}
 
@@ -122,10 +129,9 @@ class SLMHaSyncSettings extends LitElement {
           <div class="settings-item">
             <div class="item-content">
               <div class="item-subtitle">
-                Changes flow one way: SLM → HA. Adding an item in SLM adds it to the
-                HA todo list. Checking an item marks it complete. Deleting an item
-                removes it. Changes made directly in the HA todo list do not
-                automatically appear in SLM.
+                Changes sync both ways. Adding an item in SLM adds it to the HA todo list,
+                and vice versa. Checking or removing items is also mirrored. Syncs only
+                when the linked list is the active list in SLM.
               </div>
             </div>
           </div>
@@ -135,12 +141,8 @@ class SLMHaSyncSettings extends LitElement {
   }
 
   static styles = css`
-    :host {
-      display: block;
-    }
-    .ha-sync-settings {
-      padding-bottom: 20px;
-    }
+    :host { display: block; }
+    .ha-sync-settings { padding-bottom: 20px; }
     .header {
       display: flex;
       align-items: center;
@@ -158,16 +160,8 @@ class SLMHaSyncSettings extends LitElement {
       color: var(--slm-text-primary);
       -webkit-tap-highlight-color: transparent;
     }
-    ha-icon {
-      color: var(--slm-text-primary);
-      --icon-primary-color: var(--slm-text-primary);
-    }
-    .header h2 {
-      margin: 0;
-      font-size: 20px;
-      font-weight: 700;
-      color: var(--slm-text-primary);
-    }
+    ha-icon { color: var(--slm-text-primary); --icon-primary-color: var(--slm-text-primary); }
+    .header h2 { margin: 0; font-size: 20px; font-weight: 700; color: var(--slm-text-primary); }
     .section-header {
       padding: 14px 16px 6px;
       font-size: 11px;
@@ -189,24 +183,10 @@ class SLMHaSyncSettings extends LitElement {
       border-bottom: 1px solid var(--slm-border-subtle);
       box-sizing: border-box;
     }
-    .item-content {
-      flex: 1;
-      min-width: 0;
-    }
-    .item-title {
-      font-weight: 600;
-      font-size: 14px;
-      margin-bottom: 2px;
-      color: var(--slm-text-primary);
-    }
-    .item-subtitle {
-      font-size: 12px;
-      color: var(--slm-text-secondary);
-      line-height: 1.5;
-    }
-    .item-subtitle.linked {
-      color: var(--slm-accent-secondary, #81c784);
-    }
+    .item-content { flex: 1; min-width: 0; }
+    .item-title { font-weight: 600; font-size: 14px; margin-bottom: 2px; color: var(--slm-text-primary); }
+    .item-subtitle { font-size: 12px; color: var(--slm-text-secondary); line-height: 1.5; }
+    .item-subtitle.linked { color: var(--slm-accent-secondary, #81c784); }
     .entity-select {
       background: var(--slm-bg-elevated);
       color: var(--slm-text-primary);
@@ -219,6 +199,8 @@ class SLMHaSyncSettings extends LitElement {
       flex-shrink: 0;
       max-width: 160px;
     }
+    .entity-select:disabled { opacity: 0.5; cursor: default; }
+    .saving { font-size: 12px; color: var(--slm-text-secondary); flex-shrink: 0; }
   `;
 }
 

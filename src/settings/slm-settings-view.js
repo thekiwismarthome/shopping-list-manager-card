@@ -262,9 +262,9 @@ class SLMSettingsView extends LitElement {
         return html`
           <slm-ha-sync-settings
             .hass=${this.hass}
-            .settings=${this.settings}
+            .api=${this.api}
             .lists=${this.lists}
-            @settings-changed=${(e) => this.dispatchEvent(e)}
+            @lists-updated=${(e) => this.dispatchEvent(e)}
             @back=${() => this.currentSection = 'main'}
           ></slm-ha-sync-settings>
         `;
