@@ -1,28 +1,42 @@
 import { LitElement, html, css } from 'lit';
 
+const BUILT_IN_COUNTRIES = ['NZ', 'AU', 'US', 'GB', 'CA', 'BE'];
+
 class SLMDataSettings extends LitElement {
   static properties = {
     api: { type: Object },
     _currentCountry: { type: String, state: true },
     _availableCountries: { type: Object, state: true },
+    _customRegions: { type: Object, state: true },
     _loading: { type: Boolean, state: true },
     _saving: { type: Boolean, state: true },
     _successMessage: { type: String, state: true },
     _errorMessage: { type: String, state: true },
     _backupStatus: { type: String, state: true },
     _backupWorking: { type: Boolean, state: true },
+    _showAddRegion: { type: Boolean, state: true },
+    _newRegionCode: { type: String, state: true },
+    _newRegionName: { type: String, state: true },
+    _regionWorking: { type: Boolean, state: true },
+    _regionMessage: { type: String, state: true },
   };
 
   constructor() {
     super();
     this._currentCountry = null;
     this._availableCountries = {};
+    this._customRegions = {};
     this._loading = true;
     this._saving = false;
     this._successMessage = '';
     this._errorMessage = '';
     this._backupStatus = '';
     this._backupWorking = false;
+    this._showAddRegion = false;
+    this._newRegionCode = '';
+    this._newRegionName = '';
+    this._regionWorking = false;
+    this._regionMessage = '';
   }
 
   async connectedCallback() {
@@ -36,6 +50,7 @@ class SLMDataSettings extends LitElement {
       const result = await this.api.getIntegrationSettings();
       this._currentCountry = result.country;
       this._availableCountries = result.available_countries || {};
+      this._customRegions = result.custom_regions || {};
     } catch (err) {
       this._errorMessage = 'Failed to load region settings.';
       console.error('[SLM] Failed to load integration settings:', err);
@@ -97,10 +112,12 @@ class SLMDataSettings extends LitElement {
     if (code === this._currentCountry || this._saving) return;
 
     const countryName = this._availableCountries[code] || code;
-    const confirmed = confirm(
-      `Switch to ${countryName}?\n\nDefault catalog products will be replaced with ${countryName} products. Your custom products are kept.`
-    );
-    if (!confirmed) return;
+    const isCustom = !!this._customRegions[code];
+    const msg = isCustom
+      ? `Switch to custom region "${countryName}"?\n\nBuilt-in catalog products will be removed. Add your own products after switching.`
+      : `Switch to ${countryName}?\n\nDefault catalog products will be replaced with ${countryName} products. Your custom products are kept.`;
+
+    if (!confirm(msg)) return;
 
     this._saving = true;
     this._successMessage = '';
@@ -108,7 +125,9 @@ class SLMDataSettings extends LitElement {
     try {
       const result = await this.api.setCountry(code);
       this._currentCountry = result.country;
-      this._successMessage = `✓ Switched to ${countryName} — ${result.products_loaded} products loaded`;
+      this._successMessage = isCustom
+        ? `✓ Switched to custom region "${countryName}"`
+        : `✓ Switched to ${countryName} — ${result.products_loaded} products loaded`;
     } catch (err) {
       this._errorMessage = 'Failed to switch region. Please try again.';
       console.error('[SLM] Failed to set country:', err);
@@ -117,7 +136,65 @@ class SLMDataSettings extends LitElement {
     }
   }
 
+  async _handleCreateRegion() {
+    const code = this._newRegionCode.trim().toUpperCase();
+    const name = this._newRegionName.trim();
+
+    if (!code || !name) {
+      this._regionMessage = 'error:Both a code and a name are required.';
+      return;
+    }
+    if (!/^[A-Z]{2,8}$/.test(code)) {
+      this._regionMessage = 'error:Code must be 2–8 uppercase letters (A–Z only).';
+      return;
+    }
+    if (BUILT_IN_COUNTRIES.includes(code)) {
+      this._regionMessage = `error:"${code}" is a built-in region code.`;
+      return;
+    }
+
+    this._regionWorking = true;
+    this._regionMessage = '';
+    try {
+      const result = await this.api.createCustomRegion(code, name);
+      this._customRegions = result.custom_regions || {};
+      this._availableCountries = { ...this._availableCountries, [code]: name };
+      this._newRegionCode = '';
+      this._newRegionName = '';
+      this._showAddRegion = false;
+      this._regionMessage = `success:Custom region "${name}" (${code}) created.`;
+    } catch (err) {
+      this._regionMessage = 'error:Failed to create region. The code may already exist.';
+      console.error('[SLM] Failed to create custom region:', err);
+    } finally {
+      this._regionWorking = false;
+    }
+  }
+
+  async _handleDeleteRegion(code) {
+    const name = this._customRegions[code] || code;
+    if (!confirm(`Delete custom region "${name}" (${code})?\n\nThis cannot be undone. If it is the active region, you will be switched back to New Zealand.`)) return;
+
+    this._regionWorking = true;
+    this._regionMessage = '';
+    try {
+      const result = await this.api.deleteCustomRegion(code);
+      this._customRegions = result.custom_regions || {};
+      const updated = { ...this._availableCountries };
+      delete updated[code];
+      this._availableCountries = updated;
+      if (this._currentCountry === code) this._currentCountry = 'NZ';
+      this._regionMessage = `success:Region "${name}" deleted.`;
+    } catch (err) {
+      this._regionMessage = 'error:Failed to delete region.';
+      console.error('[SLM] Failed to delete custom region:', err);
+    } finally {
+      this._regionWorking = false;
+    }
+  }
+
   render() {
+    const customEntries = Object.entries(this._customRegions);
     return html`
       <div class="data-settings">
         <div class="header">
@@ -135,32 +212,110 @@ class SLMDataSettings extends LitElement {
 
             <div class="settings-item">
               <div class="item-content">
-                <div class="item-title">Region</div>
+                <div class="item-title">Active Region</div>
                 <div class="item-subtitle">Country-specific products and pricing</div>
               </div>
               <select
                 class="region-select"
-                .value=${this._currentCountry || ''}
                 ?disabled=${this._saving}
                 @change=${(e) => this._handleCountrySelect(e.target.value)}
               >
-                ${Object.entries(this._availableCountries).map(([code, name]) => html`
-                  <option value=${code} ?selected=${this._currentCountry === code}>
-                    ${code} — ${name}
-                  </option>
-                `)}
+                <optgroup label="Built-in">
+                  ${Object.entries(this._availableCountries)
+                    .filter(([code]) => BUILT_IN_COUNTRIES.includes(code))
+                    .map(([code, name]) => html`
+                      <option value=${code} ?selected=${this._currentCountry === code}>
+                        ${code} — ${name}
+                      </option>
+                    `)}
+                </optgroup>
+                ${customEntries.length > 0 ? html`
+                  <optgroup label="Custom">
+                    ${customEntries.map(([code, name]) => html`
+                      <option value=${code} ?selected=${this._currentCountry === code}>
+                        ${code} — ${name}
+                      </option>
+                    `)}
+                  </optgroup>
+                ` : ''}
               </select>
             </div>
 
-            ${this._successMessage ? html`
-              <div class="message success">${this._successMessage}</div>
-            ` : ''}
-            ${this._errorMessage ? html`
-              <div class="message error">${this._errorMessage}</div>
-            ` : ''}
+            ${this._successMessage ? html`<div class="message success">${this._successMessage}</div>` : ''}
+            ${this._errorMessage ? html`<div class="message error">${this._errorMessage}</div>` : ''}
+            ${this._saving ? html`<div class="message info">Switching catalog…</div>` : ''}
 
-            ${this._saving ? html`
-              <div class="message info">Switching catalog…</div>
+            <div class="section-header">Custom Regions</div>
+
+            <div class="settings-item">
+              <div class="item-content">
+                <div class="item-subtitle">
+                  Create your own region if your country isn't listed, or to maintain a
+                  personalised product catalog. Custom regions start empty — add your own
+                  products after switching.
+                </div>
+              </div>
+            </div>
+
+            ${customEntries.map(([code, name]) => html`
+              <div class="settings-item custom-region-row">
+                <div class="item-content">
+                  <div class="item-title">${name}</div>
+                  <div class="item-subtitle">${code}${this._currentCountry === code ? ' · active' : ''}</div>
+                </div>
+                <button
+                  class="delete-btn"
+                  title="Delete region"
+                  ?disabled=${this._regionWorking}
+                  @click=${() => this._handleDeleteRegion(code)}
+                >
+                  <ha-icon icon="mdi:delete-outline"></ha-icon>
+                </button>
+              </div>
+            `)}
+
+            ${this._showAddRegion ? html`
+              <div class="add-region-form">
+                <div class="form-row">
+                  <input
+                    class="code-input"
+                    type="text"
+                    placeholder="Code (e.g. ZA)"
+                    maxlength="8"
+                    .value=${this._newRegionCode}
+                    @input=${(e) => this._newRegionCode = e.target.value.toUpperCase()}
+                  />
+                  <input
+                    class="name-input"
+                    type="text"
+                    placeholder="Display name (e.g. South Africa)"
+                    maxlength="64"
+                    .value=${this._newRegionName}
+                    @input=${(e) => this._newRegionName = e.target.value}
+                    @keydown=${(e) => e.key === 'Enter' && this._handleCreateRegion()}
+                  />
+                </div>
+                <div class="form-actions">
+                  <button class="action-btn" ?disabled=${this._regionWorking} @click=${this._handleCreateRegion}>
+                    ${this._regionWorking ? 'Saving…' : 'Save region'}
+                  </button>
+                  <button class="cancel-btn" @click=${() => { this._showAddRegion = false; this._regionMessage = ''; }}>
+                    Cancel
+                  </button>
+                </div>
+              </div>
+            ` : html`
+              <div class="settings-item">
+                <button class="action-btn" @click=${() => { this._showAddRegion = true; this._regionMessage = ''; }}>
+                  + Add custom region
+                </button>
+              </div>
+            `}
+
+            ${this._regionMessage ? html`
+              <div class="message ${this._regionMessage.startsWith('success') ? 'success' : 'error'}">
+                ${this._regionMessage.replace(/^(success|error):/, '')}
+              </div>
             ` : ''}
 
             <div class="section-header">About</div>
@@ -184,11 +339,7 @@ class SLMDataSettings extends LitElement {
                   Download your custom products and lists as a JSON file.
                   Catalog products are excluded — they reload automatically.
                 </div>
-                <button
-                  class="action-btn"
-                  ?disabled=${this._backupWorking}
-                  @click=${this._handleExport}
-                >
+                <button class="action-btn" ?disabled=${this._backupWorking} @click=${this._handleExport}>
                   Download backup
                 </button>
               </div>
@@ -219,11 +370,7 @@ class SLMDataSettings extends LitElement {
                 ${this._backupStatus.replace(/^(success|error):/, '')}
               </div>
             ` : ''}
-
-            ${this._backupWorking ? html`
-              <div class="message info">Working…</div>
-            ` : ''}
-
+            ${this._backupWorking ? html`<div class="message info">Working…</div>` : ''}
           </div>
         `}
       </div>
@@ -231,12 +378,8 @@ class SLMDataSettings extends LitElement {
   }
 
   static styles = css`
-    :host {
-      display: block;
-    }
-    .data-settings {
-      padding-bottom: 20px;
-    }
+    :host { display: block; }
+    .data-settings { padding-bottom: 20px; }
     .header {
       display: flex;
       align-items: center;
@@ -254,21 +397,9 @@ class SLMDataSettings extends LitElement {
       color: var(--slm-text-primary);
       -webkit-tap-highlight-color: transparent;
     }
-    ha-icon {
-      color: var(--slm-text-primary);
-      --icon-primary-color: var(--slm-text-primary);
-    }
-    .header h2 {
-      margin: 0;
-      font-size: 20px;
-      font-weight: 700;
-      color: var(--slm-text-primary);
-    }
-    .loading {
-      padding: 32px;
-      text-align: center;
-      color: var(--slm-text-secondary);
-    }
+    ha-icon { color: var(--slm-text-primary); --icon-primary-color: var(--slm-text-primary); }
+    .header h2 { margin: 0; font-size: 20px; font-weight: 700; color: var(--slm-text-primary); }
+    .loading { padding: 32px; text-align: center; color: var(--slm-text-secondary); }
     .section-header {
       padding: 14px 16px 6px;
       font-size: 12px;
@@ -288,23 +419,10 @@ class SLMDataSettings extends LitElement {
       border-bottom: 1px solid var(--slm-border-subtle);
       box-sizing: border-box;
     }
-    .item-content {
-      flex: 1;
-    }
-    .item-content.full-width {
-      width: 100%;
-    }
-    .item-title {
-      font-weight: 600;
-      font-size: 14px;
-      margin-bottom: 4px;
-      color: var(--slm-text-primary);
-    }
-    .item-subtitle {
-      font-size: 12px;
-      color: var(--slm-text-secondary);
-      line-height: 1.5;
-    }
+    .item-content { flex: 1; }
+    .item-content.full-width { width: 100%; }
+    .item-title { font-weight: 600; font-size: 14px; margin-bottom: 4px; color: var(--slm-text-primary); }
+    .item-subtitle { font-size: 12px; color: var(--slm-text-secondary); line-height: 1.5; }
     .region-select {
       background: var(--slm-bg-elevated);
       color: var(--slm-text-primary);
@@ -316,10 +434,7 @@ class SLMDataSettings extends LitElement {
       cursor: pointer;
       flex-shrink: 0;
     }
-    .region-select:disabled {
-      opacity: 0.5;
-      cursor: default;
-    }
+    .region-select:disabled { opacity: 0.5; cursor: default; }
     .message {
       margin: 8px 16px;
       padding: 10px 14px;
@@ -327,22 +442,10 @@ class SLMDataSettings extends LitElement {
       font-size: 13px;
       font-weight: 500;
     }
-    .message.success {
-      background: rgba(129, 199, 132, 0.2);
-      color: var(--slm-accent-secondary, #81c784);
-    }
-    .message.error {
-      background: rgba(239, 154, 154, 0.2);
-      color: var(--slm-accent-danger, #ef9a9a);
-    }
-    .message.info {
-      background: rgba(159, 168, 218, 0.15);
-      color: var(--slm-accent-primary, #9fa8da);
-    }
-    .backup-item {
-      flex-direction: column;
-      align-items: flex-start;
-    }
+    .message.success { background: rgba(129,199,132,0.2); color: var(--slm-accent-secondary, #81c784); }
+    .message.error { background: rgba(239,154,154,0.2); color: var(--slm-accent-danger, #ef9a9a); }
+    .message.info { background: rgba(159,168,218,0.15); color: var(--slm-accent-primary, #9fa8da); }
+    .backup-item { flex-direction: column; align-items: flex-start; }
     .action-btn {
       display: inline-block;
       margin-top: 12px;
@@ -356,10 +459,70 @@ class SLMDataSettings extends LitElement {
       cursor: pointer;
       -webkit-tap-highlight-color: transparent;
     }
-    .action-btn:disabled,
-    .action-btn.disabled {
-      opacity: 0.5;
-      cursor: default;
+    .action-btn:disabled, .action-btn.disabled { opacity: 0.5; cursor: default; }
+    .custom-region-row { align-items: center; }
+    .delete-btn {
+      background: none;
+      border: none;
+      padding: 6px;
+      cursor: pointer;
+      color: var(--slm-accent-danger, #ef9a9a);
+      display: flex;
+      align-items: center;
+      flex-shrink: 0;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .delete-btn:disabled { opacity: 0.4; cursor: default; }
+    .add-region-form {
+      padding: 14px 16px;
+      border-bottom: 1px solid var(--slm-border-subtle);
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .form-row {
+      display: flex;
+      gap: 8px;
+    }
+    .code-input {
+      width: 72px;
+      flex-shrink: 0;
+      padding: 8px 10px;
+      background: var(--slm-bg-elevated);
+      color: var(--slm-text-primary);
+      border: 1px solid var(--slm-border-subtle);
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 700;
+      text-transform: uppercase;
+    }
+    .name-input {
+      flex: 1;
+      padding: 8px 10px;
+      background: var(--slm-bg-elevated);
+      color: var(--slm-text-primary);
+      border: 1px solid var(--slm-border-subtle);
+      border-radius: 8px;
+      font-size: 13px;
+    }
+    .code-input:focus, .name-input:focus {
+      outline: none;
+      border-color: var(--slm-accent-primary);
+    }
+    .form-actions {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+    .form-actions .action-btn { margin-top: 0; }
+    .cancel-btn {
+      background: none;
+      border: 1px solid var(--slm-border-subtle);
+      border-radius: 8px;
+      padding: 9px 14px;
+      font-size: 13px;
+      color: var(--slm-text-secondary);
+      cursor: pointer;
     }
   `;
 }

@@ -19,7 +19,7 @@ const C=globalThis,A=t=>t,I=C.trustedTypes,S=I?I.createPolicy("lit-html",{create
  * @license
  * Copyright 2017 Google LLC
  * SPDX-License-Identifier: BSD-3-Clause
- */class st extends E{constructor(){super(...arguments),this.renderOptions={host:this},this._$Do=void 0}createRenderRoot(){const t=super.createRenderRoot();return this.renderOptions.renderBefore??=t.firstChild,t}update(t){const e=this.render();this.hasUpdated||(this.renderOptions.isConnected=this.isConnected),super.update(t),this._$Do=((t,e,i)=>{const r=i?.renderBefore??e;let n=r._$litPart$;if(void 0===n){const t=i?.renderBefore??null;r._$litPart$=n=new _(e.insertBefore(D(),t),t,void 0,i??{})}return n._$AI(t),n})(e,this.renderRoot,this.renderOptions)}connectedCallback(){super.connectedCallback(),this._$Do?.setConnected(!0)}disconnectedCallback(){super.disconnectedCallback(),this._$Do?.setConnected(!1)}render(){return G}}st._$litElement$=!0,st.finalized=!0,ot.litElementHydrateSupport?.({LitElement:st});const at=ot.litElementPolyfillSupport;at?.({LitElement:st}),(ot.litElementVersions??=[]).push("4.2.2");class ct{constructor(t){this.hass=t}subscribeToUpdates(t){const e=["shopping_list_manager_item_added","shopping_list_manager_item_updated","shopping_list_manager_item_checked","shopping_list_manager_item_deleted","shopping_list_manager_list_updated"].map(e=>this.hass.connection.subscribeEvents(t,e));return()=>{e.forEach(t=>t())}}async getLists(){return await this.hass.callWS({type:"shopping_list_manager/lists/get_all"})}async createList(t,e="mdi:cart",i=!0){return await this.hass.callWS({type:"shopping_list_manager/lists/create",name:t,icon:e,private:i})}async updateList(t,e){return await this.hass.callWS({type:"shopping_list_manager/lists/update",list_id:t,...e})}async deleteList(t){return await this.hass.callWS({type:"shopping_list_manager/lists/delete",list_id:t})}async setActiveList(t){return await this.hass.callWS({type:"shopping_list_manager/lists/set_active",list_id:t})}async incrementItem(t,e){return await this.hass.callWS({type:"shopping_list_manager/items/increment",item_id:t,amount:e})}async getItems(t){return await this.hass.callWS({type:"shopping_list_manager/items/get",list_id:t})}async addItem(t,e){return await this.hass.callWS({type:"shopping_list_manager/items/add",list_id:t,...e})}async updateItem(t,e){return await this.hass.callWS({type:"shopping_list_manager/items/update",item_id:t,...e})}async checkItem(t,e){return await this.hass.callWS({type:"shopping_list_manager/items/check",item_id:t,checked:e})}async deleteItem(t){return await this.hass.callWS({type:"shopping_list_manager/items/delete",item_id:t})}async bulkCheckItems(t,e){return await this.hass.callWS({type:"shopping_list_manager/items/bulk_check",item_ids:t,checked:e})}async clearCheckedItems(t){return await this.hass.callWS({type:"shopping_list_manager/items/clear_checked",list_id:t})}async getListTotal(t){return await this.hass.callWS({type:"shopping_list_manager/items/get_total",list_id:t})}async searchProductByBarcode(t){return await this.hass.callWS({type:"shopping_list_manager/products/search_by_barcode",barcode:t})}async searchOpenFoodFacts(t,e=5){return await this.hass.callWS({type:"shopping_list_manager/openfoodfacts/fetch",query:t,page_size:e})}async fetchOpenFoodFactsByBarcode(t){return await this.hass.callWS({type:"shopping_list_manager/openfoodfacts/fetch",barcode:t})}async downloadProductImage(t,e){return await this.hass.callWS({type:"shopping_list_manager/products/download_image",image_url:t,product_name:e})}async searchProducts(t,e={}){return await this.hass.callWS({type:"shopping_list_manager/products/search",query:t,limit:e.limit||20,exclude_allergens:e.excludeAllergens,include_tags:e.includeTags,substitution_group:e.substitutionGroup})}async getProductSuggestions(t=20){return await this.hass.callWS({type:"shopping_list_manager/products/suggestions",limit:t})}async getProductSubstitutes(t,e=5){return await this.hass.callWS({type:"shopping_list_manager/products/substitutes",product_id:t,limit:e})}async addProduct(t){return await this.hass.callWS({type:"shopping_list_manager/products/add",...t})}async updateProduct(t,e){return await this.hass.callWS({type:"shopping_list_manager/products/update",product_id:t,...e})}async getProductsByIds(t){return await this.hass.callWS({type:"shopping_list_manager/products/get_by_ids",product_ids:t})}async getCategories(){return await this.hass.callWS({type:"shopping_list_manager/categories/get_all"})}async getIntegrationSettings(){return await this.hass.callWS({type:"shopping_list_manager/get_integration_settings"})}async setCountry(t){return await this.hass.callWS({type:"shopping_list_manager/set_country",country:t})}async updateListMembers(t,e){return await this.hass.callWS({type:"shopping_list_manager/lists/update_members",list_id:t,allowed_users:e})}async getHAUsers(){return await this.hass.callWS({type:"shopping_list_manager/users/get_all"})}async exportData(){return await this.hass.callWS({type:"shopping_list_manager/export_data"})}async importData(t){return await this.hass.callWS({type:"shopping_list_manager/import_data",data:t})}async getLoyaltyCards(){return await this.hass.callWS({type:"shopping_list_manager/loyalty/get_all"})}async addLoyaltyCard(t){return await this.hass.callWS({type:"shopping_list_manager/loyalty/add",...t})}async updateLoyaltyCard(t,e){return await this.hass.callWS({type:"shopping_list_manager/loyalty/update",card_id:t,...e})}async deleteLoyaltyCard(t){return await this.hass.callWS({type:"shopping_list_manager/loyalty/delete",card_id:t})}async updateLoyaltyCardMembers(t,e){return await this.hass.callWS({type:"shopping_list_manager/loyalty/update_members",card_id:t,allowed_users:e})}}class lt extends st{static properties={currentView:{type:String}};handleNavClick(t){this.dispatchEvent(new CustomEvent("nav-changed",{detail:{view:t},bubbles:!0,composed:!0}))}render(){return z`
+ */class st extends E{constructor(){super(...arguments),this.renderOptions={host:this},this._$Do=void 0}createRenderRoot(){const t=super.createRenderRoot();return this.renderOptions.renderBefore??=t.firstChild,t}update(t){const e=this.render();this.hasUpdated||(this.renderOptions.isConnected=this.isConnected),super.update(t),this._$Do=((t,e,i)=>{const r=i?.renderBefore??e;let n=r._$litPart$;if(void 0===n){const t=i?.renderBefore??null;r._$litPart$=n=new _(e.insertBefore(D(),t),t,void 0,i??{})}return n._$AI(t),n})(e,this.renderRoot,this.renderOptions)}connectedCallback(){super.connectedCallback(),this._$Do?.setConnected(!0)}disconnectedCallback(){super.disconnectedCallback(),this._$Do?.setConnected(!1)}render(){return G}}st._$litElement$=!0,st.finalized=!0,ot.litElementHydrateSupport?.({LitElement:st});const at=ot.litElementPolyfillSupport;at?.({LitElement:st}),(ot.litElementVersions??=[]).push("4.2.2");class ct{constructor(t){this.hass=t}subscribeToUpdates(t){const e=["shopping_list_manager_item_added","shopping_list_manager_item_updated","shopping_list_manager_item_checked","shopping_list_manager_item_deleted","shopping_list_manager_list_updated"].map(e=>this.hass.connection.subscribeEvents(t,e));return()=>{e.forEach(t=>t())}}async getLists(){return await this.hass.callWS({type:"shopping_list_manager/lists/get_all"})}async createList(t,e="mdi:cart",i=!0){return await this.hass.callWS({type:"shopping_list_manager/lists/create",name:t,icon:e,private:i})}async updateList(t,e){return await this.hass.callWS({type:"shopping_list_manager/lists/update",list_id:t,...e})}async deleteList(t){return await this.hass.callWS({type:"shopping_list_manager/lists/delete",list_id:t})}async setActiveList(t){return await this.hass.callWS({type:"shopping_list_manager/lists/set_active",list_id:t})}async incrementItem(t,e){return await this.hass.callWS({type:"shopping_list_manager/items/increment",item_id:t,amount:e})}async getItems(t){return await this.hass.callWS({type:"shopping_list_manager/items/get",list_id:t})}async addItem(t,e){return await this.hass.callWS({type:"shopping_list_manager/items/add",list_id:t,...e})}async updateItem(t,e){return await this.hass.callWS({type:"shopping_list_manager/items/update",item_id:t,...e})}async checkItem(t,e){return await this.hass.callWS({type:"shopping_list_manager/items/check",item_id:t,checked:e})}async deleteItem(t){return await this.hass.callWS({type:"shopping_list_manager/items/delete",item_id:t})}async bulkCheckItems(t,e){return await this.hass.callWS({type:"shopping_list_manager/items/bulk_check",item_ids:t,checked:e})}async clearCheckedItems(t){return await this.hass.callWS({type:"shopping_list_manager/items/clear_checked",list_id:t})}async getListTotal(t){return await this.hass.callWS({type:"shopping_list_manager/items/get_total",list_id:t})}async searchProductByBarcode(t){return await this.hass.callWS({type:"shopping_list_manager/products/search_by_barcode",barcode:t})}async searchOpenFoodFacts(t,e=5){return await this.hass.callWS({type:"shopping_list_manager/openfoodfacts/fetch",query:t,page_size:e})}async fetchOpenFoodFactsByBarcode(t){return await this.hass.callWS({type:"shopping_list_manager/openfoodfacts/fetch",barcode:t})}async downloadProductImage(t,e){return await this.hass.callWS({type:"shopping_list_manager/products/download_image",image_url:t,product_name:e})}async searchProducts(t,e={}){return await this.hass.callWS({type:"shopping_list_manager/products/search",query:t,limit:e.limit||20,exclude_allergens:e.excludeAllergens,include_tags:e.includeTags,substitution_group:e.substitutionGroup})}async getProductSuggestions(t=20){return await this.hass.callWS({type:"shopping_list_manager/products/suggestions",limit:t})}async getProductSubstitutes(t,e=5){return await this.hass.callWS({type:"shopping_list_manager/products/substitutes",product_id:t,limit:e})}async addProduct(t){return await this.hass.callWS({type:"shopping_list_manager/products/add",...t})}async updateProduct(t,e){return await this.hass.callWS({type:"shopping_list_manager/products/update",product_id:t,...e})}async getProductsByIds(t){return await this.hass.callWS({type:"shopping_list_manager/products/get_by_ids",product_ids:t})}async getCategories(){return await this.hass.callWS({type:"shopping_list_manager/categories/get_all"})}async getIntegrationSettings(){return await this.hass.callWS({type:"shopping_list_manager/get_integration_settings"})}async setCountry(t){return await this.hass.callWS({type:"shopping_list_manager/set_country",country:t})}async createCustomRegion(t,e){return await this.hass.callWS({type:"shopping_list_manager/regions/create",code:t,name:e})}async deleteCustomRegion(t){return await this.hass.callWS({type:"shopping_list_manager/regions/delete",code:t})}async updateListMembers(t,e){return await this.hass.callWS({type:"shopping_list_manager/lists/update_members",list_id:t,allowed_users:e})}async getHAUsers(){return await this.hass.callWS({type:"shopping_list_manager/users/get_all"})}async exportData(){return await this.hass.callWS({type:"shopping_list_manager/export_data"})}async importData(t){return await this.hass.callWS({type:"shopping_list_manager/import_data",data:t})}async getLoyaltyCards(){return await this.hass.callWS({type:"shopping_list_manager/loyalty/get_all"})}async addLoyaltyCard(t){return await this.hass.callWS({type:"shopping_list_manager/loyalty/add",...t})}async updateLoyaltyCard(t,e){return await this.hass.callWS({type:"shopping_list_manager/loyalty/update",card_id:t,...e})}async deleteLoyaltyCard(t){return await this.hass.callWS({type:"shopping_list_manager/loyalty/delete",card_id:t})}async updateLoyaltyCardMembers(t,e){return await this.hass.callWS({type:"shopping_list_manager/loyalty/update_members",card_id:t,allowed_users:e})}}class lt extends st{static properties={currentView:{type:String}};handleNavClick(t){this.dispatchEvent(new CustomEvent("nav-changed",{detail:{view:t},bubbles:!0,composed:!0}))}render(){return z`
       <nav class="bottom-nav">
         <button
           class="nav-item ${"shopping"===this.currentView?"active":""}"
@@ -4728,7 +4728,7 @@ const C=globalThis,A=t=>t,I=C.trustedTypes,S=I?I.createPolicy("lit-html",{create
       font-size: 14px;
       color: var(--secondary-text-color);
     }
-  `}customElements.define("slm-support-settings",na);class oa extends st{static properties={api:{type:Object},_currentCountry:{type:String,state:!0},_availableCountries:{type:Object,state:!0},_loading:{type:Boolean,state:!0},_saving:{type:Boolean,state:!0},_successMessage:{type:String,state:!0},_errorMessage:{type:String,state:!0},_backupStatus:{type:String,state:!0},_backupWorking:{type:Boolean,state:!0}};constructor(){super(),this._currentCountry=null,this._availableCountries={},this._loading=!0,this._saving=!1,this._successMessage="",this._errorMessage="",this._backupStatus="",this._backupWorking=!1}async connectedCallback(){super.connectedCallback(),await this._loadSettings()}async _loadSettings(){this._loading=!0;try{const t=await this.api.getIntegrationSettings();this._currentCountry=t.country,this._availableCountries=t.available_countries||{}}catch(t){this._errorMessage="Failed to load region settings.",console.error("[SLM] Failed to load integration settings:",t)}finally{this._loading=!1}}async _handleExport(){this._backupWorking=!0,this._backupStatus="";try{const t=await this.api.exportData(),e=new Blob([JSON.stringify(t,null,2)],{type:"application/json"}),i=URL.createObjectURL(e),r=document.createElement("a"),n=(new Date).toISOString().slice(0,10);r.href=i,r.download=`shopping_list_manager_backup_${n}.json`,r.click(),URL.revokeObjectURL(i);const o=(t.user_products||[]).length,s=(t.lists||[]).length;this._backupStatus=`success:Exported ${o} custom product${1!==o?"s":""} and ${s} list${1!==s?"s":""}`}catch(t){this._backupStatus="error:Export failed. Please try again.",console.error("[SLM] Export failed:",t)}finally{this._backupWorking=!1}}async _handleImport(t){const e=t.target.files[0];if(e){t.target.value="",this._backupWorking=!0,this._backupStatus="";try{const t=await e.text(),i=JSON.parse(t);if(!i.slm_backup_version)return void(this._backupStatus="error:Invalid backup file.");const r=await this.api.importData(i),{products:n,lists:o,items:s}=r.imported||{};this._backupStatus=`success:Imported ${n} product${1!==n?"s":""}, ${o} list${1!==o?"s":""}, ${s} item${1!==s?"s":""}. Reload to see changes.`}catch(t){this._backupStatus="error:Import failed. Make sure the file is a valid backup.",console.error("[SLM] Import failed:",t)}finally{this._backupWorking=!1}}}async _handleCountrySelect(t){if(t===this._currentCountry||this._saving)return;const e=this._availableCountries[t]||t;if(confirm(`Switch to ${e}?\n\nDefault catalog products will be replaced with ${e} products. Your custom products are kept.`)){this._saving=!0,this._successMessage="",this._errorMessage="";try{const i=await this.api.setCountry(t);this._currentCountry=i.country,this._successMessage=`✓ Switched to ${e} — ${i.products_loaded} products loaded`}catch(t){this._errorMessage="Failed to switch region. Please try again.",console.error("[SLM] Failed to set country:",t)}finally{this._saving=!1}}}render(){return z`
+  `}customElements.define("slm-support-settings",na);const oa=["NZ","AU","US","GB","CA","BE"];class sa extends st{static properties={api:{type:Object},_currentCountry:{type:String,state:!0},_availableCountries:{type:Object,state:!0},_customRegions:{type:Object,state:!0},_loading:{type:Boolean,state:!0},_saving:{type:Boolean,state:!0},_successMessage:{type:String,state:!0},_errorMessage:{type:String,state:!0},_backupStatus:{type:String,state:!0},_backupWorking:{type:Boolean,state:!0},_showAddRegion:{type:Boolean,state:!0},_newRegionCode:{type:String,state:!0},_newRegionName:{type:String,state:!0},_regionWorking:{type:Boolean,state:!0},_regionMessage:{type:String,state:!0}};constructor(){super(),this._currentCountry=null,this._availableCountries={},this._customRegions={},this._loading=!0,this._saving=!1,this._successMessage="",this._errorMessage="",this._backupStatus="",this._backupWorking=!1,this._showAddRegion=!1,this._newRegionCode="",this._newRegionName="",this._regionWorking=!1,this._regionMessage=""}async connectedCallback(){super.connectedCallback(),await this._loadSettings()}async _loadSettings(){this._loading=!0;try{const t=await this.api.getIntegrationSettings();this._currentCountry=t.country,this._availableCountries=t.available_countries||{},this._customRegions=t.custom_regions||{}}catch(t){this._errorMessage="Failed to load region settings.",console.error("[SLM] Failed to load integration settings:",t)}finally{this._loading=!1}}async _handleExport(){this._backupWorking=!0,this._backupStatus="";try{const t=await this.api.exportData(),e=new Blob([JSON.stringify(t,null,2)],{type:"application/json"}),i=URL.createObjectURL(e),r=document.createElement("a"),n=(new Date).toISOString().slice(0,10);r.href=i,r.download=`shopping_list_manager_backup_${n}.json`,r.click(),URL.revokeObjectURL(i);const o=(t.user_products||[]).length,s=(t.lists||[]).length;this._backupStatus=`success:Exported ${o} custom product${1!==o?"s":""} and ${s} list${1!==s?"s":""}`}catch(t){this._backupStatus="error:Export failed. Please try again.",console.error("[SLM] Export failed:",t)}finally{this._backupWorking=!1}}async _handleImport(t){const e=t.target.files[0];if(e){t.target.value="",this._backupWorking=!0,this._backupStatus="";try{const t=await e.text(),i=JSON.parse(t);if(!i.slm_backup_version)return void(this._backupStatus="error:Invalid backup file.");const r=await this.api.importData(i),{products:n,lists:o,items:s}=r.imported||{};this._backupStatus=`success:Imported ${n} product${1!==n?"s":""}, ${o} list${1!==o?"s":""}, ${s} item${1!==s?"s":""}. Reload to see changes.`}catch(t){this._backupStatus="error:Import failed. Make sure the file is a valid backup.",console.error("[SLM] Import failed:",t)}finally{this._backupWorking=!1}}}async _handleCountrySelect(t){if(t===this._currentCountry||this._saving)return;const e=this._availableCountries[t]||t,i=!!this._customRegions[t];if(confirm(i?`Switch to custom region "${e}"?\n\nBuilt-in catalog products will be removed. Add your own products after switching.`:`Switch to ${e}?\n\nDefault catalog products will be replaced with ${e} products. Your custom products are kept.`)){this._saving=!0,this._successMessage="",this._errorMessage="";try{const r=await this.api.setCountry(t);this._currentCountry=r.country,this._successMessage=i?`✓ Switched to custom region "${e}"`:`✓ Switched to ${e} — ${r.products_loaded} products loaded`}catch(t){this._errorMessage="Failed to switch region. Please try again.",console.error("[SLM] Failed to set country:",t)}finally{this._saving=!1}}}async _handleCreateRegion(){const t=this._newRegionCode.trim().toUpperCase(),e=this._newRegionName.trim();if(t&&e)if(/^[A-Z]{2,8}$/.test(t))if(oa.includes(t))this._regionMessage=`error:"${t}" is a built-in region code.`;else{this._regionWorking=!0,this._regionMessage="";try{const i=await this.api.createCustomRegion(t,e);this._customRegions=i.custom_regions||{},this._availableCountries={...this._availableCountries,[t]:e},this._newRegionCode="",this._newRegionName="",this._showAddRegion=!1,this._regionMessage=`success:Custom region "${e}" (${t}) created.`}catch(t){this._regionMessage="error:Failed to create region. The code may already exist.",console.error("[SLM] Failed to create custom region:",t)}finally{this._regionWorking=!1}}else this._regionMessage="error:Code must be 2–8 uppercase letters (A–Z only).";else this._regionMessage="error:Both a code and a name are required."}async _handleDeleteRegion(t){const e=this._customRegions[t]||t;if(confirm(`Delete custom region "${e}" (${t})?\n\nThis cannot be undone. If it is the active region, you will be switched back to New Zealand.`)){this._regionWorking=!0,this._regionMessage="";try{const i=await this.api.deleteCustomRegion(t);this._customRegions=i.custom_regions||{};const r={...this._availableCountries};delete r[t],this._availableCountries=r,this._currentCountry===t&&(this._currentCountry="NZ"),this._regionMessage=`success:Region "${e}" deleted.`}catch(t){this._regionMessage="error:Failed to delete region.",console.error("[SLM] Failed to delete custom region:",t)}finally{this._regionWorking=!1}}}render(){const t=Object.entries(this._customRegions);return z`
       <div class="data-settings">
         <div class="header">
           <button class="back-btn" @click=${()=>this.dispatchEvent(new Event("back"))}>
@@ -4745,32 +4745,108 @@ const C=globalThis,A=t=>t,I=C.trustedTypes,S=I?I.createPolicy("lit-html",{create
 
             <div class="settings-item">
               <div class="item-content">
-                <div class="item-title">Region</div>
+                <div class="item-title">Active Region</div>
                 <div class="item-subtitle">Country-specific products and pricing</div>
               </div>
               <select
                 class="region-select"
-                .value=${this._currentCountry||""}
                 ?disabled=${this._saving}
                 @change=${t=>this._handleCountrySelect(t.target.value)}
               >
-                ${Object.entries(this._availableCountries).map(([t,e])=>z`
-                  <option value=${t} ?selected=${this._currentCountry===t}>
-                    ${t} — ${e}
-                  </option>
-                `)}
+                <optgroup label="Built-in">
+                  ${Object.entries(this._availableCountries).filter(([t])=>oa.includes(t)).map(([t,e])=>z`
+                      <option value=${t} ?selected=${this._currentCountry===t}>
+                        ${t} — ${e}
+                      </option>
+                    `)}
+                </optgroup>
+                ${t.length>0?z`
+                  <optgroup label="Custom">
+                    ${t.map(([t,e])=>z`
+                      <option value=${t} ?selected=${this._currentCountry===t}>
+                        ${t} — ${e}
+                      </option>
+                    `)}
+                  </optgroup>
+                `:""}
               </select>
             </div>
 
-            ${this._successMessage?z`
-              <div class="message success">${this._successMessage}</div>
-            `:""}
-            ${this._errorMessage?z`
-              <div class="message error">${this._errorMessage}</div>
-            `:""}
+            ${this._successMessage?z`<div class="message success">${this._successMessage}</div>`:""}
+            ${this._errorMessage?z`<div class="message error">${this._errorMessage}</div>`:""}
+            ${this._saving?z`<div class="message info">Switching catalog…</div>`:""}
 
-            ${this._saving?z`
-              <div class="message info">Switching catalog…</div>
+            <div class="section-header">Custom Regions</div>
+
+            <div class="settings-item">
+              <div class="item-content">
+                <div class="item-subtitle">
+                  Create your own region if your country isn't listed, or to maintain a
+                  personalised product catalog. Custom regions start empty — add your own
+                  products after switching.
+                </div>
+              </div>
+            </div>
+
+            ${t.map(([t,e])=>z`
+              <div class="settings-item custom-region-row">
+                <div class="item-content">
+                  <div class="item-title">${e}</div>
+                  <div class="item-subtitle">${t}${this._currentCountry===t?" · active":""}</div>
+                </div>
+                <button
+                  class="delete-btn"
+                  title="Delete region"
+                  ?disabled=${this._regionWorking}
+                  @click=${()=>this._handleDeleteRegion(t)}
+                >
+                  <ha-icon icon="mdi:delete-outline"></ha-icon>
+                </button>
+              </div>
+            `)}
+
+            ${this._showAddRegion?z`
+              <div class="add-region-form">
+                <div class="form-row">
+                  <input
+                    class="code-input"
+                    type="text"
+                    placeholder="Code (e.g. ZA)"
+                    maxlength="8"
+                    .value=${this._newRegionCode}
+                    @input=${t=>this._newRegionCode=t.target.value.toUpperCase()}
+                  />
+                  <input
+                    class="name-input"
+                    type="text"
+                    placeholder="Display name (e.g. South Africa)"
+                    maxlength="64"
+                    .value=${this._newRegionName}
+                    @input=${t=>this._newRegionName=t.target.value}
+                    @keydown=${t=>"Enter"===t.key&&this._handleCreateRegion()}
+                  />
+                </div>
+                <div class="form-actions">
+                  <button class="action-btn" ?disabled=${this._regionWorking} @click=${this._handleCreateRegion}>
+                    ${this._regionWorking?"Saving…":"Save region"}
+                  </button>
+                  <button class="cancel-btn" @click=${()=>{this._showAddRegion=!1,this._regionMessage=""}}>
+                    Cancel
+                  </button>
+                </div>
+              </div>
+            `:z`
+              <div class="settings-item">
+                <button class="action-btn" @click=${()=>{this._showAddRegion=!0,this._regionMessage=""}}>
+                  + Add custom region
+                </button>
+              </div>
+            `}
+
+            ${this._regionMessage?z`
+              <div class="message ${this._regionMessage.startsWith("success")?"success":"error"}">
+                ${this._regionMessage.replace(/^(success|error):/,"")}
+              </div>
             `:""}
 
             <div class="section-header">About</div>
@@ -4794,11 +4870,7 @@ const C=globalThis,A=t=>t,I=C.trustedTypes,S=I?I.createPolicy("lit-html",{create
                   Download your custom products and lists as a JSON file.
                   Catalog products are excluded — they reload automatically.
                 </div>
-                <button
-                  class="action-btn"
-                  ?disabled=${this._backupWorking}
-                  @click=${this._handleExport}
-                >
+                <button class="action-btn" ?disabled=${this._backupWorking} @click=${this._handleExport}>
                   Download backup
                 </button>
               </div>
@@ -4829,21 +4901,13 @@ const C=globalThis,A=t=>t,I=C.trustedTypes,S=I?I.createPolicy("lit-html",{create
                 ${this._backupStatus.replace(/^(success|error):/,"")}
               </div>
             `:""}
-
-            ${this._backupWorking?z`
-              <div class="message info">Working…</div>
-            `:""}
-
+            ${this._backupWorking?z`<div class="message info">Working…</div>`:""}
           </div>
         `}
       </div>
     `}static styles=o`
-    :host {
-      display: block;
-    }
-    .data-settings {
-      padding-bottom: 20px;
-    }
+    :host { display: block; }
+    .data-settings { padding-bottom: 20px; }
     .header {
       display: flex;
       align-items: center;
@@ -4861,21 +4925,9 @@ const C=globalThis,A=t=>t,I=C.trustedTypes,S=I?I.createPolicy("lit-html",{create
       color: var(--slm-text-primary);
       -webkit-tap-highlight-color: transparent;
     }
-    ha-icon {
-      color: var(--slm-text-primary);
-      --icon-primary-color: var(--slm-text-primary);
-    }
-    .header h2 {
-      margin: 0;
-      font-size: 20px;
-      font-weight: 700;
-      color: var(--slm-text-primary);
-    }
-    .loading {
-      padding: 32px;
-      text-align: center;
-      color: var(--slm-text-secondary);
-    }
+    ha-icon { color: var(--slm-text-primary); --icon-primary-color: var(--slm-text-primary); }
+    .header h2 { margin: 0; font-size: 20px; font-weight: 700; color: var(--slm-text-primary); }
+    .loading { padding: 32px; text-align: center; color: var(--slm-text-secondary); }
     .section-header {
       padding: 14px 16px 6px;
       font-size: 12px;
@@ -4895,23 +4947,10 @@ const C=globalThis,A=t=>t,I=C.trustedTypes,S=I?I.createPolicy("lit-html",{create
       border-bottom: 1px solid var(--slm-border-subtle);
       box-sizing: border-box;
     }
-    .item-content {
-      flex: 1;
-    }
-    .item-content.full-width {
-      width: 100%;
-    }
-    .item-title {
-      font-weight: 600;
-      font-size: 14px;
-      margin-bottom: 4px;
-      color: var(--slm-text-primary);
-    }
-    .item-subtitle {
-      font-size: 12px;
-      color: var(--slm-text-secondary);
-      line-height: 1.5;
-    }
+    .item-content { flex: 1; }
+    .item-content.full-width { width: 100%; }
+    .item-title { font-weight: 600; font-size: 14px; margin-bottom: 4px; color: var(--slm-text-primary); }
+    .item-subtitle { font-size: 12px; color: var(--slm-text-secondary); line-height: 1.5; }
     .region-select {
       background: var(--slm-bg-elevated);
       color: var(--slm-text-primary);
@@ -4923,10 +4962,7 @@ const C=globalThis,A=t=>t,I=C.trustedTypes,S=I?I.createPolicy("lit-html",{create
       cursor: pointer;
       flex-shrink: 0;
     }
-    .region-select:disabled {
-      opacity: 0.5;
-      cursor: default;
-    }
+    .region-select:disabled { opacity: 0.5; cursor: default; }
     .message {
       margin: 8px 16px;
       padding: 10px 14px;
@@ -4934,22 +4970,10 @@ const C=globalThis,A=t=>t,I=C.trustedTypes,S=I?I.createPolicy("lit-html",{create
       font-size: 13px;
       font-weight: 500;
     }
-    .message.success {
-      background: rgba(129, 199, 132, 0.2);
-      color: var(--slm-accent-secondary, #81c784);
-    }
-    .message.error {
-      background: rgba(239, 154, 154, 0.2);
-      color: var(--slm-accent-danger, #ef9a9a);
-    }
-    .message.info {
-      background: rgba(159, 168, 218, 0.15);
-      color: var(--slm-accent-primary, #9fa8da);
-    }
-    .backup-item {
-      flex-direction: column;
-      align-items: flex-start;
-    }
+    .message.success { background: rgba(129,199,132,0.2); color: var(--slm-accent-secondary, #81c784); }
+    .message.error { background: rgba(239,154,154,0.2); color: var(--slm-accent-danger, #ef9a9a); }
+    .message.info { background: rgba(159,168,218,0.15); color: var(--slm-accent-primary, #9fa8da); }
+    .backup-item { flex-direction: column; align-items: flex-start; }
     .action-btn {
       display: inline-block;
       margin-top: 12px;
@@ -4963,12 +4987,72 @@ const C=globalThis,A=t=>t,I=C.trustedTypes,S=I?I.createPolicy("lit-html",{create
       cursor: pointer;
       -webkit-tap-highlight-color: transparent;
     }
-    .action-btn:disabled,
-    .action-btn.disabled {
-      opacity: 0.5;
-      cursor: default;
+    .action-btn:disabled, .action-btn.disabled { opacity: 0.5; cursor: default; }
+    .custom-region-row { align-items: center; }
+    .delete-btn {
+      background: none;
+      border: none;
+      padding: 6px;
+      cursor: pointer;
+      color: var(--slm-accent-danger, #ef9a9a);
+      display: flex;
+      align-items: center;
+      flex-shrink: 0;
+      -webkit-tap-highlight-color: transparent;
     }
-  `}customElements.define("slm-data-settings",oa);class sa extends st{static properties={hass:{type:Object},api:{type:Object},lists:{type:Array},_todoEntities:{type:Array,state:!0},_saving:{type:String,state:!0}};constructor(){super(),this._todoEntities=[],this._saving=null}connectedCallback(){super.connectedCallback(),this._loadTodoEntities()}updated(t){t.has("hass")&&this.hass&&this._loadTodoEntities()}_loadTodoEntities(){this.hass?.states&&(this._todoEntities=Object.entries(this.hass.states).filter(([t])=>t.startsWith("todo.")).map(([t,e])=>({entityId:t,name:e.attributes?.friendly_name||t})).sort((t,e)=>t.name.localeCompare(e.name)))}_getLinkedEntity(t){return t?.ha_todo_entity_id||""}async _handleEntityChange(t,e){if(this.api){this._saving=t.id;try{await this.api.updateList(t.id,{ha_todo_entity_id:e||null}),this.dispatchEvent(new CustomEvent("lists-updated",{bubbles:!0,composed:!0}))}catch(t){console.error("[SLM] Failed to save HA todo link:",t)}finally{this._saving=null}}}render(){const t=this.lists||[];return z`
+    .delete-btn:disabled { opacity: 0.4; cursor: default; }
+    .add-region-form {
+      padding: 14px 16px;
+      border-bottom: 1px solid var(--slm-border-subtle);
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .form-row {
+      display: flex;
+      gap: 8px;
+    }
+    .code-input {
+      width: 72px;
+      flex-shrink: 0;
+      padding: 8px 10px;
+      background: var(--slm-bg-elevated);
+      color: var(--slm-text-primary);
+      border: 1px solid var(--slm-border-subtle);
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 700;
+      text-transform: uppercase;
+    }
+    .name-input {
+      flex: 1;
+      padding: 8px 10px;
+      background: var(--slm-bg-elevated);
+      color: var(--slm-text-primary);
+      border: 1px solid var(--slm-border-subtle);
+      border-radius: 8px;
+      font-size: 13px;
+    }
+    .code-input:focus, .name-input:focus {
+      outline: none;
+      border-color: var(--slm-accent-primary);
+    }
+    .form-actions {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+    .form-actions .action-btn { margin-top: 0; }
+    .cancel-btn {
+      background: none;
+      border: 1px solid var(--slm-border-subtle);
+      border-radius: 8px;
+      padding: 9px 14px;
+      font-size: 13px;
+      color: var(--slm-text-secondary);
+      cursor: pointer;
+    }
+  `}customElements.define("slm-data-settings",sa);class aa extends st{static properties={hass:{type:Object},api:{type:Object},lists:{type:Array},_todoEntities:{type:Array,state:!0},_saving:{type:String,state:!0}};constructor(){super(),this._todoEntities=[],this._saving=null}connectedCallback(){super.connectedCallback(),this._loadTodoEntities()}updated(t){t.has("hass")&&this.hass&&this._loadTodoEntities()}_loadTodoEntities(){this.hass?.states&&(this._todoEntities=Object.entries(this.hass.states).filter(([t])=>t.startsWith("todo.")).map(([t,e])=>({entityId:t,name:e.attributes?.friendly_name||t})).sort((t,e)=>t.name.localeCompare(e.name)))}_getLinkedEntity(t){return t?.ha_todo_entity_id||""}async _handleEntityChange(t,e){if(this.api){this._saving=t.id;try{await this.api.updateList(t.id,{ha_todo_entity_id:e||null}),this.dispatchEvent(new CustomEvent("lists-updated",{bubbles:!0,composed:!0}))}catch(t){console.error("[SLM] Failed to save HA todo link:",t)}finally{this._saving=null}}}render(){const t=this.lists||[];return z`
       <div class="ha-sync-settings">
         <div class="header">
           <button class="back-btn" @click=${()=>this.dispatchEvent(new Event("back"))}>
@@ -5110,7 +5194,7 @@ const C=globalThis,A=t=>t,I=C.trustedTypes,S=I?I.createPolicy("lit-html",{create
     }
     .entity-select:disabled { opacity: 0.5; cursor: default; }
     .saving { font-size: 12px; color: var(--slm-text-secondary); flex-shrink: 0; }
-  `}customElements.define("slm-ha-sync-settings",sa);class aa extends st{static properties={hass:{type:Object},api:{type:Object},settings:{type:Object},isEmbedded:{type:Boolean},categories:{type:Array},lists:{type:Array},currentSection:{type:String},_slmVersion:{type:String},_slmcVersion:{type:String}};constructor(){super(),this.currentSection="main",this._slmVersion="…",this._slmcVersion="…"}updated(t){t.has("hass")&&this.hass&&"…"===this._slmVersion&&this.hass.callWS({type:"hacs/repositories/list"}).then(t=>{const e=t.find(t=>"thekiwismarthome/shopping-list-manager"===t.full_name),i=t.find(t=>"thekiwismarthome/shopping-list-manager-card"===t.full_name);this._slmVersion=e?.installed_version??"—",this._slmcVersion=i?.installed_version??Ys}).catch(()=>{this._slmVersion="—",this._slmcVersion=Ys})}handleSettingChange(t,e){this.dispatchEvent(new CustomEvent("settings-changed",{detail:{[t]:e},bubbles:!0,composed:!0}))}handleNavigation(t){this.currentSection=t}renderMainSettings(){return z`
+  `}customElements.define("slm-ha-sync-settings",aa);class ca extends st{static properties={hass:{type:Object},api:{type:Object},settings:{type:Object},isEmbedded:{type:Boolean},categories:{type:Array},lists:{type:Array},currentSection:{type:String},_slmVersion:{type:String},_slmcVersion:{type:String}};constructor(){super(),this.currentSection="main",this._slmVersion="…",this._slmcVersion="…"}updated(t){t.has("hass")&&this.hass&&"…"===this._slmVersion&&this.hass.callWS({type:"hacs/repositories/list"}).then(t=>{const e=t.find(t=>"thekiwismarthome/shopping-list-manager"===t.full_name),i=t.find(t=>"thekiwismarthome/shopping-list-manager-card"===t.full_name);this._slmVersion=e?.installed_version??"—",this._slmcVersion=i?.installed_version??Ys}).catch(()=>{this._slmVersion="—",this._slmcVersion=Ys})}handleSettingChange(t,e){this.dispatchEvent(new CustomEvent("settings-changed",{detail:{[t]:e},bubbles:!0,composed:!0}))}handleNavigation(t){this.currentSection=t}renderMainSettings(){return z`
       <div class="settings-main">
         <div class="settings-header">
           <h2>Settings</h2>
@@ -5409,7 +5493,7 @@ const C=globalThis,A=t=>t,I=C.trustedTypes,S=I?I.createPolicy("lit-html",{create
     input:checked + .slider:before {
       transform: translateX(22px);
     }
-  `}customElements.define("slm-settings-view",aa);const ca=new Map;class la extends st{static properties={hass:{type:Object},config:{type:Object},isEmbedded:{type:Boolean},currentView:{type:String},lists:{type:Array},activeList:{type:Object},items:{type:Array},categories:{type:Array},total:{type:Object},loading:{type:Boolean},showAddDialog:{type:Boolean},showEditDialog:{type:Boolean},editingItem:{type:Object},settings:{type:Object},isEmbedded:{type:Boolean}};set hass(t){const e=this._hass;this._hass=t,this.api&&(this.api.hass=t),t?.config?.currency&&!this.total.currency&&(this.total={...this.total,currency:t.config.currency});const i=t?.user?.id;i&&this._settingsUserId!==i&&(this._settingsUserId=i,this.settings=this.loadSettings()),!this._subscribed&&t?.connection&&(this._subscribed=!0,this.subscribeToUpdates()),this._checkHATodoStateChanges(e,t)}get hass(){return this._hass}constructor(){super(),this.isEmbedded=!1,this.currentView="shopping",this.lists=[],this.activeList=null,this.recentItems=[],this.items=[],this.categories=[],this.total={total:0,currency:"",item_count:0},this.loading=!0,this.showAddDialog=!1,this.showEditDialog=!1,this.editingItem=null,this._settingsUserId=null,this._baseCardId=null,this._cardId=null,this._assignedCardId=null,this.settings=this.loadSettings(),this.isEmbedded=!1,this._subscribed=!1,this._suppressHASyncUntil=0,this._haTodoLastItems={},this._haTodoSyncTimers={}}connectedCallback(){if(super.connectedCallback(),!this._assignedCardId&&this._baseCardId){const t=ca.get(this._baseCardId)??0;ca.set(this._baseCardId,t+1),this._assignedCardId=0===t?this._baseCardId:`${this._baseCardId}_${t}`}else if(this._assignedCardId&&this._baseCardId){const t=ca.get(this._baseCardId)??0;ca.set(this._baseCardId,t+1)}if(this._assignedCardId){const t=this._cardId;this._cardId=this._assignedCardId,this._cardId!==t&&this._settingsUserId&&(this.settings=this.loadSettings(),this.applyColorScheme(),this.requestUpdate())}}_hashConfig(t){const e=JSON.stringify(t);let i=0;for(let t=0;t<e.length;t++)i=(i<<5)-i+e.charCodeAt(t),i|=0;return Math.abs(i).toString(36)}_getSettingsKey(){const t=["slm_settings"];return this._settingsUserId&&t.push(this._settingsUserId),this._cardId&&t.push(this._cardId),t.join("_")}loadSettings(){const t={theme:"auto",darkMode:"system",fontSize:16,fontFamily:"system",useSystemTextSize:!0,openLastUsedList:!0,keepScreenOn:!1,notifications:{listSharing:!0,emails:!0},recentProductsCount:8,tilesPerRow:this.isEmbedded?8:3,useEmojis:!0,colorScheme:"pastel",viewMode:"tile",sortMode:"category",showRecentlyUsed:!0,showPriceOnTile:!0,localImagePath:"/local/images/groceries",fontWeight:"normal"},e=this._getSettingsKey(),i=localStorage.getItem(e);if(i)return{...t,...JSON.parse(i)};if(this._cardId&&this._settingsUserId){const i=`slm_settings_${this._settingsUserId}`,r=localStorage.getItem(i);if(r){const i={...t,...JSON.parse(r)};return localStorage.setItem(e,JSON.stringify(i)),i}}return t}saveSettings(){const t=this._getSettingsKey();localStorage.setItem(t,JSON.stringify(this.settings))}async firstUpdated(){this.api=new ct(this.hass),await this.loadData(),this.applyColorScheme(),this.settings.keepScreenOn&&this.acquireWakeLock(),this._visibilityHandler=()=>{this.settings.keepScreenOn&&"visible"===document.visibilityState&&this.acquireWakeLock()},document.addEventListener("visibilitychange",this._visibilityHandler)}disconnectedCallback(){super.disconnectedCallback(),this.releaseWakeLock(),document.removeEventListener("visibilitychange",this._visibilityHandler);for(const t of Object.values(this._haTodoSyncTimers))clearTimeout(t);if(this._haTodoSyncTimers={},this._baseCardId){const t=ca.get(this._baseCardId)??1;ca.set(this._baseCardId,Math.max(0,t-1))}}async acquireWakeLock(){if("wakeLock"in navigator)try{this._wakeLock=await navigator.wakeLock.request("screen"),this._wakeLock.addEventListener("release",()=>{this._wakeLock=null})}catch(t){console.warn("[SLM] Wake lock failed:",t.message)}}releaseWakeLock(){this._wakeLock?.release(),this._wakeLock=null}applyColorScheme(){const t=this.settings.darkMode;"on"===t?this.setAttribute("data-theme","dark"):"off"===t?this.setAttribute("data-theme","light"):this.removeAttribute("data-theme");const e=this.settings.theme;e&&"soft"!==e?this.setAttribute("data-theme-name",e):this.removeAttribute("data-theme-name"),this.settings.useSystemTextSize?this.style.removeProperty("--slm-font-size-base"):this.style.setProperty("--slm-font-size-base",`${this.settings.fontSize}px`);this.style.setProperty("--slm-font-weight-base",{light:"300",normal:"400",bold:"700"}[this.settings.fontWeight]||"400")}async loadData(){try{this.loading=!0;const t=await this.api.getLists();this.lists=t.lists||[];const e=`slm_last_list_${this._settingsUserId||"default"}`;if(this.settings.openLastUsedList){const t=localStorage.getItem(e);this.activeList=this.lists.find(e=>e.id===t)||this.lists.find(t=>t.active)||this.lists[0]}else this.activeList=this.lists.find(t=>t.active)||this.lists[0];const i=await this.api.getCategories();this.categories=i.categories,this.activeList&&await this.loadActiveListData()}catch(t){console.error("Failed to load data:",t)}finally{this.loading=!1}}async loadActiveListData(){if(!this.activeList)return;const t=await this.api.getItems(this.activeList.id);this.items=t.items;const e=await this.api.getListTotal(this.activeList.id);this.total=e;const i=`slm_last_list_${this._settingsUserId||"default"}`;localStorage.setItem(i,this.activeList.id)}async _refreshTotal(){if(this.activeList)try{const t=await this.api.getListTotal(this.activeList.id);this.total=t}catch(t){console.warn("[SLM] Failed to refresh total:",t)}}async handleListChange(t){const e=t.detail.listId;await this.api.setActiveList(e),this.activeList=this.lists.find(t=>t.id===e),await this.loadActiveListData(),this.currentView="shopping"}async handleItemClick(t){const{itemId:e}=t.detail,i=this.items.find(t=>t.id===e);if(!i||i.checked)return;const r=this.items;this.items=this.items.map(t=>t.id===e?{...t,quantity:t.quantity+1,_pending:!0}:t);try{await this.api.incrementItem(e,1),this.items=this.items.map(t=>t.id===e?{...t,_pending:!1}:t)}catch(t){console.error("[SLM] Failed to increment item:",t),this.items=r}}async handleItemDecrease(t){const{itemId:e}=t.detail,i=this.items.find(t=>t.id===e);if(!i)return;const r=this.items;if(i.quantity>1){this.items=this.items.map(t=>t.id===e?{...t,quantity:t.quantity-1,_pending:!0}:t);try{await this.api.incrementItem(e,-1),this.items=this.items.map(t=>t.id===e?{...t,_pending:!1}:t)}catch(t){console.error("[SLM] Failed to decrement item:",t),this.items=r}}else{this.items=this.items.filter(t=>t.id!==e);try{await this.api.deleteItem(e),this._refreshTotal();const t=this._getLinkedTodoEntity();t&&i?.name&&this._haTodoRemove(t,i.name)}catch(t){console.error("[SLM] Failed to delete item:",t),this.items=r}}}async handleItemCheck(t){const{itemId:e,checked:i}=t.detail,r=this.items.find(t=>t.id===e);i&&r?.product_id&&this.trackRecentlyUsed(r.product_id);const n=this.items;this.items=this.items.map(t=>t.id===e?{...t,checked:i,_pending:!0}:t);try{await this.api.checkItem(e,i),this.items=this.items.map(t=>t.id===e?{...t,_pending:!1}:t);const t=this._getLinkedTodoEntity();t&&r?.name&&this._haTodoCheck(t,r.name,i)}catch(t){console.error("[SLM] Failed to check item:",t),this.items=n}}async handleItemLongPress(t){this.editingItem=t.detail.item,this.showEditDialog=!0}async handleItemSwipeDelete(t){const{itemId:e}=t.detail,i=this.items.find(t=>t.id===e);i?.product_id&&this.untrackRecentlyUsed(i.product_id);const r=this.items;this.items=this.items.filter(t=>t.id!==e);try{await this.api.deleteItem(e),this._refreshTotal();const t=this._getLinkedTodoEntity();t&&i?.name&&this._haTodoRemove(t,i.name)}catch(t){console.error("[SLM] Failed to delete item:",t),this.items=r}}untrackRecentlyUsed(t){if(!t)return;const e="slm_recent_products",i=localStorage.getItem(e);if(!i)return;const r=JSON.parse(i).filter(e=>e!==t);localStorage.setItem(e,JSON.stringify(r))}async handleAddItem(t){const e={...t.detail};if(this.showAddDialog=!1,!e.product_id&&!e.fromRecentlyUsed)try{const t={name:e.name,category_id:e.category_id||"other"};e.price&&(t.price=parseFloat(e.price)),e.image_url&&(t.image_url=e.image_url);const i=await this.api.addProduct(t),r=i.product||i;r?.id&&(e.product_id=r.id)}catch(t){console.warn("[SLM] Could not auto-create product:",t)}const i=this.items.find(t=>t.product_id&&t.product_id===e.product_id&&!t.checked);try{if(e.fromRecentlyUsed)if(i)await this.api.updateItem(i.id,{quantity:1});else{const{fromRecentlyUsed:t,...i}=e,r={quantity:1};for(const[t,e]of Object.entries(i))null!=e&&(r[t]=e);await this.api.addItem(this.activeList.id,r)}else i?await this.api.updateItem(i.id,{quantity:i.quantity+1}):await this.api.addItem(this.activeList.id,e);if(this.trackRecentlyUsed(e.product_id),this._refreshTotal(),!i){const t=this._getLinkedTodoEntity();t&&e.name&&this._haTodoAdd(t,e.name)}}catch(t){console.error("[SLM] Failed to add item:",t)}}trackRecentlyUsed(t){if(!t)return;const e="slm_recent_products",i=localStorage.getItem(e),r=(i?JSON.parse(i):[]).filter(e=>e!==t);r.unshift(t);const n=r.slice(0,50);localStorage.setItem(e,JSON.stringify(n))}async _syncProductFromItemData(t,e){const i={};e.name&&(i.name=e.name),e.category_id&&(i.category_id=e.category_id),void 0!==e.price&&""!==e.price&&(i.price=parseFloat(e.price)||0),e.unit&&(i.default_unit=e.unit),void 0!==e.image_url&&(i.image_url=e.image_url),Object.keys(i).length>0&&await this.api.updateProduct(t,i)}async handleEditItem(t){const{itemId:e,data:i}=t.detail;if(this.editingItem?._isProductEdit)await this._syncProductFromItemData(this.editingItem.product_id,i);else{await this.api.updateItem(e,i);const t=this.items.find(t=>t.id===e);t?.product_id&&await this._syncProductFromItemData(t.product_id,i)}this._refreshTotal(),this.showEditDialog=!1,this.editingItem=null}handleNavChange(t){this.currentView=t.detail.view}handleSettingsChange(t){this.settings={...this.settings,...t.detail},this.saveSettings(),this.applyColorScheme(),this.settings.keepScreenOn?this.acquireWakeLock():this.releaseWakeLock(),this.requestUpdate()}handleMenuSettingChange(t){const{key:e,value:i}=t.detail;this.settings={...this.settings,[e]:i},this.saveSettings(),this.requestUpdate()}async handleCreateAndAddProduct(t){const{name:e,category_id:i,price:r,unit:n,barcode:o,image_url:s}=t.detail;try{const t={name:e,category_id:i};r&&(t.price=parseFloat(r)),o&&(t.barcode=o),s&&(t.image_url=s);const a=await this.api.addProduct(t),c=a.product||a,l={name:e,category_id:i,product_id:c.id,quantity:1,unit:n||"units"};r&&(l.price=parseFloat(r)),await this.api.addItem(this.activeList.id,l),c.id&&this.trackRecentlyUsed(c.id),this._refreshTotal()}catch(t){console.error("Failed to create product:",t)}}handleBackToLists(){this.currentView="lists"}async handleShareList(){const t=this.activeList?.name||"Shopping List",e=this.items.filter(t=>!t.checked).map(t=>`${t.quantity} ${t.unit} ${t.name}`).join("\n"),i=`${t}\n\n${e}`;if(navigator.share)try{await navigator.share({title:t,text:i})}catch(t){"AbortError"!==t.name&&console.error("Share failed:",t)}else try{if(navigator.clipboard?.writeText)await navigator.clipboard.writeText(i);else{const t=document.createElement("textarea");t.value=i,t.style.cssText="position:fixed;top:-9999px;left:-9999px;opacity:0",document.body.appendChild(t),t.focus(),t.select(),document.execCommand("copy"),document.body.removeChild(t)}alert("List copied to clipboard!")}catch(t){console.error("Copy to clipboard failed:",t),alert("Could not copy to clipboard. Please copy manually:\n\n"+i)}}_getLinkedTodoEntity(t){const e=t??this.activeList?.id;return this.lists.find(t=>t.id===e)?.ha_todo_entity_id||null}async _findHATodoItemUid(t,e){try{const i=await this.hass.callWS({type:"todo/item/list",entity_id:t}),r=i?.items||[],n=e?.toLowerCase()||"",o=r.find(t=>t.summary?.toLowerCase()===n&&"completed"!==t.status);return o?.uid||null}catch(t){return console.warn("[SLM] Failed to fetch HA todo items:",t),null}}_haTodoAdd(t,e){t&&e&&(this._suppressHASyncUntil=Date.now()+3e3,this.hass.callService("todo","add_item",{item:e},{entity_id:t}).catch(t=>console.warn("[SLM] HA todo add failed:",t)))}async _haTodoCheck(t,e,i){if(t&&e)try{const r=await this._findHATodoItemUid(t,e);if(!r)return;this._suppressHASyncUntil=Date.now()+3e3,await this.hass.callService("todo","update_item",{item:r,status:i?"completed":"needs_action"},{entity_id:t})}catch(t){console.warn("[SLM] HA todo check failed:",t)}}async _haTodoRemove(t,e){if(t&&e)try{const i=await this._findHATodoItemUid(t,e);if(!i)return;this._suppressHASyncUntil=Date.now()+3e3,await this.hass.callService("todo","remove_item",{item:i},{entity_id:t})}catch(t){console.warn("[SLM] HA todo remove failed:",t)}}_checkHATodoStateChanges(t,e){if(e?.states&&t?.states&&!(Date.now()<this._suppressHASyncUntil))for(const i of this.lists||[]){const r=i.ha_todo_entity_id;if(!r)continue;const n=t.states[r],o=e.states[r];o&&n&&(n.last_changed!==o.last_changed&&this._debouncedHATodoSync(r,i.id))}}_debouncedHATodoSync(t,e){this._haTodoSyncTimers=this._haTodoSyncTimers||{},clearTimeout(this._haTodoSyncTimers[t]),this._haTodoSyncTimers[t]=setTimeout(()=>{this._onHATodoChanged(t,e)},300)}async _onHATodoChanged(t,e){if(!(Date.now()<this._suppressHASyncUntil)&&this.activeList&&this.activeList.id===e)try{const i=await this.hass.callWS({type:"todo/item/list",entity_id:t}),r=i?.items||[],n=(this._haTodoLastItems||{})[t]??null;if(this._haTodoLastItems=this._haTodoLastItems||{},null===n)return void(this._haTodoLastItems[t]=r);this._haTodoLastItems[t]=r;const o=this.items;let s=!1;for(const t of r){const i=t.summary?.trim();if(!i)continue;const r=i.toLowerCase(),n=o.find(t=>t.name?.toLowerCase()===r);"needs_action"===t.status?n?n.checked&&(await this.api.checkItem(n.id,!1),s=!0):(await this.api.addItem(e,{name:i,quantity:1,category_id:"other"}),s=!0):"completed"===t.status&&n&&!n.checked&&(await this.api.checkItem(n.id,!0),s=!0)}const a=new Set(r.map(t=>t.summary?.toLowerCase()).filter(Boolean));for(const t of n){const e=t.summary?.toLowerCase();if(!e||a.has(e))continue;const i=o.find(t=>t.name?.toLowerCase()===e&&!t.checked);i&&(await this.api.deleteItem(i.id),s=!0)}s&&await this.loadActiveListData()}catch(t){console.warn("[SLM] HA→SLM sync failed:",t)}}async subscribeToUpdates(){if(this.hass?.connection)try{const t=await this.hass.connection.subscribeMessage(t=>this._applySubscriptionEvent(t),{type:"shopping_list_manager/subscribe"});this._unsubscribers=[t],console.log("[SLM] ✅ Subscribed to shopping list updates")}catch(t){console.error("[SLM] ❌ Failed to subscribe:",t)}}_applySubscriptionEvent(t){const e=t.event_type,i=t.data,r=this.activeList?.id;if("shopping_list_manager_item_added"===e){if(i.list_id!==r)return;this.items.find(t=>t.id===i.item.id)||(this.items=[...this.items,i.item]),this._refreshTotal()}else if("shopping_list_manager_item_updated"===e){if(i.list_id!==r)return;this.items=this.items.map(t=>t.id===i.item.id?{...i.item,_pending:!1}:t),this._refreshTotal()}else if("shopping_list_manager_item_checked"===e){const{item_id:t,item_ids:e,checked:n,list_id:o}=i;if(t){if(o&&o!==r)return;this.items=this.items.map(e=>e.id===t?{...e,checked:n,_pending:!1}:e)}else if(e){const t=new Set(e);this.items=this.items.map(e=>t.has(e.id)?{...e,checked:n,_pending:!1}:e)}}else if("shopping_list_manager_item_deleted"===e){const{item_id:t,action:e,list_id:n}=i;if("cleared_checked"===e){if(n!==r)return;this.items=this.items.filter(t=>!t.checked)}else t&&(this.items=this.items.filter(e=>e.id!==t));this._refreshTotal()}else"shopping_list_manager_list_updated"!==e&&"shopping_list_manager_list_deleted"!==e||this.loadData()}renderCurrentView(){switch(this.currentView){case"shopping":return z`
+  `}customElements.define("slm-settings-view",ca);const la=new Map;class da extends st{static properties={hass:{type:Object},config:{type:Object},isEmbedded:{type:Boolean},currentView:{type:String},lists:{type:Array},activeList:{type:Object},items:{type:Array},categories:{type:Array},total:{type:Object},loading:{type:Boolean},showAddDialog:{type:Boolean},showEditDialog:{type:Boolean},editingItem:{type:Object},settings:{type:Object},isEmbedded:{type:Boolean}};set hass(t){const e=this._hass;this._hass=t,this.api&&(this.api.hass=t),t?.config?.currency&&!this.total.currency&&(this.total={...this.total,currency:t.config.currency});const i=t?.user?.id;i&&this._settingsUserId!==i&&(this._settingsUserId=i,this.settings=this.loadSettings()),!this._subscribed&&t?.connection&&(this._subscribed=!0,this.subscribeToUpdates()),this._checkHATodoStateChanges(e,t)}get hass(){return this._hass}constructor(){super(),this.isEmbedded=!1,this.currentView="shopping",this.lists=[],this.activeList=null,this.recentItems=[],this.items=[],this.categories=[],this.total={total:0,currency:"",item_count:0},this.loading=!0,this.showAddDialog=!1,this.showEditDialog=!1,this.editingItem=null,this._settingsUserId=null,this._baseCardId=null,this._cardId=null,this._assignedCardId=null,this.settings=this.loadSettings(),this.isEmbedded=!1,this._subscribed=!1,this._suppressHASyncUntil=0,this._haTodoLastItems={},this._haTodoSyncTimers={}}connectedCallback(){if(super.connectedCallback(),!this._assignedCardId&&this._baseCardId){const t=la.get(this._baseCardId)??0;la.set(this._baseCardId,t+1),this._assignedCardId=0===t?this._baseCardId:`${this._baseCardId}_${t}`}else if(this._assignedCardId&&this._baseCardId){const t=la.get(this._baseCardId)??0;la.set(this._baseCardId,t+1)}if(this._assignedCardId){const t=this._cardId;this._cardId=this._assignedCardId,this._cardId!==t&&this._settingsUserId&&(this.settings=this.loadSettings(),this.applyColorScheme(),this.requestUpdate())}}_hashConfig(t){const e=JSON.stringify(t);let i=0;for(let t=0;t<e.length;t++)i=(i<<5)-i+e.charCodeAt(t),i|=0;return Math.abs(i).toString(36)}_getSettingsKey(){const t=["slm_settings"];return this._settingsUserId&&t.push(this._settingsUserId),this._cardId&&t.push(this._cardId),t.join("_")}loadSettings(){const t={theme:"auto",darkMode:"system",fontSize:16,fontFamily:"system",useSystemTextSize:!0,openLastUsedList:!0,keepScreenOn:!1,notifications:{listSharing:!0,emails:!0},recentProductsCount:8,tilesPerRow:this.isEmbedded?8:3,useEmojis:!0,colorScheme:"pastel",viewMode:"tile",sortMode:"category",showRecentlyUsed:!0,showPriceOnTile:!0,localImagePath:"/local/images/groceries",fontWeight:"normal"},e=this._getSettingsKey(),i=localStorage.getItem(e);if(i)return{...t,...JSON.parse(i)};if(this._cardId&&this._settingsUserId){const i=`slm_settings_${this._settingsUserId}`,r=localStorage.getItem(i);if(r){const i={...t,...JSON.parse(r)};return localStorage.setItem(e,JSON.stringify(i)),i}}return t}saveSettings(){const t=this._getSettingsKey();localStorage.setItem(t,JSON.stringify(this.settings))}async firstUpdated(){this.api=new ct(this.hass),await this.loadData(),this.applyColorScheme(),this.settings.keepScreenOn&&this.acquireWakeLock(),this._visibilityHandler=()=>{this.settings.keepScreenOn&&"visible"===document.visibilityState&&this.acquireWakeLock()},document.addEventListener("visibilitychange",this._visibilityHandler)}disconnectedCallback(){super.disconnectedCallback(),this.releaseWakeLock(),document.removeEventListener("visibilitychange",this._visibilityHandler);for(const t of Object.values(this._haTodoSyncTimers))clearTimeout(t);if(this._haTodoSyncTimers={},this._baseCardId){const t=la.get(this._baseCardId)??1;la.set(this._baseCardId,Math.max(0,t-1))}}async acquireWakeLock(){if("wakeLock"in navigator)try{this._wakeLock=await navigator.wakeLock.request("screen"),this._wakeLock.addEventListener("release",()=>{this._wakeLock=null})}catch(t){console.warn("[SLM] Wake lock failed:",t.message)}}releaseWakeLock(){this._wakeLock?.release(),this._wakeLock=null}applyColorScheme(){const t=this.settings.darkMode;"on"===t?this.setAttribute("data-theme","dark"):"off"===t?this.setAttribute("data-theme","light"):this.removeAttribute("data-theme");const e=this.settings.theme;e&&"soft"!==e?this.setAttribute("data-theme-name",e):this.removeAttribute("data-theme-name"),this.settings.useSystemTextSize?this.style.removeProperty("--slm-font-size-base"):this.style.setProperty("--slm-font-size-base",`${this.settings.fontSize}px`);this.style.setProperty("--slm-font-weight-base",{light:"300",normal:"400",bold:"700"}[this.settings.fontWeight]||"400")}async loadData(){try{this.loading=!0;const t=await this.api.getLists();this.lists=t.lists||[];const e=`slm_last_list_${this._settingsUserId||"default"}`;if(this.settings.openLastUsedList){const t=localStorage.getItem(e);this.activeList=this.lists.find(e=>e.id===t)||this.lists.find(t=>t.active)||this.lists[0]}else this.activeList=this.lists.find(t=>t.active)||this.lists[0];const i=await this.api.getCategories();this.categories=i.categories,this.activeList&&await this.loadActiveListData()}catch(t){console.error("Failed to load data:",t)}finally{this.loading=!1}}async loadActiveListData(){if(!this.activeList)return;const t=await this.api.getItems(this.activeList.id);this.items=t.items;const e=await this.api.getListTotal(this.activeList.id);this.total=e;const i=`slm_last_list_${this._settingsUserId||"default"}`;localStorage.setItem(i,this.activeList.id)}async _refreshTotal(){if(this.activeList)try{const t=await this.api.getListTotal(this.activeList.id);this.total=t}catch(t){console.warn("[SLM] Failed to refresh total:",t)}}async handleListChange(t){const e=t.detail.listId;await this.api.setActiveList(e),this.activeList=this.lists.find(t=>t.id===e),await this.loadActiveListData(),this.currentView="shopping"}async handleItemClick(t){const{itemId:e}=t.detail,i=this.items.find(t=>t.id===e);if(!i||i.checked)return;const r=this.items;this.items=this.items.map(t=>t.id===e?{...t,quantity:t.quantity+1,_pending:!0}:t);try{await this.api.incrementItem(e,1),this.items=this.items.map(t=>t.id===e?{...t,_pending:!1}:t)}catch(t){console.error("[SLM] Failed to increment item:",t),this.items=r}}async handleItemDecrease(t){const{itemId:e}=t.detail,i=this.items.find(t=>t.id===e);if(!i)return;const r=this.items;if(i.quantity>1){this.items=this.items.map(t=>t.id===e?{...t,quantity:t.quantity-1,_pending:!0}:t);try{await this.api.incrementItem(e,-1),this.items=this.items.map(t=>t.id===e?{...t,_pending:!1}:t)}catch(t){console.error("[SLM] Failed to decrement item:",t),this.items=r}}else{this.items=this.items.filter(t=>t.id!==e);try{await this.api.deleteItem(e),this._refreshTotal();const t=this._getLinkedTodoEntity();t&&i?.name&&this._haTodoRemove(t,i.name)}catch(t){console.error("[SLM] Failed to delete item:",t),this.items=r}}}async handleItemCheck(t){const{itemId:e,checked:i}=t.detail,r=this.items.find(t=>t.id===e);i&&r?.product_id&&this.trackRecentlyUsed(r.product_id);const n=this.items;this.items=this.items.map(t=>t.id===e?{...t,checked:i,_pending:!0}:t);try{await this.api.checkItem(e,i),this.items=this.items.map(t=>t.id===e?{...t,_pending:!1}:t);const t=this._getLinkedTodoEntity();t&&r?.name&&this._haTodoCheck(t,r.name,i)}catch(t){console.error("[SLM] Failed to check item:",t),this.items=n}}async handleItemLongPress(t){this.editingItem=t.detail.item,this.showEditDialog=!0}async handleItemSwipeDelete(t){const{itemId:e}=t.detail,i=this.items.find(t=>t.id===e);i?.product_id&&this.untrackRecentlyUsed(i.product_id);const r=this.items;this.items=this.items.filter(t=>t.id!==e);try{await this.api.deleteItem(e),this._refreshTotal();const t=this._getLinkedTodoEntity();t&&i?.name&&this._haTodoRemove(t,i.name)}catch(t){console.error("[SLM] Failed to delete item:",t),this.items=r}}untrackRecentlyUsed(t){if(!t)return;const e="slm_recent_products",i=localStorage.getItem(e);if(!i)return;const r=JSON.parse(i).filter(e=>e!==t);localStorage.setItem(e,JSON.stringify(r))}async handleAddItem(t){const e={...t.detail};if(this.showAddDialog=!1,!e.product_id&&!e.fromRecentlyUsed)try{const t={name:e.name,category_id:e.category_id||"other"};e.price&&(t.price=parseFloat(e.price)),e.image_url&&(t.image_url=e.image_url);const i=await this.api.addProduct(t),r=i.product||i;r?.id&&(e.product_id=r.id)}catch(t){console.warn("[SLM] Could not auto-create product:",t)}const i=this.items.find(t=>t.product_id&&t.product_id===e.product_id&&!t.checked);try{if(e.fromRecentlyUsed)if(i)await this.api.updateItem(i.id,{quantity:1});else{const{fromRecentlyUsed:t,...i}=e,r={quantity:1};for(const[t,e]of Object.entries(i))null!=e&&(r[t]=e);await this.api.addItem(this.activeList.id,r)}else i?await this.api.updateItem(i.id,{quantity:i.quantity+1}):await this.api.addItem(this.activeList.id,e);if(this.trackRecentlyUsed(e.product_id),this._refreshTotal(),!i){const t=this._getLinkedTodoEntity();t&&e.name&&this._haTodoAdd(t,e.name)}}catch(t){console.error("[SLM] Failed to add item:",t)}}trackRecentlyUsed(t){if(!t)return;const e="slm_recent_products",i=localStorage.getItem(e),r=(i?JSON.parse(i):[]).filter(e=>e!==t);r.unshift(t);const n=r.slice(0,50);localStorage.setItem(e,JSON.stringify(n))}async _syncProductFromItemData(t,e){const i={};e.name&&(i.name=e.name),e.category_id&&(i.category_id=e.category_id),void 0!==e.price&&""!==e.price&&(i.price=parseFloat(e.price)||0),e.unit&&(i.default_unit=e.unit),void 0!==e.image_url&&(i.image_url=e.image_url),Object.keys(i).length>0&&await this.api.updateProduct(t,i)}async handleEditItem(t){const{itemId:e,data:i}=t.detail;if(this.editingItem?._isProductEdit)await this._syncProductFromItemData(this.editingItem.product_id,i);else{await this.api.updateItem(e,i);const t=this.items.find(t=>t.id===e);t?.product_id&&await this._syncProductFromItemData(t.product_id,i)}this._refreshTotal(),this.showEditDialog=!1,this.editingItem=null}handleNavChange(t){this.currentView=t.detail.view}handleSettingsChange(t){this.settings={...this.settings,...t.detail},this.saveSettings(),this.applyColorScheme(),this.settings.keepScreenOn?this.acquireWakeLock():this.releaseWakeLock(),this.requestUpdate()}handleMenuSettingChange(t){const{key:e,value:i}=t.detail;this.settings={...this.settings,[e]:i},this.saveSettings(),this.requestUpdate()}async handleCreateAndAddProduct(t){const{name:e,category_id:i,price:r,unit:n,barcode:o,image_url:s}=t.detail;try{const t={name:e,category_id:i};r&&(t.price=parseFloat(r)),o&&(t.barcode=o),s&&(t.image_url=s);const a=await this.api.addProduct(t),c=a.product||a,l={name:e,category_id:i,product_id:c.id,quantity:1,unit:n||"units"};r&&(l.price=parseFloat(r)),await this.api.addItem(this.activeList.id,l),c.id&&this.trackRecentlyUsed(c.id),this._refreshTotal()}catch(t){console.error("Failed to create product:",t)}}handleBackToLists(){this.currentView="lists"}async handleShareList(){const t=this.activeList?.name||"Shopping List",e=this.items.filter(t=>!t.checked).map(t=>`${t.quantity} ${t.unit} ${t.name}`).join("\n"),i=`${t}\n\n${e}`;if(navigator.share)try{await navigator.share({title:t,text:i})}catch(t){"AbortError"!==t.name&&console.error("Share failed:",t)}else try{if(navigator.clipboard?.writeText)await navigator.clipboard.writeText(i);else{const t=document.createElement("textarea");t.value=i,t.style.cssText="position:fixed;top:-9999px;left:-9999px;opacity:0",document.body.appendChild(t),t.focus(),t.select(),document.execCommand("copy"),document.body.removeChild(t)}alert("List copied to clipboard!")}catch(t){console.error("Copy to clipboard failed:",t),alert("Could not copy to clipboard. Please copy manually:\n\n"+i)}}_getLinkedTodoEntity(t){const e=t??this.activeList?.id;return this.lists.find(t=>t.id===e)?.ha_todo_entity_id||null}async _findHATodoItemUid(t,e){try{const i=await this.hass.callWS({type:"todo/item/list",entity_id:t}),r=i?.items||[],n=e?.toLowerCase()||"",o=r.find(t=>t.summary?.toLowerCase()===n&&"completed"!==t.status);return o?.uid||null}catch(t){return console.warn("[SLM] Failed to fetch HA todo items:",t),null}}_haTodoAdd(t,e){t&&e&&(this._suppressHASyncUntil=Date.now()+3e3,this.hass.callService("todo","add_item",{item:e},{entity_id:t}).catch(t=>console.warn("[SLM] HA todo add failed:",t)))}async _haTodoCheck(t,e,i){if(t&&e)try{const r=await this._findHATodoItemUid(t,e);if(!r)return;this._suppressHASyncUntil=Date.now()+3e3,await this.hass.callService("todo","update_item",{item:r,status:i?"completed":"needs_action"},{entity_id:t})}catch(t){console.warn("[SLM] HA todo check failed:",t)}}async _haTodoRemove(t,e){if(t&&e)try{const i=await this._findHATodoItemUid(t,e);if(!i)return;this._suppressHASyncUntil=Date.now()+3e3,await this.hass.callService("todo","remove_item",{item:i},{entity_id:t})}catch(t){console.warn("[SLM] HA todo remove failed:",t)}}_checkHATodoStateChanges(t,e){if(e?.states&&t?.states&&!(Date.now()<this._suppressHASyncUntil))for(const i of this.lists||[]){const r=i.ha_todo_entity_id;if(!r)continue;const n=t.states[r],o=e.states[r];o&&n&&(n.last_changed!==o.last_changed&&this._debouncedHATodoSync(r,i.id))}}_debouncedHATodoSync(t,e){this._haTodoSyncTimers=this._haTodoSyncTimers||{},clearTimeout(this._haTodoSyncTimers[t]),this._haTodoSyncTimers[t]=setTimeout(()=>{this._onHATodoChanged(t,e)},300)}async _onHATodoChanged(t,e){if(!(Date.now()<this._suppressHASyncUntil)&&this.activeList&&this.activeList.id===e)try{const i=await this.hass.callWS({type:"todo/item/list",entity_id:t}),r=i?.items||[],n=(this._haTodoLastItems||{})[t]??null;if(this._haTodoLastItems=this._haTodoLastItems||{},null===n)return void(this._haTodoLastItems[t]=r);this._haTodoLastItems[t]=r;const o=this.items;let s=!1;for(const t of r){const i=t.summary?.trim();if(!i)continue;const r=i.toLowerCase(),n=o.find(t=>t.name?.toLowerCase()===r);"needs_action"===t.status?n?n.checked&&(await this.api.checkItem(n.id,!1),s=!0):(await this.api.addItem(e,{name:i,quantity:1,category_id:"other"}),s=!0):"completed"===t.status&&n&&!n.checked&&(await this.api.checkItem(n.id,!0),s=!0)}const a=new Set(r.map(t=>t.summary?.toLowerCase()).filter(Boolean));for(const t of n){const e=t.summary?.toLowerCase();if(!e||a.has(e))continue;const i=o.find(t=>t.name?.toLowerCase()===e&&!t.checked);i&&(await this.api.deleteItem(i.id),s=!0)}s&&await this.loadActiveListData()}catch(t){console.warn("[SLM] HA→SLM sync failed:",t)}}async subscribeToUpdates(){if(this.hass?.connection)try{const t=await this.hass.connection.subscribeMessage(t=>this._applySubscriptionEvent(t),{type:"shopping_list_manager/subscribe"});this._unsubscribers=[t],console.log("[SLM] ✅ Subscribed to shopping list updates")}catch(t){console.error("[SLM] ❌ Failed to subscribe:",t)}}_applySubscriptionEvent(t){const e=t.event_type,i=t.data,r=this.activeList?.id;if("shopping_list_manager_item_added"===e){if(i.list_id!==r)return;this.items.find(t=>t.id===i.item.id)||(this.items=[...this.items,i.item]),this._refreshTotal()}else if("shopping_list_manager_item_updated"===e){if(i.list_id!==r)return;this.items=this.items.map(t=>t.id===i.item.id?{...i.item,_pending:!1}:t),this._refreshTotal()}else if("shopping_list_manager_item_checked"===e){const{item_id:t,item_ids:e,checked:n,list_id:o}=i;if(t){if(o&&o!==r)return;this.items=this.items.map(e=>e.id===t?{...e,checked:n,_pending:!1}:e)}else if(e){const t=new Set(e);this.items=this.items.map(e=>t.has(e.id)?{...e,checked:n,_pending:!1}:e)}}else if("shopping_list_manager_item_deleted"===e){const{item_id:t,action:e,list_id:n}=i;if("cleared_checked"===e){if(n!==r)return;this.items=this.items.filter(t=>!t.checked)}else t&&(this.items=this.items.filter(e=>e.id!==t));this._refreshTotal()}else"shopping_list_manager_list_updated"!==e&&"shopping_list_manager_list_deleted"!==e||this.loadData()}renderCurrentView(){switch(this.currentView){case"shopping":return z`
           <slm-list-header
             .activeList=${this.activeList}
             .itemCount=${this.items.filter(t=>!t.checked).length}
@@ -6091,4 +6175,4 @@ const C=globalThis,A=t=>t,I=C.trustedTypes,S=I?I.createPolicy("lit-html",{create
       --slm-cat-recent: #4a6b8c;
     }
 
-  `;setConfig(t){this.config=t;const e=this._hashConfig(t);e!==this._baseCardId&&(this._baseCardId=e,this._assignedCardId=null,this._cardId=e)}getCardSize(){return 12}}customElements.define("shopping-list-manager-card",la);
+  `;setConfig(t){this.config=t;const e=this._hashConfig(t);e!==this._baseCardId&&(this._baseCardId=e,this._assignedCardId=null,this._cardId=e)}getCardSize(){return 12}}customElements.define("shopping-list-manager-card",da);
