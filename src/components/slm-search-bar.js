@@ -9,6 +9,7 @@ class SLMSearchBar extends LitElement {
     settings: { type: Object },
     categories: { type: Array },
     activeListId: { type: String },
+    currencySymbol: { type: String },
     searchQuery: { type: String },
     searchResults: { type: Array },
     recentProducts: { type: Array },
@@ -30,6 +31,7 @@ class SLMSearchBar extends LitElement {
     this.searchResults = [];
     this.recentProducts = [];
     this.showResults = false;
+    this.currencySymbol = '$';
     this._showCreateForm = false;
     this._createName = '';
     this._createCategory = 'other';
@@ -577,7 +579,7 @@ class SLMSearchBar extends LitElement {
                   <div class="result-info">
                     <div class="result-name">${product.name}</div>
                     ${product.price ? html`
-                      <div class="result-price">$${product.price.toFixed(2)}</div>
+                      <div class="result-price">${this.currencySymbol}${product.price.toFixed(2)}</div>
                     ` : ''}
                   </div>
                   <span class="add-icon">➕</span>

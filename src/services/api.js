@@ -228,11 +228,13 @@ export class ShoppingListAPI {
     });
   }
 
-  async createCustomRegion(code, name) {
+  async createCustomRegion(code, name, currencySymbol = null, language = null) {
     return await this.hass.callWS({
       type: 'shopping_list_manager/regions/create',
       code,
-      name
+      name,
+      ...(currencySymbol ? { currency_symbol: currencySymbol } : {}),
+      ...(language ? { language } : {}),
     });
   }
 

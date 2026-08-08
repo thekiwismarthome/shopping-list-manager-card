@@ -8,6 +8,7 @@ class SLMItemList extends LitElement {
     categories: { type: Array },
     settings: { type: Object },
     api: { type: Object },
+    currencySymbol: { type: String },
     _recentItems: { type: Array, state: true },
     _longPressTimer: { state: true },
     _longPressTriggered: { state: true }
@@ -18,6 +19,7 @@ class SLMItemList extends LitElement {
     this._recentItems = [];
     this._longPressTimer = null;
     this._longPressTriggered = false;
+    this.currencySymbol = '$';
   }
 
   updated(changedProperties) {
@@ -328,7 +330,7 @@ class SLMItemList extends LitElement {
         <div class="row-middle">
           <div class="row-name">${item.name}</div>
           ${showPrice && item.price ? html`
-            <div class="row-price">$${(item.price * item.quantity).toFixed(2)}</div>
+            <div class="row-price">${this.currencySymbol}${(item.price * item.quantity).toFixed(2)}</div>
           ` : ''}
         </div>
 
@@ -367,7 +369,7 @@ class SLMItemList extends LitElement {
         <div class="row-middle">
           <div class="row-name">${product.name}</div>
           ${showPrice && product.price ? html`
-            <div class="row-price">$${product.price.toFixed(2)}</div>
+            <div class="row-price">${this.currencySymbol}${product.price.toFixed(2)}</div>
           ` : ''}
         </div>
 

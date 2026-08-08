@@ -17,6 +17,8 @@ class SLMDataSettings extends LitElement {
     _showAddRegion: { type: Boolean, state: true },
     _newRegionCode: { type: String, state: true },
     _newRegionName: { type: String, state: true },
+    _newRegionCurrency: { type: String, state: true },
+    _newRegionLanguage: { type: String, state: true },
     _regionWorking: { type: Boolean, state: true },
     _regionMessage: { type: String, state: true },
   };
@@ -35,6 +37,8 @@ class SLMDataSettings extends LitElement {
     this._showAddRegion = false;
     this._newRegionCode = '';
     this._newRegionName = '';
+    this._newRegionCurrency = '';
+    this._newRegionLanguage = '';
     this._regionWorking = false;
     this._regionMessage = '';
   }
@@ -139,6 +143,8 @@ class SLMDataSettings extends LitElement {
   async _handleCreateRegion() {
     const code = this._newRegionCode.trim().toUpperCase();
     const name = this._newRegionName.trim();
+    const currency = this._newRegionCurrency.trim() || null;
+    const language = this._newRegionLanguage.trim() || null;
 
     if (!code || !name) {
       this._regionMessage = 'error:Both a code and a name are required.';
@@ -156,11 +162,13 @@ class SLMDataSettings extends LitElement {
     this._regionWorking = true;
     this._regionMessage = '';
     try {
-      const result = await this.api.createCustomRegion(code, name);
+      const result = await this.api.createCustomRegion(code, name, currency, language);
       this._customRegions = result.custom_regions || {};
       this._availableCountries = { ...this._availableCountries, [code]: name };
       this._newRegionCode = '';
       this._newRegionName = '';
+      this._newRegionCurrency = '';
+      this._newRegionLanguage = '';
       this._showAddRegion = false;
       this._regionMessage = `success:Custom region "${name}" (${code}) created.`;
     } catch (err) {
@@ -172,7 +180,7 @@ class SLMDataSettings extends LitElement {
   }
 
   async _handleDeleteRegion(code) {
-    const name = this._customRegions[code] || code;
+    const name = this._customRegions[code]?.name || code;
     if (!confirm(`Delete custom region "${name}" (${code})?\n\nThis cannot be undone. If it is the active region, you will be switched back to New Zealand.`)) return;
 
     this._regionWorking = true;
@@ -257,11 +265,18 @@ class SLMDataSettings extends LitElement {
               </div>
             </div>
 
-            ${customEntries.map(([code, name]) => html`
+            ${customEntries.map(([code, region]) => html`
               <div class="settings-item custom-region-row">
                 <div class="item-content">
-                  <div class="item-title">${name}</div>
-                  <div class="item-subtitle">${code}${this._currentCountry === code ? ' · active' : ''}</div>
+                  <div class="item-title">
+                    ${region.currency_symbol ? html`<span class="region-currency">${region.currency_symbol}</span>` : ''}
+                    ${region.name}
+                  </div>
+                  <div class="item-subtitle">
+                    ${code}
+                    ${region.language ? html` · ${region.language}` : ''}
+                    ${this._currentCountry === code ? html` · <strong>active</strong>` : ''}
+                  </div>
                 </div>
                 <button
                   class="delete-btn"
@@ -292,9 +307,28 @@ class SLMDataSettings extends LitElement {
                     maxlength="64"
                     .value=${this._newRegionName}
                     @input=${(e) => this._newRegionName = e.target.value}
+                  />
+                </div>
+                <div class="form-row">
+                  <input
+                    class="currency-input"
+                    type="text"
+                    placeholder="Symbol (e.g. R, €, £)"
+                    maxlength="5"
+                    .value=${this._newRegionCurrency}
+                    @input=${(e) => this._newRegionCurrency = e.target.value}
+                  />
+                  <input
+                    class="name-input"
+                    type="text"
+                    placeholder="Language (e.g. Afrikaans, French)"
+                    maxlength="64"
+                    .value=${this._newRegionLanguage}
+                    @input=${(e) => this._newRegionLanguage = e.target.value}
                     @keydown=${(e) => e.key === 'Enter' && this._handleCreateRegion()}
                   />
                 </div>
+                <div class="form-hint">Language is used for auto-translation of the card UI.</div>
                 <div class="form-actions">
                   <button class="action-btn" ?disabled=${this._regionWorking} @click=${this._handleCreateRegion}>
                     ${this._regionWorking ? 'Saving…' : 'Save region'}
@@ -523,6 +557,29 @@ class SLMDataSettings extends LitElement {
       font-size: 13px;
       color: var(--slm-text-secondary);
       cursor: pointer;
+    }
+    .currency-input {
+      width: 72px;
+      flex-shrink: 0;
+      padding: 8px 10px;
+      background: var(--slm-bg-elevated);
+      color: var(--slm-text-primary);
+      border: 1px solid var(--slm-border-subtle);
+      border-radius: 8px;
+      font-size: 16px;
+      text-align: center;
+    }
+    .currency-input:focus { outline: none; border-color: var(--slm-accent-primary); }
+    .form-hint {
+      font-size: 11px;
+      color: var(--slm-text-secondary);
+      padding: 0 2px;
+    }
+    .region-currency {
+      display: inline-block;
+      font-weight: 700;
+      margin-right: 4px;
+      color: var(--slm-accent-primary);
     }
   `;
 }
