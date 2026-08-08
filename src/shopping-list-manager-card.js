@@ -79,6 +79,8 @@ class ShoppingListManagerCard extends LitElement {
     this.settings = this.loadSettings();
     this.isEmbedded = false;
     this._subscribed = false;
+    this._haTodoSubs = {};
+    this._suppressHASyncUntil = 0;
   }
 
   connectedCallback() {
@@ -195,6 +197,9 @@ class ShoppingListManagerCard extends LitElement {
     this.releaseWakeLock();
     document.removeEventListener('visibilitychange', this._visibilityHandler);
 
+    for (const sub of Object.values(this._haTodoSubs)) sub.unsub?.();
+    this._haTodoSubs = {};
+
     // Decrement instance counter so position slots are correctly reclaimed
     if (this._baseCardId) {
       const count = _slmInstanceCounters.get(this._baseCardId) ?? 1;
@@ -271,6 +276,8 @@ class ShoppingListManagerCard extends LitElement {
       if (this.activeList) {
         await this.loadActiveListData();
       }
+
+      this._updateHATodoSubscriptions();
 
     } catch (err) {
       console.error('Failed to load data:', err);
@@ -536,6 +543,7 @@ class ShoppingListManagerCard extends LitElement {
     } else {
       this.releaseWakeLock();
     }
+    this._updateHATodoSubscriptions();
     this.requestUpdate();
   }
 
@@ -638,6 +646,7 @@ class ShoppingListManagerCard extends LitElement {
 
   _haTodoAdd(entityId, itemName) {
     if (!entityId || !itemName) return;
+    this._suppressHASyncUntil = Date.now() + 3000;
     this.hass.callService('todo', 'add_item', { item: itemName }, { entity_id: entityId })
       .catch(err => console.warn('[SLM] HA todo add failed:', err));
   }
@@ -647,6 +656,7 @@ class ShoppingListManagerCard extends LitElement {
     try {
       const uid = await this._findHATodoItemUid(entityId, itemName);
       if (!uid) return;
+      this._suppressHASyncUntil = Date.now() + 3000;
       await this.hass.callService(
         'todo', 'update_item',
         { item: uid, status: checked ? 'completed' : 'needs_action' },
@@ -662,9 +672,119 @@ class ShoppingListManagerCard extends LitElement {
     try {
       const uid = await this._findHATodoItemUid(entityId, itemName);
       if (!uid) return;
+      this._suppressHASyncUntil = Date.now() + 3000;
       await this.hass.callService('todo', 'remove_item', { item: uid }, { entity_id: entityId });
     } catch (err) {
       console.warn('[SLM] HA todo remove failed:', err);
+    }
+  }
+
+  _updateHATodoSubscriptions() {
+    if (!this.hass?.connection) return;
+    const sync = this.settings?.haTodoSync || {};
+    const activeEntityIds = new Set(Object.values(sync));
+
+    // Unsubscribe from entities no longer linked
+    for (const [entityId, sub] of Object.entries(this._haTodoSubs)) {
+      if (!activeEntityIds.has(entityId)) {
+        sub.unsub?.();
+        delete this._haTodoSubs[entityId];
+      }
+    }
+
+    // Subscribe to newly linked entities
+    for (const entityId of activeEntityIds) {
+      if (!this._haTodoSubs[entityId]) {
+        this._subscribeHATodoEntity(entityId);
+      }
+    }
+  }
+
+  async _subscribeHATodoEntity(entityId) {
+    if (!this.hass?.connection || this._haTodoSubs[entityId]) return;
+
+    // Placeholder to prevent double-subscribe while async init runs
+    this._haTodoSubs[entityId] = { unsub: () => {}, lastItems: [] };
+
+    try {
+      const result = await this.hass.callWS({ type: 'todo/item/list', entity_id: entityId });
+      const lastItems = result?.items || [];
+
+      const unsub = await this.hass.connection.subscribeEvents(
+        (event) => {
+          if (event.data.entity_id === entityId) {
+            this._onHATodoChanged(entityId);
+          }
+        },
+        'state_changed'
+      );
+
+      this._haTodoSubs[entityId] = { unsub, lastItems };
+      console.log('[SLM] Subscribed to HA todo entity:', entityId);
+    } catch (err) {
+      console.warn('[SLM] Failed to subscribe to HA todo entity:', entityId, err);
+      delete this._haTodoSubs[entityId];
+    }
+  }
+
+  async _onHATodoChanged(entityId) {
+    // Skip if we just pushed a change from SLM to avoid echo loops
+    if (Date.now() < this._suppressHASyncUntil) return;
+
+    // Find which SLM list this entity is linked to
+    const listId = Object.entries(this.settings?.haTodoSync || {})
+      .find(([, eid]) => eid === entityId)?.[0];
+    if (!listId || this.activeList?.id !== listId) return;
+
+    try {
+      const result = await this.hass.callWS({ type: 'todo/item/list', entity_id: entityId });
+      const haItems = result?.items || [];
+      const prevItems = this._haTodoSubs[entityId]?.lastItems || [];
+
+      if (this._haTodoSubs[entityId]) {
+        this._haTodoSubs[entityId].lastItems = haItems;
+      }
+
+      const slmItems = this.items;
+      let changed = false;
+
+      // Process current HA items → add/check/uncheck in SLM
+      for (const haItem of haItems) {
+        const name = haItem.summary?.trim();
+        if (!name) continue;
+        const nameLower = name.toLowerCase();
+        const slmMatch = slmItems.find(i => i.name?.toLowerCase() === nameLower);
+
+        if (haItem.status === 'needs_action') {
+          if (!slmMatch) {
+            await this.api.addItem(listId, { name, quantity: 1, category_id: 'other' });
+            changed = true;
+          } else if (slmMatch.checked) {
+            await this.api.checkItem(slmMatch.id, false);
+            changed = true;
+          }
+        } else if (haItem.status === 'completed' && slmMatch && !slmMatch.checked) {
+          await this.api.checkItem(slmMatch.id, true);
+          changed = true;
+        }
+      }
+
+      // Detect items removed from HA → remove from SLM
+      const currNames = new Set(haItems.map(i => i.summary?.toLowerCase()).filter(Boolean));
+      for (const prevItem of prevItems) {
+        const nameLower = prevItem.summary?.toLowerCase();
+        if (!nameLower || currNames.has(nameLower)) continue;
+        const slmMatch = slmItems.find(i => i.name?.toLowerCase() === nameLower);
+        if (slmMatch) {
+          await this.api.deleteItem(slmMatch.id);
+          changed = true;
+        }
+      }
+
+      if (changed) await this.loadActiveListData();
+
+    } catch (err) {
+      console.warn('[SLM] HA→SLM sync failed:', err);
     }
   }
 
