@@ -1,6 +1,8 @@
+import { t, I18nController } from '../services/translator.js';
 import { LitElement, html, css } from 'lit';
 
 class SLMHaSyncSettings extends LitElement {
+  _i18n = new I18nController(this);
   static properties = {
     hass: { type: Object },
     api: { type: Object },
@@ -62,11 +64,11 @@ class SLMHaSyncSettings extends LitElement {
           <button class="back-btn" @click=${() => this.dispatchEvent(new Event('back'))}>
             <ha-icon icon="mdi:arrow-left"></ha-icon>
           </button>
-          <h2>HA Todo Sync</h2>
+          <h2>${t('HA Todo Sync')}</h2>
         </div>
 
         <div class="settings-list">
-          <div class="section-header">Link Lists to HA Todo</div>
+          <div class="section-header">${t('Link Lists to HA Todo')}</div>
 
           <div class="info-item">
             <div class="item-subtitle">
@@ -79,7 +81,7 @@ class SLMHaSyncSettings extends LitElement {
           ${this._todoEntities.length === 0 ? html`
             <div class="settings-item">
               <div class="item-content">
-                <div class="item-title">No todo lists found</div>
+                <div class="item-title">${t('No todo lists found')}</div>
                 <div class="item-subtitle">
                   No HA todo entities were detected. Make sure the
                   "To-do List" integration is enabled in Home Assistant.
@@ -89,8 +91,8 @@ class SLMHaSyncSettings extends LitElement {
           ` : lists.length === 0 ? html`
             <div class="settings-item">
               <div class="item-content">
-                <div class="item-title">No lists</div>
-                <div class="item-subtitle">Create a shopping list first.</div>
+                <div class="item-title">${t('No lists')}</div>
+                <div class="item-subtitle">${t('Create a shopping list first.')}</div>
               </div>
             </div>
           ` : lists.map(list => html`
@@ -111,7 +113,7 @@ class SLMHaSyncSettings extends LitElement {
                   ?disabled=${!!this._saving}
                   @change=${(e) => this._handleEntityChange(list, e.target.value)}
                 >
-                  <option value="" ?selected=${!this._getLinkedEntity(list)}>None</option>
+                  <option value="" ?selected=${!this._getLinkedEntity(list)}>${t('None')}</option>
                   ${this._todoEntities.map(entity => html`
                     <option
                       value=${entity.entityId}
@@ -125,7 +127,7 @@ class SLMHaSyncSettings extends LitElement {
             </div>
           `)}
 
-          <div class="section-header">How it works</div>
+          <div class="section-header">${t('How it works')}</div>
           <div class="settings-item">
             <div class="item-content">
               <div class="item-subtitle">

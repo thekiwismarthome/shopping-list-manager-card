@@ -1,13 +1,17 @@
 import { LitElement, html, css } from 'lit';
+import { t, I18nController } from '../services/translator.js';
 import { PRODUCT_ICON_MAP } from '../icons/product-icon-map.js';
 import { PRODUCT_ICONS } from '../icons/product-icons.js';
 
 class SLMItemList extends LitElement {
+  _i18n = new I18nController(this);
+
   static properties = {
     items: { type: Array },
     categories: { type: Array },
     settings: { type: Object },
     api: { type: Object },
+    currencySymbol: { type: String },
     _recentItems: { type: Array, state: true },
     _longPressTimer: { state: true },
     _longPressTriggered: { state: true }
@@ -18,6 +22,7 @@ class SLMItemList extends LitElement {
     this._recentItems = [];
     this._longPressTimer = null;
     this._longPressTriggered = false;
+    this.currencySymbol = '$';
   }
 
   updated(changedProperties) {
@@ -328,7 +333,7 @@ class SLMItemList extends LitElement {
         <div class="row-middle">
           <div class="row-name">${item.name}</div>
           ${showPrice && item.price ? html`
-            <div class="row-price">$${(item.price * item.quantity).toFixed(2)}</div>
+            <div class="row-price">${this.currencySymbol}${(item.price * item.quantity).toFixed(2)}</div>
           ` : ''}
         </div>
 
@@ -367,7 +372,7 @@ class SLMItemList extends LitElement {
         <div class="row-middle">
           <div class="row-name">${product.name}</div>
           ${showPrice && product.price ? html`
-            <div class="row-price">$${product.price.toFixed(2)}</div>
+            <div class="row-price">${this.currencySymbol}${product.price.toFixed(2)}</div>
           ` : ''}
         </div>
 
@@ -388,7 +393,7 @@ class SLMItemList extends LitElement {
       return html`
         <div class="empty">
           <div class="empty-emoji">🛒</div>
-          <p>Your shopping list is empty</p>
+          <p>${t('Your shopping list is empty')}</p>
           <p class="hint">Search for products to add items</p>
         </div>
       `;

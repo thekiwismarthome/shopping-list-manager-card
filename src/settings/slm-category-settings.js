@@ -1,6 +1,8 @@
+import { t, I18nController } from '../services/translator.js';
 import { LitElement, html, css } from 'lit';
 
 class CategorySettings extends LitElement {
+  _i18n = new I18nController(this);
   static properties = {
     api: { type: Object },
     categories: { type: Array },
@@ -38,17 +40,17 @@ class CategorySettings extends LitElement {
           <button class="back-btn" @click=${() => this.dispatchEvent(new Event('back'))}>
             <ha-icon icon="mdi:arrow-left"></ha-icon>
           </button>
-          <h2>Manage Categories</h2>
+          <h2>${t('Manage Categories')}</h2>
         </div>
 
         <div class="category-actions">
           <button class="action-btn" @click=${this.handleAddCategory}>
             <ha-icon icon="mdi:plus"></ha-icon>
-            <span>Add Category</span>
+            <span>${t('Add Category')}</span>
           </button>
           <button class="action-btn">
             <ha-icon icon="mdi:swap-vertical"></ha-icon>
-            <span>Reorder</span>
+            <span>${t('Reorder')}</span>
           </button>
         </div>
 
@@ -72,42 +74,42 @@ class CategorySettings extends LitElement {
           <div class="overlay" @click=${() => this.showAddDialog = false}>
             <div class="dialog" @click=${(e) => e.stopPropagation()}>
               <div class="dialog-header">
-                <h3>Add Category</h3>
+                <h3>${t('Add Category')}</h3>
                 <button @click=${() => this.showAddDialog = false}>
                   <ha-icon icon="mdi:close"></ha-icon>
                 </button>
               </div>
               <div class="dialog-content">
                 <label>
-                  Category Name
-                  <input 
-                    type="text" 
+                  ${t('Category Name')}
+                  <input
+                    type="text"
                     .value=${this.newCategory.name}
                     @input=${(e) => this.newCategory = { ...this.newCategory, name: e.target.value }}
                     placeholder="e.g., Snacks"
                   />
                 </label>
                 <label>
-                  Icon
-                  <input 
-                    type="text" 
+                  ${t('Icon')}
+                  <input
+                    type="text"
                     .value=${this.newCategory.icon}
                     @input=${(e) => this.newCategory = { ...this.newCategory, icon: e.target.value }}
                     placeholder="mdi:shape"
                   />
                 </label>
                 <label>
-                  Color
-                  <input 
-                    type="color" 
+                  ${t('Color')}
+                  <input
+                    type="color"
                     .value=${this.newCategory.color}
                     @input=${(e) => this.newCategory = { ...this.newCategory, color: e.target.value }}
                   />
                 </label>
               </div>
               <div class="dialog-footer">
-                <button class="cancel-btn" @click=${() => this.showAddDialog = false}>Cancel</button>
-                <button class="save-btn" @click=${this.handleSaveCategory}>Add</button>
+                <button class="cancel-btn" @click=${() => this.showAddDialog = false}>${t('Cancel')}</button>
+                <button class="save-btn" @click=${this.handleSaveCategory}>${t('Add')}</button>
               </div>
             </div>
           </div>

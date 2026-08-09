@@ -1,12 +1,18 @@
 import { LitElement, html, css } from 'lit';
+import { t, I18nController } from '../services/translator.js';
 
-const UNITS = ['units', 'kg', 'g', 'L', 'mL', 'pack', 'bunch', 'dozen', 'bottle', 'can', 'bag', 'box', 'loaf', 'slice'];
+const UNITS_METRIC   = ['units', 'kg', 'g', 'L', 'mL', 'pack', 'bunch', 'dozen', 'bottle', 'can', 'bag', 'box', 'loaf', 'slice'];
+const UNITS_IMPERIAL = ['oz', 'lb', 'fl oz', 'pt', 'qt', 'gal'];
 
 class SLMEditItemDialog extends LitElement {
+  _i18n = new I18nController(this);
   static properties = {
     api: { type: Object },
     item: { type: Object },
     categories: { type: Array },
+    metricUnitsOnly: { type: Boolean },
+    enablePriceTracking: { type: Boolean },
+    currencySymbol: { type: String },
     editedItem: { type: Object },
     imagePreview: { type: String },
     _customUnit: { type: Boolean, state: true },
@@ -17,6 +23,9 @@ class SLMEditItemDialog extends LitElement {
 
   constructor() {
     super();
+    this.metricUnitsOnly = true;
+    this.enablePriceTracking = true;
+    this.currencySymbol = '$';
     this.editedItem = {};
     this.imagePreview = null;
     this._customUnit = false;
@@ -25,10 +34,14 @@ class SLMEditItemDialog extends LitElement {
     this._oftResults = [];
   }
 
+  get _units() {
+    return this.metricUnitsOnly ? UNITS_METRIC : [...UNITS_METRIC, ...UNITS_IMPERIAL];
+  }
+
   updated(changedProperties) {
     if (changedProperties.has('item') && this.item) {
       const unit = this.item.unit || 'units';
-      this._customUnit = !UNITS.includes(unit);
+      this._customUnit = ![...UNITS_METRIC, ...UNITS_IMPERIAL].includes(unit);
       this.editedItem = {
         name: this.item.name,
         category_id: this.item.category_id || 'other',
@@ -285,13 +298,13 @@ class SLMEditItemDialog extends LitElement {
       <div class="overlay" @click=${this.handleClose}>
         <div class="dialog" @click=${(e) => e.stopPropagation()}>
           <div class="dialog-header">
-            <h3>Edit Item</h3>
+            <h3>${t('Edit Item')}</h3>
             <button class="close-btn" @click=${this.handleClose}>✕</button>
           </div>
 
           <div class="dialog-content">
             <div class="form-group">
-              <label>Product Name</label>
+              <label>${t('Product Name')}</label>
               <input
                 type="text"
                 .value=${this.editedItem.name || ''}
@@ -304,7 +317,7 @@ class SLMEditItemDialog extends LitElement {
               >
                 <ha-icon icon=${this._oftLoading ? 'mdi:loading' : 'mdi:cloud-search'}
                   class=${this._oftLoading ? 'spin' : ''}></ha-icon>
-                ${this._oftLoading ? 'Searching…' : 'Search OFT by name'}
+                ${this._oftLoading ? t('Searching…') : t('Search OFT by name')}
               </button>
 
               ${this._oftStatus ? html`<div class="oft-status">${this._oftStatus}</div>` : ''}
@@ -322,7 +335,7 @@ class SLMEditItemDialog extends LitElement {
                         <div class="oft-result-name">${p.product_name}</div>
                         <div class="oft-result-meta">
                           ${this._getCategoryName(this._mapOftCategory(p.categories_tags || []))}
-                          ${p.price ? html` &bull; $${p.price}` : ''}
+                          ${p.price && this.enablePriceTracking ? html` &bull; ${this.currencySymbol}${p.price}` : ''}
                         </div>
                       </div>
                       <ha-icon icon="mdi:check-circle-outline" class="oft-apply-icon"></ha-icon>
@@ -336,7 +349,7 @@ class SLMEditItemDialog extends LitElement {
             </div>
 
             <div class="form-group">
-              <label>Barcode</label>
+              <label>${t('Barcode')}</label>
               <div class="barcode-row">
                 <input
                   type="text"
@@ -358,7 +371,7 @@ class SLMEditItemDialog extends LitElement {
             </div>
 
             <div class="form-group">
-              <label>Category</label>
+              <label>${t('Category')}</label>
               <select
                 .value=${this.editedItem.category_id || 'other'}
                 @change=${(e) => this.editedItem = { ...this.editedItem, category_id: e.target.value }}
@@ -373,7 +386,7 @@ class SLMEditItemDialog extends LitElement {
 
             <div class="form-row">
               <div class="form-group half">
-                <label>Quantity</label>
+                <label>${t('Quantity')}</label>
                 <div class="qty-stepper">
                   <button class="qty-btn" @click=${() => this.handleQtyChange(-1)}>−</button>
                   <span class="qty-value">${this.editedItem.quantity || 1}</span>
@@ -382,10 +395,10 @@ class SLMEditItemDialog extends LitElement {
               </div>
 
               <div class="form-group half">
-                <label>Unit</label>
+                <label>${t('Unit')}</label>
                 <select .value=${selectUnit} @change=${this.handleUnitSelect}>
-                  ${UNITS.map(u => html`<option value="${u}" ?selected=${u === selectUnit}>${u}</option>`)}
-                  <option value="__other__" ?selected=${this._customUnit}>Other…</option>
+                  ${this._units.map(u => html`<option value="${u}" ?selected=${u === selectUnit}>${u}</option>`)}
+                  <option value="__other__" ?selected=${this._customUnit}>${t('Other…')}</option>
                 </select>
                 ${this._customUnit ? html`
                   <input
@@ -399,8 +412,9 @@ class SLMEditItemDialog extends LitElement {
               </div>
             </div>
 
+            ${this.enablePriceTracking ? html`
             <div class="form-group">
-              <label>Unit Price ($)</label>
+              <label>${t('Unit Price')}</label>
               <input
                 type="text"
                 inputmode="decimal"
@@ -410,14 +424,15 @@ class SLMEditItemDialog extends LitElement {
               />
               ${this.editedItem.price && this.editedItem.price !== '' ? html`
                 <div class="price-info">
-                  <span>Total:</span>
-                  <span class="price-value">$${(parseFloat(this.editedItem.price) * (this.editedItem.quantity || 1)).toFixed(2)}</span>
+                  <span>${t('Total:')}</span>
+                  <span class="price-value">${this.currencySymbol}${(parseFloat(this.editedItem.price) * (this.editedItem.quantity || 1)).toFixed(2)}</span>
                 </div>
               ` : ''}
             </div>
+            ` : ''}
 
             <div class="form-group">
-              <label>Notes</label>
+              <label>${t('Notes')}</label>
               <textarea
                 placeholder="Add notes (optional)..."
                 .value=${this.editedItem.note || ''}
@@ -427,7 +442,7 @@ class SLMEditItemDialog extends LitElement {
             </div>
 
             <div class="form-group image-section">
-              <label>Product Image</label>
+              <label>${t('Product Image')}</label>
 
               ${this.imagePreview ? html`
                 <div class="image-preview-wrap">
@@ -460,10 +475,10 @@ class SLMEditItemDialog extends LitElement {
 
           <div class="dialog-footer">
             <button class="action-btn danger" @click=${this.handleDelete}>
-              Delete
+              ${t('Delete')}
             </button>
             <button class="action-btn primary" @click=${this.handleSave}>
-              Save
+              ${t('Save')}
             </button>
           </div>
         </div>

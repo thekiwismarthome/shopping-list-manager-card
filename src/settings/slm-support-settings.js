@@ -1,6 +1,8 @@
+import { t, I18nController } from '../services/translator.js';
 import { LitElement, html, css } from 'lit';
 
 class SupportSettings extends LitElement {
+  _i18n = new I18nController(this);
   static properties = {
     slmVersion:  { type: String },
     slmcVersion: { type: String },
@@ -19,7 +21,7 @@ class SupportSettings extends LitElement {
           <button class="back-btn" @click=${() => this.dispatchEvent(new Event('back'))}>
             <ha-icon icon="mdi:arrow-left"></ha-icon>
           </button>
-          <h2>FAQ & Support</h2>
+          <h2>${t('FAQ & Support')}</h2>
         </div>
 
         <div class="support-list">
@@ -32,8 +34,8 @@ class SupportSettings extends LitElement {
               <ha-icon icon="mdi:help-circle"></ha-icon>
             </div>
             <div class="item-content">
-              <div class="item-title">FAQ</div>
-              <div class="item-subtitle">Frequently asked questions</div>
+              <div class="item-title">${t('FAQ')}</div>
+              <div class="item-subtitle">${t('Frequently asked questions')}</div>
             </div>
             <ha-icon icon="mdi:open-in-new"></ha-icon>
           </a>
@@ -47,8 +49,8 @@ class SupportSettings extends LitElement {
               <ha-icon icon="mdi:bug"></ha-icon>
             </div>
             <div class="item-content">
-              <div class="item-title">Report a Problem</div>
-              <div class="item-subtitle">Submit an issue on GitHub</div>
+              <div class="item-title">${t('Report a Problem')}</div>
+              <div class="item-subtitle">${t('Submit an issue on GitHub')}</div>
             </div>
             <ha-icon icon="mdi:open-in-new"></ha-icon>
           </a>
@@ -62,8 +64,8 @@ class SupportSettings extends LitElement {
               <ha-icon icon="mdi:github"></ha-icon>
             </div>
             <div class="item-content">
-              <div class="item-title">GitHub Repository</div>
-              <div class="item-subtitle">View source code</div>
+              <div class="item-title">${t('GitHub Repository')}</div>
+              <div class="item-subtitle">${t('View source code')}</div>
             </div>
             <ha-icon icon="mdi:open-in-new"></ha-icon>
           </a>

@@ -1,6 +1,8 @@
+import { t, I18nController } from '../services/translator.js';
 import { LitElement, html, css } from 'lit';
 
 class FontSettings extends LitElement {
+  _i18n = new I18nController(this);
   static properties = {
     currentFont: { type: String }
   };
@@ -27,7 +29,7 @@ class FontSettings extends LitElement {
       <div class="overlay" @click=${() => this.dispatchEvent(new Event('close'))}>
         <div class="popup" @click=${(e) => e.stopPropagation()}>
           <div class="popup-header">
-            <h3>Font Family</h3>
+            <h3>${t('Font Family')}</h3>
           </div>
 
           <div class="popup-content">

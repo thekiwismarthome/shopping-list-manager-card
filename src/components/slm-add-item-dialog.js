@@ -1,6 +1,8 @@
 import { LitElement, html, css } from 'lit';
+import { t, I18nController } from '../services/translator.js';
 
 class AddItemDialog extends LitElement {
+  _i18n = new I18nController(this);
   static properties = {
     api: { type: Object },
     categories: { type: Array },
@@ -79,7 +81,7 @@ class AddItemDialog extends LitElement {
       <div class="overlay" @click=${this.handleClose}>
         <div class="dialog" @click=${(e) => e.stopPropagation()}>
           <div class="dialog-header">
-            <h3>Add Item</h3>
+            <h3>${t('Add Item')}</h3>
             <button class="close-btn" @click=${this.handleClose}>
               <ha-icon icon="mdi:close"></ha-icon>
             </button>
@@ -90,7 +92,7 @@ class AddItemDialog extends LitElement {
               <div class="search-section">
                 <input
                   type="text"
-                  placeholder="Search products..."
+                  .placeholder=${t('Search products…')}
                   .value=${this.searchQuery}
                   @input=${this.handleSearch}
                   autofocus
@@ -122,7 +124,7 @@ class AddItemDialog extends LitElement {
 
                 <input
                   type="text"
-                  placeholder="Add custom item..."
+                  .placeholder=${t('Add custom item')}
                   .value=${this.customName}
                   @input=${(e) => this.customName = e.target.value}
                 />
@@ -154,7 +156,7 @@ class AddItemDialog extends LitElement {
           </div>
 
           <div class="dialog-footer">
-            <button class="cancel-btn" @click=${this.handleClose}>Cancel</button>
+            <button class="cancel-btn" @click=${this.handleClose}>${t('Cancel')}</button>
             <button 
               class="add-btn" 
               @click=${this.handleAdd}

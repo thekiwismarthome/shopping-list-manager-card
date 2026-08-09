@@ -1,5 +1,6 @@
 import { LitElement, html, css } from 'lit';
 import { ShoppingListAPI } from './services/api.js';
+import { loadTranslations, getLanguageCode, setTranslations, t } from './services/translator.js';
 import './components/slm-bottom-nav.js';
 import './components/slm-list-header.js';
 import './components/slm-search-bar.js';
@@ -26,6 +27,9 @@ class ShoppingListManagerCard extends LitElement {
     items: { type: Array },
     categories: { type: Array },
     total: { type: Object },
+    _currencySymbol: { type: String, state: true },
+    _metricUnitsOnly: { type: Boolean, state: true },
+    _enablePriceTracking: { type: Boolean, state: true },
     loading: { type: Boolean },
     showAddDialog: { type: Boolean },
     showEditDialog: { type: Boolean },
@@ -85,6 +89,8 @@ class ShoppingListManagerCard extends LitElement {
     this._suppressHASyncUntil = 0;
     this._haTodoLastItems = {};
     this._haTodoSyncTimers = {};
+    this._currencySymbol = '$';
+    this._integrationSettings = null;
   }
 
   connectedCallback() {
@@ -185,6 +191,7 @@ class ShoppingListManagerCard extends LitElement {
   async firstUpdated() {
     this.api = new ShoppingListAPI(this.hass);
     await this.loadData();
+    await this._loadIntegrationSettings();
     this.applyColorScheme();
     if (this.settings.keepScreenOn) this.acquireWakeLock();
     this._visibilityHandler = () => {
@@ -254,6 +261,34 @@ class ShoppingListManagerCard extends LitElement {
     // Apply font weight
     const weightMap = { light: '300', normal: '400', bold: '700' };
     this.style.setProperty('--slm-font-weight-base', weightMap[this.settings.fontWeight] || '400');
+  }
+
+  async _loadIntegrationSettings() {
+    try {
+      const result = await this.api.getIntegrationSettings();
+      this._integrationSettings = result;
+      this._metricUnitsOnly = result.metric_units_only !== false;
+      this._enablePriceTracking = result.enable_price_tracking !== false;
+      this._applyRegionSettings(result.country, result.custom_regions || {});
+    } catch (err) {
+      console.warn('[SLM] Failed to load integration settings:', err);
+    }
+  }
+
+  async _applyRegionSettings(activeCountry, customRegions) {
+    const region = customRegions[activeCountry];
+    if (!region) {
+      this._currencySymbol = '$';
+      setTranslations(null);
+      return;
+    }
+    this._currencySymbol = region.currency_symbol || '$';
+    if (region.language && getLanguageCode(region.language)) {
+      const translations = await loadTranslations(region.language);
+      setTranslations(translations);
+    } else {
+      setTranslations(null);
+    }
   }
 
   async loadData() {
@@ -840,6 +875,7 @@ class ShoppingListManagerCard extends LitElement {
             .activeList=${this.activeList}
             .itemCount=${this.items.filter(i => !i.checked).length}
             .settings=${this.settings}
+            .currencySymbol=${this._currencySymbol}
             @back=${this.handleBackToLists}
             @share=${this.handleShareList}
             @menu-setting-change=${this.handleMenuSettingChange}
@@ -851,6 +887,7 @@ class ShoppingListManagerCard extends LitElement {
               .settings=${this.settings}
               .categories=${this.categories}
               .activeListId=${this.activeList?.id}
+              .currencySymbol=${this._currencySymbol}
               @add-item=${this.handleAddItem}
               @create-and-add-product=${this.handleCreateAndAddProduct}
             ></slm-search-bar>
@@ -861,6 +898,7 @@ class ShoppingListManagerCard extends LitElement {
                 .categories=${this.categories}
                 .settings=${this.settings}
                 .api=${this.api}
+                .currencySymbol=${this._currencySymbol}
                 @add-item=${this.handleAddItem}
                 @item-click=${this.handleItemClick}
                 @item-decrease=${this.handleItemDecrease}
@@ -886,9 +924,9 @@ class ShoppingListManagerCard extends LitElement {
 
           <div class="total-bar">
             <div class="total-amount">
-              ${this.total.currency} $${this.total.total.toFixed(2)}
+              ${this._currencySymbol}${this.total.total.toFixed(2)}
             </div>
-            <div class="total-count">${this.total.item_count} items</div>
+            <div class="total-count">${this.total.item_count} ${t('items')}</div>
           </div>
         `;
 
@@ -929,7 +967,7 @@ class ShoppingListManagerCard extends LitElement {
               .isEmbedded=${this.isEmbedded}
               .categories=${this.categories}
               @settings-changed=${this.handleSettingsChange}
-              @lists-updated=${() => this.loadData()}
+              @lists-updated=${async () => { await this.loadData(); await this._loadIntegrationSettings(); }}
             ></slm-settings-view>
           </div>
         `;
@@ -967,6 +1005,9 @@ class ShoppingListManagerCard extends LitElement {
             .api=${this.api}
             .item=${this.editingItem}
             .categories=${this.categories}
+            .metricUnitsOnly=${this._metricUnitsOnly}
+            .enablePriceTracking=${this._enablePriceTracking}
+            .currencySymbol=${this._currencySymbol}
             @save-item=${this.handleEditItem}
             @delete-item=${this.handleItemSwipeDelete}
             @close=${() => { this.showEditDialog = false; this.editingItem = null; }}

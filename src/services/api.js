@@ -228,6 +228,23 @@ export class ShoppingListAPI {
     });
   }
 
+  async createCustomRegion(code, name, currencySymbol = null, language = null) {
+    return await this.hass.callWS({
+      type: 'shopping_list_manager/regions/create',
+      code,
+      name,
+      ...(currencySymbol ? { currency_symbol: currencySymbol } : {}),
+      ...(language ? { language } : {}),
+    });
+  }
+
+  async deleteCustomRegion(code) {
+    return await this.hass.callWS({
+      type: 'shopping_list_manager/regions/delete',
+      code
+    });
+  }
+
   async updateListMembers(listId, allowedUsers) {
     return await this.hass.callWS({
       type: 'shopping_list_manager/lists/update_members',
