@@ -28,6 +28,8 @@ class ShoppingListManagerCard extends LitElement {
     categories: { type: Array },
     total: { type: Object },
     _currencySymbol: { type: String, state: true },
+    _metricUnitsOnly: { type: Boolean, state: true },
+    _enablePriceTracking: { type: Boolean, state: true },
     loading: { type: Boolean },
     showAddDialog: { type: Boolean },
     showEditDialog: { type: Boolean },
@@ -265,6 +267,8 @@ class ShoppingListManagerCard extends LitElement {
     try {
       const result = await this.api.getIntegrationSettings();
       this._integrationSettings = result;
+      this._metricUnitsOnly = result.metric_units_only !== false;
+      this._enablePriceTracking = result.enable_price_tracking !== false;
       this._applyRegionSettings(result.country, result.custom_regions || {});
     } catch (err) {
       console.warn('[SLM] Failed to load integration settings:', err);
@@ -1001,6 +1005,9 @@ class ShoppingListManagerCard extends LitElement {
             .api=${this.api}
             .item=${this.editingItem}
             .categories=${this.categories}
+            .metricUnitsOnly=${this._metricUnitsOnly}
+            .enablePriceTracking=${this._enablePriceTracking}
+            .currencySymbol=${this._currencySymbol}
             @save-item=${this.handleEditItem}
             @delete-item=${this.handleItemSwipeDelete}
             @close=${() => { this.showEditDialog = false; this.editingItem = null; }}
