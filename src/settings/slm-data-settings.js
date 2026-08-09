@@ -56,7 +56,16 @@ class SLMDataSettings extends LitElement {
       const result = await this.api.getIntegrationSettings();
       this._currentCountry = result.country;
       this._availableCountries = result.available_countries || {};
-      this._customRegions = result.custom_regions || {};
+      // Normalise: backend may return old string format {code: "name"} if HA wasn't restarted
+      const raw = result.custom_regions || {};
+      this._customRegions = Object.fromEntries(
+        Object.entries(raw).map(([code, val]) => [
+          code,
+          typeof val === 'string'
+            ? { name: val, currency_symbol: null, language: null }
+            : val,
+        ])
+      );
     } catch (err) {
       this._errorMessage = 'Failed to load region settings.';
       console.error('[SLM] Failed to load integration settings:', err);
@@ -166,7 +175,13 @@ class SLMDataSettings extends LitElement {
     this._regionMessage = '';
     try {
       const result = await this.api.createCustomRegion(code, name, currency, language);
-      this._customRegions = result.custom_regions || {};
+      const rawCreated = result.custom_regions || {};
+      this._customRegions = Object.fromEntries(
+        Object.entries(rawCreated).map(([c, val]) => [
+          c,
+          typeof val === 'string' ? { name: val, currency_symbol: null, language: null } : val,
+        ])
+      );
       this._availableCountries = { ...this._availableCountries, [code]: name };
       this._newRegionCode = '';
       this._newRegionName = '';
@@ -175,7 +190,11 @@ class SLMDataSettings extends LitElement {
       this._showAddRegion = false;
       this._regionMessage = `success:Custom region "${name}" (${code}) created.`;
     } catch (err) {
-      this._regionMessage = 'error:Failed to create region. The code may already exist.';
+      const detail = err?.message || err?.code || String(err);
+      const alreadyExists = detail.toLowerCase().includes('already') || detail.toLowerCase().includes('conflict');
+      this._regionMessage = alreadyExists
+        ? `error:Code "${code}" already exists. Delete the existing region first, or use a different code.`
+        : `error:Failed to create region: ${detail}`;
       console.error('[SLM] Failed to create custom region:', err);
     } finally {
       this._regionWorking = false;
@@ -190,7 +209,13 @@ class SLMDataSettings extends LitElement {
     this._regionMessage = '';
     try {
       const result = await this.api.deleteCustomRegion(code);
-      this._customRegions = result.custom_regions || {};
+      const rawDeleted = result.custom_regions || {};
+      this._customRegions = Object.fromEntries(
+        Object.entries(rawDeleted).map(([c, val]) => [
+          c,
+          typeof val === 'string' ? { name: val, currency_symbol: null, language: null } : val,
+        ])
+      );
       const updated = { ...this._availableCountries };
       delete updated[code];
       this._availableCountries = updated;
