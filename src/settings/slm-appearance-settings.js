@@ -1,8 +1,10 @@
 import { LitElement, html, css } from 'lit';
+import { t, I18nController } from '../services/translator.js';
 import './slm-dark-mode-popup.js';
 import './slm-font-settings.js';
 
 class SLMAppearanceSettings extends LitElement {
+  _i18n = new I18nController(this);
   static properties = {
     settings: { type: Object },
     isEmbedded: { type: Boolean },
@@ -41,13 +43,13 @@ class SLMAppearanceSettings extends LitElement {
           <button class="back-btn" @click=${() => this.dispatchEvent(new Event('back'))}>
             <ha-icon icon="mdi:arrow-left"></ha-icon>
           </button>
-          <h2>Appearance</h2>
+          <h2>${t('Appearance')}</h2>
         </div>
 
         <div class="settings-list">
           <button class="settings-item" @click=${() => this.showDarkModePopup = true}>
             <div class="item-content">
-              <div class="item-title">Dark Mode</div>
+              <div class="item-title">${t('Dark Mode')}</div>
               <div class="item-subtitle">${this.getDarkModeLabel()}</div>
             </div>
             <ha-icon icon="mdi:chevron-right"></ha-icon>
@@ -55,7 +57,7 @@ class SLMAppearanceSettings extends LitElement {
 
           <div class="settings-item">
             <div class="item-content">
-              <div class="item-title">Theme</div>
+              <div class="item-title">${t('Theme')}</div>
               <div class="item-subtitle">
                 ${this._themeLabel(this.settings.theme)}
               </div>
@@ -99,11 +101,11 @@ class SLMAppearanceSettings extends LitElement {
             </select>
           </div>
 
-          <div class="section-header">Display</div>
+          <div class="section-header">${t('Display')}</div>
 
           <div class="settings-item">
             <div class="item-content">
-              <div class="item-title">Use Emojis Instead of Icons</div>
+              <div class="item-title">${t('Use Emojis Instead of Icons')}</div>
             </div>
             <label class="toggle">
               <input 
@@ -117,7 +119,7 @@ class SLMAppearanceSettings extends LitElement {
 
           <div class="settings-item">
             <div class="item-content full-width">
-              <div class="item-title">Tiles Per Row</div>
+              <div class="item-title">${t('Tiles Per Row')}</div>
               <div class="tile-options">
                 ${[2, 3, 4, 5, 8, 10].map(num => html`
                   <button
@@ -131,11 +133,11 @@ class SLMAppearanceSettings extends LitElement {
             </div>
           </div>
 
-          <div class="section-header">Recently Used</div>
+          <div class="section-header">${t('Recently Used')}</div>
 
           <div class="settings-item">
             <div class="item-content full-width">
-              <div class="item-title">Recently Used Products</div>
+              <div class="item-title">${t('Recently Used Products')}</div>
               <input
                 type="range"
                 min="4"
@@ -149,12 +151,12 @@ class SLMAppearanceSettings extends LitElement {
             </div>
           </div>
 
-          <div class="section-header">Product Images</div>
+          <div class="section-header">${t('Product Images')}</div>
 
           <div class="settings-item">
             <div class="item-content full-width">
-              <div class="item-title">Local HA Image Path</div>
-              <div class="item-subtitle">Auto-match images by product name slug</div>
+              <div class="item-title">${t('Local HA Image Path')}</div>
+              <div class="item-subtitle">${t('Auto-match images by product name slug')}</div>
               <input
                 class="text-input"
                 type="text"
@@ -165,11 +167,11 @@ class SLMAppearanceSettings extends LitElement {
             </div>
           </div>
 
-          <div class="section-header">Font</div>
+          <div class="section-header">${t('Font')}</div>
 
           <div class="settings-item">
             <div class="item-content">
-              <div class="item-title">Use system text size</div>
+              <div class="item-title">${t('Use system text size')}</div>
             </div>
             <label class="toggle">
               <input 
@@ -184,7 +186,7 @@ class SLMAppearanceSettings extends LitElement {
           ${!this.settings.useSystemTextSize ? html`
             <div class="settings-item">
               <div class="item-content full-width">
-                <div class="item-title">Font Size</div>
+                <div class="item-title">${t('Font Size')}</div>
                 <input
                   type="range"
                   min="12"

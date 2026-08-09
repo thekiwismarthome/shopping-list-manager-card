@@ -1,6 +1,8 @@
 import { LitElement, html, css } from 'lit';
+import { t, I18nController } from '../../services/translator.js';
 
 class SLMListCard extends LitElement {
+  _i18n = new I18nController(this);
   static properties = {
     list: { type: Object },
     isActive: { type: Boolean },
@@ -91,7 +93,7 @@ class SLMListCard extends LitElement {
       >
 
         ${this.isActive ? html`
-          <div class="active-badge">Active</div>
+          <div class="active-badge">${t('Active')}</div>
         ` : ''}
 
         ${this._isPrivate ? html`

@@ -1,7 +1,10 @@
+import { t, I18nController } from '../services/translator.js';
 import { LitElement, html, css } from 'lit';
 import './slm-item-tile.js';
 
 class SLMItemGrid extends LitElement {
+  _i18n = new I18nController(this);
+
   constructor() {
     super();
     this._recentItems = [];
@@ -121,8 +124,8 @@ class SLMItemGrid extends LitElement {
         ${groupedItems.length === 0 && this._recentItems.length === 0 ? html`
           <div class="empty">
             <div class="empty-emoji">🛒</div>
-            <p>Your shopping list is empty</p>
-            <p class="hint">Search for products to add items</p>
+            <p>${t('Your shopping list is empty')}</p>
+            <p class="hint">${t('Search for products to add items')}</p>
           </div>
         ` : ''}
 
@@ -159,7 +162,7 @@ class SLMItemGrid extends LitElement {
             ${(() => { const rc = this.getRecentColor(); return html`
               <div class="category-header" style="${this.getCategoryHeaderStyle(rc)}">
                 <span class="emoji">⏱️</span>
-                <span class="category-name" style="color: ${rc}">Recently Used</span>
+                <span class="category-name" style="color: ${rc}">${t('Recently Used')}</span>
               </div>
               <div class="items-grid">
                 ${this._recentItems.map(product => html`

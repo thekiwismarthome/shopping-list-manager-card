@@ -54,17 +54,27 @@ export function getLanguageCode(languageName) {
 
 // All translatable strings in the UI
 export const UI_STRINGS = [
-  // Bottom nav
-  'Shopping', 'Lists', 'Loyalty', 'Settings',
-  // List header
+  // Navigation
+  'Shopping', 'Lists', 'Loyalty', 'Settings', 'Back', 'Done', 'Close',
+  // Common actions
+  'Save', 'Cancel', 'Delete', 'Edit', 'Add', 'Create', 'Confirm',
+  'Saving…', 'Loading…', 'Working…', 'Loading...',
+  // List header / view menu
   'Shopping List', 'View', 'Sort', 'Tiles', 'List', 'By Category', 'A–Z',
   'Recently Used', 'Show Price',
   // Search bar
   'Search products…', 'Searching…', 'No results', 'Add custom item',
-  'Name', 'Price', 'Unit', 'Category', 'Brand', 'Barcode',
-  'Save', 'Cancel', 'Search OFT by name', 'Add to list',
-  // Item list
-  'Your shopping list is empty', 'items', 'item',
+  'Search OFT by name', 'Add to list',
+  // Item list / grid empty state
+  'Your shopping list is empty', 'Search for products to add items',
+  'items', 'item',
+  // Add item dialog
+  'Add Item',
+  // Edit item dialog
+  'Edit Item', 'Product Name', 'Barcode', 'Barcode number (optional)',
+  'Category', 'Quantity', 'Unit', 'Other…', 'Unit Price', 'Notes',
+  'Add notes (optional)...', 'Product Image', 'Paste image URL...', 'Total:',
+  'Name', 'Price', 'Brand',
   // Settings main
   'Profile', 'Appearance', 'Theme, tiles, fonts',
   'Notifications', 'List sharing, emails',
@@ -74,14 +84,44 @@ export const UI_STRINGS = [
   'HA Todo Sync', 'Link lists to Home Assistant todo',
   'Support', 'FAQ & Support', 'Refresh', 'App',
   'Shopping List Manager', 'SLM Card',
+  // Appearance settings
+  'Dark Mode', 'Theme', 'Display', 'Use Emojis Instead of Icons',
+  'Tiles Per Row', 'Recently Used Products', 'products',
+  'Product Images', 'Local HA Image Path', 'Auto-match images by product name slug',
+  'Font', 'Font Family', 'Use system text size', 'Font Size',
+  // Profile settings
+  'Name', 'Home Assistant Account',
+  // Notifications settings
+  'List Sharing', 'E-Mails',
+  'Get notified when somebody shares a list with you or makes changes on shared lists',
+  'Get notified about changes to your shared lists',
+  // Support settings
+  'FAQ', 'Frequently asked questions',
+  'Report a Problem', 'Submit an issue on GitHub',
+  'GitHub Repository', 'View source code',
+  // HA sync settings
+  'Link Lists to HA Todo', 'How it works', 'None',
+  'No todo lists found', 'No lists', 'Create a shopping list first.',
+  // Category settings
+  'Add Category', 'Reorder', 'Category Name', 'Color', 'Icon',
+  // Lists view
+  'My Lists', 'No lists yet', 'Create your first shopping list',
+  'Manage Members', 'Select who else can see and edit this list.',
+  'Loading users…', 'No other users found.', 'Create New List', 'List Name',
+  'Active',
+  // Loyalty cards
+  'Loyalty Cards', 'No loyalty cards yet',
+  'Add your store loyalty cards for quick access',
+  'Add Loyalty Card', 'Edit Card', 'Private (only visible to you)',
+  'Card/Member number', 'Auto-generated from number', 'Additional notes...',
+  'Duplicate', 'Members', 'Card View', 'Tile View',
   // Data settings
-  'Active Region', 'Custom Regions', 'Add custom region', 'Save region',
+  'Region & Catalog', 'Product Catalog Region', 'About',
+  'Active Region', 'Country-specific products and pricing',
+  'Custom Regions', 'Add custom region', 'Save region',
   'Built-in', 'Custom', 'Language', 'Currency symbol',
   'Backup & Restore', 'Export Data', 'Import Data',
-  'Download backup', 'Choose backup file', 'Working…',
-  'Switching catalog…', 'Loading…', 'Back', 'Done',
-  // General
-  'Delete', 'Edit', 'Confirm', 'Close',
+  'Download backup', 'Choose backup file', 'Switching catalog…',
 ];
 
 // --- API fetch (MyMemory, free, no key required) ---

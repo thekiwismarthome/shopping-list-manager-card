@@ -1,6 +1,8 @@
+import { t, I18nController } from '../services/translator.js';
 import { LitElement, html, css } from 'lit';
 
 class NotificationSettings extends LitElement {
+  _i18n = new I18nController(this);
   static properties = {
     settings: { type: Object }
   };
@@ -21,15 +23,15 @@ class NotificationSettings extends LitElement {
           <button class="back-btn" @click=${() => this.dispatchEvent(new Event('back'))}>
             <ha-icon icon="mdi:arrow-left"></ha-icon>
           </button>
-          <h2>Notifications</h2>
+          <h2>${t('Notifications')}</h2>
         </div>
 
         <div class="settings-list">
           <div class="settings-item">
             <div class="item-content">
-              <div class="item-title">List Sharing</div>
+              <div class="item-title">${t('List Sharing')}</div>
               <div class="item-description">
-                Get notified when somebody shares a list with you or makes changes on shared lists
+                ${t('Get notified when somebody shares a list with you or makes changes on shared lists')}
               </div>
             </div>
             <label class="toggle">
@@ -44,9 +46,9 @@ class NotificationSettings extends LitElement {
 
           <div class="settings-item">
             <div class="item-content">
-              <div class="item-title">E-Mails</div>
+              <div class="item-title">${t('E-Mails')}</div>
               <div class="item-description">
-                Get notified about changes to your shared lists
+                ${t('Get notified about changes to your shared lists')}
               </div>
             </div>
             <label class="toggle">

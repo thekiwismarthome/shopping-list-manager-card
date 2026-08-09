@@ -1,8 +1,10 @@
+import { t, I18nController } from '../services/translator.js';
 import { LitElement, html, css } from 'lit';
 
 const BUILT_IN_COUNTRIES = ['NZ', 'AU', 'US', 'GB', 'CA', 'BE'];
 
 class SLMDataSettings extends LitElement {
+  _i18n = new I18nController(this);
   static properties = {
     api: { type: Object },
     _currentCountry: { type: String, state: true },
@@ -210,19 +212,19 @@ class SLMDataSettings extends LitElement {
           <button class="back-btn" @click=${() => this.dispatchEvent(new Event('back'))}>
             <ha-icon icon="mdi:arrow-left"></ha-icon>
           </button>
-          <h2>Region &amp; Catalog</h2>
+          <h2>${t('Region & Catalog')}</h2>
         </div>
 
         ${this._loading ? html`
-          <div class="loading">Loading…</div>
+          <div class="loading">${t('Loading…')}</div>
         ` : html`
           <div class="settings-list">
-            <div class="section-header">Product Catalog Region</div>
+            <div class="section-header">${t('Product Catalog Region')}</div>
 
             <div class="settings-item">
               <div class="item-content">
-                <div class="item-title">Active Region</div>
-                <div class="item-subtitle">Country-specific products and pricing</div>
+                <div class="item-title">${t('Active Region')}</div>
+                <div class="item-subtitle">${t('Country-specific products and pricing')}</div>
               </div>
               <select
                 class="region-select"
@@ -252,9 +254,9 @@ class SLMDataSettings extends LitElement {
 
             ${this._successMessage ? html`<div class="message success">${this._successMessage}</div>` : ''}
             ${this._errorMessage ? html`<div class="message error">${this._errorMessage}</div>` : ''}
-            ${this._saving ? html`<div class="message info">Switching catalog…</div>` : ''}
+            ${this._saving ? html`<div class="message info">${t('Switching catalog…')}</div>` : ''}
 
-            <div class="section-header">Custom Regions</div>
+            <div class="section-header">${t('Custom Regions')}</div>
 
             <div class="settings-item">
               <div class="item-content">
@@ -332,17 +334,17 @@ class SLMDataSettings extends LitElement {
                 <div class="form-hint">Language is used for auto-translation of the card UI.</div>
                 <div class="form-actions">
                   <button class="action-btn" ?disabled=${this._regionWorking} @click=${this._handleCreateRegion}>
-                    ${this._regionWorking ? 'Saving…' : 'Save region'}
+                    ${this._regionWorking ? t('Saving…') : t('Save region')}
                   </button>
                   <button class="cancel-btn" @click=${() => { this._showAddRegion = false; this._regionMessage = ''; }}>
-                    Cancel
+                    ${t('Cancel')}
                   </button>
                 </div>
               </div>
             ` : html`
               <div class="settings-item">
                 <button class="action-btn" @click=${() => { this._showAddRegion = true; this._regionMessage = ''; }}>
-                  + Add custom region
+                  + ${t('Add custom region')}
                 </button>
               </div>
             `}
@@ -353,7 +355,7 @@ class SLMDataSettings extends LitElement {
               </div>
             ` : ''}
 
-            <div class="section-header">About</div>
+            <div class="section-header">${t('About')}</div>
             <div class="settings-item">
               <div class="item-content">
                 <div class="item-title">How it works</div>
@@ -365,30 +367,30 @@ class SLMDataSettings extends LitElement {
               </div>
             </div>
 
-            <div class="section-header">Backup &amp; Restore</div>
+            <div class="section-header">${t('Backup & Restore')}</div>
 
             <div class="settings-item backup-item">
               <div class="item-content full-width">
-                <div class="item-title">Export Data</div>
+                <div class="item-title">${t('Export Data')}</div>
                 <div class="item-subtitle">
                   Download your custom products and lists as a JSON file.
                   Catalog products are excluded — they reload automatically.
                 </div>
                 <button class="action-btn" ?disabled=${this._backupWorking} @click=${this._handleExport}>
-                  Download backup
+                  ${t('Download backup')}
                 </button>
               </div>
             </div>
 
             <div class="settings-item backup-item">
               <div class="item-content full-width">
-                <div class="item-title">Import Data</div>
+                <div class="item-title">${t('Import Data')}</div>
                 <div class="item-subtitle">
                   Restore from a backup file. Existing data is kept — only missing
                   products and lists are added.
                 </div>
                 <label class="action-btn ${this._backupWorking ? 'disabled' : ''}">
-                  Choose backup file
+                  ${t('Choose backup file')}
                   <input
                     type="file"
                     accept=".json,application/json"
@@ -405,7 +407,7 @@ class SLMDataSettings extends LitElement {
                 ${this._backupStatus.replace(/^(success|error):/, '')}
               </div>
             ` : ''}
-            ${this._backupWorking ? html`<div class="message info">Working…</div>` : ''}
+            ${this._backupWorking ? html`<div class="message info">${t('Working…')}</div>` : ''}
           </div>
         `}
       </div>

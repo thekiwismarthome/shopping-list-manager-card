@@ -1,6 +1,8 @@
+import { t, I18nController } from '../services/translator.js';
 import { LitElement, html, css } from 'lit';
 
 class ProfileSettings extends LitElement {
+  _i18n = new I18nController(this);
   static properties = {
     hass: { type: Object }
   };
@@ -12,7 +14,7 @@ class ProfileSettings extends LitElement {
           <button class="back-btn" @click=${() => this.dispatchEvent(new Event('back'))}>
             <ha-icon icon="mdi:arrow-left"></ha-icon>
           </button>
-          <h2>Profile</h2>
+          <h2>${t('Profile')}</h2>
         </div>
 
         <div class="profile-content">
@@ -24,12 +26,12 @@ class ProfileSettings extends LitElement {
 
           <div class="profile-info">
             <div class="info-item">
-              <label>Name</label>
+              <label>${t('Name')}</label>
               <div class="info-value">${this.hass.user?.name || 'User'}</div>
             </div>
 
             <div class="info-item">
-              <label>Home Assistant Account</label>
+              <label>${t('Home Assistant Account')}</label>
               <div class="info-value">${this.hass.user?.is_admin ? 'Administrator' : 'User'}</div>
             </div>
           </div>
