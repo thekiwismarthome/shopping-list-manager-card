@@ -7,12 +7,15 @@ class SLMListHeader extends LitElement {
     activeList: { type: Object },
     itemCount: { type: Number },
     settings: { type: Object },
-    _menuOpen: { type: Boolean, state: true }
+    _menuOpen: { type: Boolean, state: true },
+    _wakeLockActive: { type: Boolean, state: true },
   };
 
   constructor() {
     super();
     this._menuOpen = false;
+    this._wakeLockActive = false;
+    this._wakeLock = null;
     this._boundCloseMenu = this._closeMenu.bind(this);
   }
 
@@ -46,6 +49,27 @@ class SLMListHeader extends LitElement {
     }));
   }
 
+  async _toggleWakeLock() {
+    if (!('wakeLock' in navigator)) return;
+    if (this._wakeLockActive) {
+      await this._wakeLock?.release();
+      this._wakeLock = null;
+      this._wakeLockActive = false;
+    } else {
+      try {
+        this._wakeLock = await navigator.wakeLock.request('screen');
+        this._wakeLockActive = true;
+        this._wakeLock.addEventListener('release', () => {
+          this._wakeLockActive = false;
+          this._wakeLock = null;
+          this.requestUpdate();
+        });
+      } catch (err) {
+        console.warn('[SLM] Wake lock failed:', err);
+      }
+    }
+  }
+
   handleMenuToggle(e) {
     e.stopPropagation();
     this._menuOpen = !this._menuOpen;
@@ -75,6 +99,15 @@ class SLMListHeader extends LitElement {
         <h2>${this.activeList?.name || t('Shopping List')}</h2>
 
         <div class="header-actions">
+          ${'wakeLock' in navigator ? html`
+            <button
+              class="action-btn ${this._wakeLockActive ? 'wake-active' : ''}"
+              title=${this._wakeLockActive ? t('Screen On') : t('Keep Screen On')}
+              @click=${this._toggleWakeLock}
+            >
+              <ha-icon icon=${this._wakeLockActive ? 'mdi:brightness-7' : 'mdi:brightness-5'}></ha-icon>
+            </button>
+          ` : ''}
           <button class="action-btn" @click=${this.handleShare}>
             <ha-icon icon="mdi:account-plus-outline"></ha-icon>
           </button>
@@ -158,6 +191,9 @@ class SLMListHeader extends LitElement {
     .back-btn:active,
     .action-btn:active {
       opacity: 0.6;
+    }
+    .action-btn.wake-active {
+      color: var(--slm-accent-warning, #ffb74d);
     }
     ha-icon {
       --mdc-icon-size: 24px;

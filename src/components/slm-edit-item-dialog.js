@@ -239,6 +239,7 @@ class SLMEditItemDialog extends LitElement {
     const updates = {};
     updates.category_id = this._mapOftCategory(p.categories_tags || []);
     if (p.price) updates.price = p.price;
+    if (p.code && !this.editedItem.barcode) updates.barcode = p.code;
 
     const remoteImage = p.image_front_url || p.image_url || '';
     if (remoteImage) {

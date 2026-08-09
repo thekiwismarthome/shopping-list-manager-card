@@ -66,16 +66,25 @@ class SLMListsView extends LitElement {
 
   async handleSaveNewList() {
     if (this.newListName.trim()) {
-      await this.api.createList(this.newListName, this.newListIcon, this._newListPrivate);
+      const result = await this.api.createList(this.newListName, this.newListIcon, this._newListPrivate);
       this.showCreateDialog = false;
       this.newListName = '';
       this.newListIcon = 'mdi:cart';
       this._newListPrivate = true;
 
-      this.dispatchEvent(new CustomEvent('lists-updated', {
-        bubbles: true,
-        composed: true
-      }));
+      // Navigate to the newly created list immediately
+      if (result?.list?.id) {
+        this.dispatchEvent(new CustomEvent('list-selected', {
+          detail: { listId: result.list.id },
+          bubbles: true,
+          composed: true,
+        }));
+      } else {
+        this.dispatchEvent(new CustomEvent('lists-updated', {
+          bubbles: true,
+          composed: true,
+        }));
+      }
     }
   }
 
