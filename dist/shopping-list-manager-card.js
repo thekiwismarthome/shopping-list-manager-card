@@ -132,7 +132,7 @@ const C=globalThis,A=t=>t,I=C.trustedTypes,S=I?I.createPolicy("lit-html",{create
                   <button
                     class="toggle-btn ${"alphabetical"===i?"active":""}"
                     @click=${()=>{this._dispatchSetting("sortMode","alphabetical"),this._menuOpen=!1}}
-                  >A–Z</button>
+                  >${ht("A–Z")}</button>
                 </div>
 
                 <div class="menu-divider"></div>

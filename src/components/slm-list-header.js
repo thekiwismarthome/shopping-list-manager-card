@@ -106,7 +106,7 @@ class SLMListHeader extends LitElement {
                   <button
                     class="toggle-btn ${sortMode === 'alphabetical' ? 'active' : ''}"
                     @click=${() => { this._dispatchSetting('sortMode', 'alphabetical'); this._menuOpen = false; }}
-                  >A–Z</button>
+                  >${t('A–Z')}</button>
                 </div>
 
                 <div class="menu-divider"></div>
