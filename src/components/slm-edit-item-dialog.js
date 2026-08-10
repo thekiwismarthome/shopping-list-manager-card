@@ -1,5 +1,6 @@
 import { LitElement, html, css } from 'lit';
 import { t, I18nController } from '../services/translator.js';
+import { Html5Qrcode } from 'html5-qrcode';
 
 const UNITS_METRIC   = ['units', 'kg', 'g', 'L', 'mL', 'pack', 'bunch', 'dozen', 'bottle', 'can', 'bag', 'box', 'loaf', 'slice'];
 const UNITS_IMPERIAL = ['oz', 'lb', 'fl oz', 'pt', 'qt', 'gal'];
@@ -18,7 +19,8 @@ class SLMEditItemDialog extends LitElement {
     _customUnit: { type: Boolean, state: true },
     _oftLoading: { type: Boolean, state: true },
     _oftStatus: { type: String, state: true },
-    _oftResults: { type: Array, state: true }
+    _oftResults: { type: Array, state: true },
+    _scannerActive: { type: Boolean, state: true },
   };
 
   constructor() {
@@ -32,6 +34,10 @@ class SLMEditItemDialog extends LitElement {
     this._oftLoading = false;
     this._oftStatus = '';
     this._oftResults = [];
+    this._scannerActive = false;
+    this._scannerInstance = null;
+    this._facingMode = 'environment';
+    this._stopPromise = null;
   }
 
   get _units() {
@@ -164,6 +170,140 @@ class SLMEditItemDialog extends LitElement {
     if (input) input.value = '';
     const urlInput = this.shadowRoot.querySelector('#image-url-input');
     if (urlInput) urlInput.value = '';
+  }
+
+  // ── Barcode scanner ───────────────────────────────────────────────────────
+
+  async _startBarcodeScanner() {
+    if (this._stopPromise) { await this._stopPromise; this._stopPromise = null; }
+    this._scannerActive = true;
+
+    const host = document.createElement('div');
+    host.id = 'slm-edit-scanner-host';
+    Object.assign(host.style, {
+      position: 'fixed', top: '0', left: '0', right: '0', bottom: '0',
+      zIndex: '99999', background: '#000',
+      display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+    });
+
+    const label = document.createElement('p');
+    label.textContent = 'Point camera at product barcode';
+    Object.assign(label.style, { color: '#fff', fontSize: '16px', margin: '0 0 12px 0' });
+
+    const scanRegion = document.createElement('div');
+    scanRegion.id = 'slm-edit-scanner-region';
+    Object.assign(scanRegion.style, { width: '100%', maxWidth: '400px' });
+
+    const btnRow = document.createElement('div');
+    Object.assign(btnRow.style, { display: 'flex', gap: '12px', marginTop: '20px' });
+
+    const flipBtn = document.createElement('button');
+    flipBtn.textContent = '⇄ Flip Camera';
+    Object.assign(flipBtn.style, {
+      padding: '10px 20px', background: 'rgba(255,255,255,0.15)',
+      border: '1px solid rgba(255,255,255,0.4)', borderRadius: '8px',
+      fontSize: '14px', cursor: 'pointer', color: '#fff',
+    });
+    flipBtn.addEventListener('click', () => {
+      this._facingMode = this._facingMode === 'environment' ? 'user' : 'environment';
+      this._stopBarcodeScanner();
+      this._startBarcodeScanner();
+    });
+
+    const cancelBtn = document.createElement('button');
+    cancelBtn.textContent = '✕ Cancel';
+    Object.assign(cancelBtn.style, {
+      padding: '10px 24px', background: '#fff',
+      border: 'none', borderRadius: '8px', fontSize: '15px', cursor: 'pointer',
+    });
+    cancelBtn.addEventListener('click', () => this._stopBarcodeScanner());
+
+    btnRow.append(flipBtn, cancelBtn);
+    host.append(label, scanRegion, btnRow);
+    document.body.appendChild(host);
+
+    this._scannerInstance = new Html5Qrcode('slm-edit-scanner-region');
+    this._scannerInstance.start(
+      { facingMode: this._facingMode },
+      { fps: 10, qrbox: { width: 280, height: 120 } },
+      (decodedText) => this._onBarcodeScanned(decodedText),
+      () => {}
+    ).catch(() => {
+      this._showScannerFileFallback(host, label, scanRegion, btnRow, flipBtn);
+    });
+  }
+
+  _showScannerFileFallback(host, label, scanRegion, btnRow, flipBtn) {
+    label.textContent = 'Take a photo of the barcode';
+    scanRegion.innerHTML = '';
+    flipBtn.remove();
+
+    const hint = document.createElement('p');
+    hint.textContent = 'Live camera unavailable (HTTP). Use the button below to photograph the barcode.';
+    Object.assign(hint.style, {
+      color: 'rgba(255,255,255,0.6)', fontSize: '13px',
+      textAlign: 'center', maxWidth: '320px', margin: '0 0 16px 0',
+    });
+
+    const fileInput = document.createElement('input');
+    fileInput.type = 'file';
+    fileInput.accept = 'image/*';
+    fileInput.capture = 'environment';
+    fileInput.style.display = 'none';
+
+    const photoBtn = document.createElement('button');
+    photoBtn.textContent = '📷 Open Camera';
+    Object.assign(photoBtn.style, {
+      padding: '12px 28px', background: '#fff', border: 'none',
+      borderRadius: '8px', fontSize: '15px', cursor: 'pointer', fontWeight: '600',
+    });
+
+    const errorMsg = document.createElement('p');
+    Object.assign(errorMsg.style, {
+      color: '#f87171', fontSize: '13px', marginTop: '10px', display: 'none',
+    });
+
+    photoBtn.addEventListener('click', () => fileInput.click());
+    fileInput.addEventListener('change', async (e) => {
+      const file = e.target.files?.[0];
+      if (!file) return;
+      photoBtn.disabled = true;
+      photoBtn.textContent = 'Scanning…';
+      errorMsg.style.display = 'none';
+      try {
+        const result = await this._scannerInstance.scanFile(file, true);
+        this._onBarcodeScanned(result);
+      } catch {
+        errorMsg.textContent = 'No barcode found — try again with a clearer photo.';
+        errorMsg.style.display = 'block';
+        photoBtn.disabled = false;
+        photoBtn.textContent = '📷 Open Camera';
+        fileInput.value = '';
+      }
+    });
+
+    host.insertBefore(hint, scanRegion);
+    scanRegion.append(fileInput, photoBtn, errorMsg);
+  }
+
+  _stopBarcodeScanner() {
+    if (this._scannerInstance) {
+      try {
+        this._stopPromise = this._scannerInstance.stop().catch(() => {});
+      } catch {
+        this._stopPromise = null;
+      }
+      this._scannerInstance = null;
+    }
+    document.getElementById('slm-edit-scanner-host')?.remove();
+    this._scannerActive = false;
+  }
+
+  async _onBarcodeScanned(code) {
+    this._stopBarcodeScanner();
+    this.editedItem = { ...this.editedItem, barcode: code.trim() };
+    // Auto-trigger lookup: local catalog first, then OFT
+    await this.handleSearchByBarcode();
   }
 
   async handleSearchOFT() {
@@ -359,6 +499,14 @@ class SLMEditItemDialog extends LitElement {
                   .value=${this.editedItem.barcode || ''}
                   @input=${(e) => this.editedItem = { ...this.editedItem, barcode: e.target.value }}
                 />
+                <button
+                  class="barcode-scan-btn"
+                  title="Scan barcode with camera"
+                  ?disabled=${this._oftLoading || this._scannerActive}
+                  @click=${this._startBarcodeScanner}
+                >
+                  <ha-icon icon="mdi:barcode-scan"></ha-icon>
+                </button>
                 <button
                   class="barcode-search-btn"
                   title="Search OpenFoodFacts by barcode"
@@ -758,6 +906,7 @@ class SLMEditItemDialog extends LitElement {
     .barcode-row input {
       flex: 1;
     }
+    .barcode-scan-btn,
     .barcode-search-btn {
       flex-shrink: 0;
       display: flex;
@@ -771,12 +920,15 @@ class SLMEditItemDialog extends LitElement {
       cursor: pointer;
       transition: border-color 0.15s;
     }
+    .barcode-scan-btn ha-icon,
     .barcode-search-btn ha-icon {
       --mdc-icon-size: 20px;
     }
+    .barcode-scan-btn:hover:not(:disabled),
     .barcode-search-btn:hover:not(:disabled) {
       border-color: var(--slm-accent-primary, #9fa8da);
     }
+    .barcode-scan-btn:disabled,
     .barcode-search-btn:disabled {
       opacity: 0.45;
       cursor: default;
