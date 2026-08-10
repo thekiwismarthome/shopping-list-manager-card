@@ -144,6 +144,11 @@ class SLMDataSettings extends LitElement {
       this._successMessage = isCustom
         ? `✓ Switched to custom region "${countryName}"`
         : `✓ Switched to ${countryName} — ${result.products_loaded} products loaded`;
+      this.dispatchEvent(new CustomEvent('region-changed', {
+        detail: { country: result.country },
+        bubbles: true,
+        composed: true,
+      }));
     } catch (err) {
       this._errorMessage = 'Failed to switch region. Please try again.';
       console.error('[SLM] Failed to set country:', err);

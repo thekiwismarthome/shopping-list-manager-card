@@ -299,7 +299,12 @@ class ShoppingListManagerCard extends LitElement {
       this.lists = listsResult.lists || [];
 
       const lastListKey = `slm_last_list_${this._settingsUserId || 'default'}`;
-      if (this.settings.openLastUsedList) {
+      // Preserve current selection if the list still exists (prevents subscription
+      // events from resetting the active list after a manual switch or create)
+      const currentStillExists = this.activeList && this.lists.find(l => l.id === this.activeList.id);
+      if (currentStillExists) {
+        this.activeList = this.lists.find(l => l.id === this.activeList.id);
+      } else if (this.settings.openLastUsedList) {
         const lastListId = localStorage.getItem(lastListKey);
         this.activeList = this.lists.find(l => l.id === lastListId) ||
           this.lists.find(l => l.active) ||
@@ -968,6 +973,7 @@ class ShoppingListManagerCard extends LitElement {
               .categories=${this.categories}
               @settings-changed=${this.handleSettingsChange}
               @lists-updated=${async () => { await this.loadData(); await this._loadIntegrationSettings(); }}
+              @region-changed=${() => this._loadIntegrationSettings()}
             ></slm-settings-view>
           </div>
         `;
