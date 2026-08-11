@@ -46,6 +46,7 @@ class SLMSearchBar extends LitElement {
     this._oftLoading = false;
     this._scannerInstance = null;
     this._stopPromise = null;
+    this._searchTimer = null;
   }
 
   disconnectedCallback() {
@@ -65,23 +66,31 @@ class SLMSearchBar extends LitElement {
     this.recentProducts = recentIds.slice(0, limit);
   }
 
-  async handleSearch(e) {
+  handleSearch(e) {
     this.searchQuery = e.target.value;
     this._showCreateForm = false;
+    clearTimeout(this._searchTimer);
 
     if (this.searchQuery.length < 1) {
       this.showResults = false;
+      this.searchResults = [];
       return;
     }
 
+    this.showResults = true;
+
     if (this.searchQuery.length >= 2) {
-      const result = await this.api.searchProducts(this.searchQuery, { limit: 20 });
-      this.searchResults = result.products || [];
+      const q = this.searchQuery;
+      this._searchTimer = setTimeout(async () => {
+        const result = await this.api.searchProducts(q, { limit: 20 });
+        // Discard stale responses if the query changed while waiting
+        if (this.searchQuery === q) {
+          this.searchResults = result.products || [];
+        }
+      }, 300);
     } else {
       this.searchResults = [];
     }
-
-    this.showResults = true;
   }
 
   handleProductSelect(product) {
