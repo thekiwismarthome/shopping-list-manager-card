@@ -35,11 +35,16 @@ class ShoppingListManagerCard extends LitElement {
     showEditDialog: { type: Boolean },
     editingItem: { type: Object },
     settings: { type: Object },
-    isEmbedded: { type: Boolean }
+    isEmbedded: { type: Boolean },
+    _loadError: { type: String, state: true }
   };
   set hass(hass) {
     const prevHass = this._hass;
     this._hass = hass;
+    if (hass && this._hassWaiter) {
+      this._hassWaiter();
+      this._hassWaiter = null;
+    }
     if (this.api) {
       this.api.hass = hass;
     }
@@ -91,6 +96,13 @@ class ShoppingListManagerCard extends LitElement {
     this._haTodoSyncTimers = {};
     this._currencySymbol = '$';
     this._integrationSettings = null;
+    this._loadError = '';
+    this._hassWaiter = null;
+  }
+
+  _retryLoad() {
+    this._loadError = '';
+    this.loadData().then(() => this._loadIntegrationSettings());
   }
 
   connectedCallback() {
@@ -189,9 +201,11 @@ class ShoppingListManagerCard extends LitElement {
   }
 
   async firstUpdated() {
+    if (!this.hass) {
+      await new Promise((resolve) => { this._hassWaiter = resolve; });
+    }
     this.api = new ShoppingListAPI(this.hass);
-    await this.loadData();
-    await this._loadIntegrationSettings();
+    await Promise.all([this.loadData(), this._loadIntegrationSettings()]);
     this.applyColorScheme();
     if (this.settings.keepScreenOn) this.acquireWakeLock();
     this._visibilityHandler = () => {
@@ -295,8 +309,12 @@ class ShoppingListManagerCard extends LitElement {
     try {
       this.loading = true;
 
-      const listsResult = await this.api.getLists();
+      const [listsResult, categoriesResult] = await Promise.all([
+        this.api.getLists(),
+        this.api.getCategories(),
+      ]);
       this.lists = listsResult.lists || [];
+      this.categories = categoriesResult.categories;
 
       const lastListKey = `slm_last_list_${this._settingsUserId || 'default'}`;
       // Preserve current selection if the list still exists (prevents subscription
@@ -313,15 +331,14 @@ class ShoppingListManagerCard extends LitElement {
         this.activeList = this.lists.find(l => l.active) || this.lists[0];
       }
 
-      const categoriesResult = await this.api.getCategories();
-      this.categories = categoriesResult.categories;
-
       if (this.activeList) {
         await this.loadActiveListData();
       }
 
+      this._loadError = '';
     } catch (err) {
       console.error('Failed to load data:', err);
+      this._loadError = err?.message || err?.code || String(err);
     } finally {
       this.loading = false;
     }
@@ -330,10 +347,12 @@ class ShoppingListManagerCard extends LitElement {
   async loadActiveListData() {
     if (!this.activeList) return;
 
-    const itemsResult = await this.api.getItems(this.activeList.id);
+    const listId = this.activeList.id;
+    const [itemsResult, totalResult] = await Promise.all([
+      this.api.getItems(listId),
+      this.api.getListTotal(listId),
+    ]);
     this.items = itemsResult.items;
-
-    const totalResult = await this.api.getListTotal(this.activeList.id);
     this.total = totalResult;
 
     const lastListKey = `slm_last_list_${this._settingsUserId || 'default'}`;
@@ -995,6 +1014,18 @@ class ShoppingListManagerCard extends LitElement {
       `;
     }
 
+    if (this._loadError && !this.activeList) {
+      return html`
+        <ha-card>
+          <div class="loading">
+            <p><strong>Couldn't load your shopping lists.</strong></p>
+            <p class="load-error">${this._loadError}</p>
+            <button class="retry-btn" @click=${() => this._retryLoad()}>Retry</button>
+          </div>
+        </ha-card>
+      `;
+    }
+
     return html`
       <ha-card>
         <div class="card-container">
@@ -1069,6 +1100,16 @@ class ShoppingListManagerCard extends LitElement {
       border-top-color: var(--primary-color);
       border-radius: 50%;
       animation: spin 0.8s linear infinite;
+    }
+    .load-error { margin: 0; font-size: 12px; color: var(--secondary-text-color); text-align: center; }
+    .retry-btn {
+      padding: 8px 20px;
+      border: none;
+      border-radius: 8px;
+      background: var(--primary-color);
+      color: var(--text-primary-color, #fff);
+      font-size: 14px;
+      cursor: pointer;
     }
     @keyframes spin {
       to { transform: rotate(360deg); }
