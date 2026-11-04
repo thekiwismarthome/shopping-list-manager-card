@@ -156,9 +156,30 @@ class SLMEditItemDialog extends LitElement {
     if (!file) return;
     const reader = new FileReader();
     reader.onload = (ev) => {
-      const dataUrl = ev.target.result;
-      this.editedItem = { ...this.editedItem, image_url: dataUrl };
-      this.imagePreview = dataUrl;
+      const original = ev.target.result;
+      const apply = (dataUrl) => {
+        this.editedItem = { ...this.editedItem, image_url: dataUrl };
+        this.imagePreview = dataUrl;
+      };
+      // Shrink before upload: a raw phone photo is several MB of base64, which
+      // bloats the saved item and stalls the WebSocket. The server converts the
+      // result to a small WebP file.
+      const img = new Image();
+      img.onload = () => {
+        try {
+          const max = 600;
+          const scale = Math.min(1, max / Math.max(img.width, img.height));
+          const canvas = document.createElement('canvas');
+          canvas.width = Math.max(1, Math.round(img.width * scale));
+          canvas.height = Math.max(1, Math.round(img.height * scale));
+          canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
+          apply(canvas.toDataURL('image/jpeg', 0.85));
+        } catch (err) {
+          apply(original);
+        }
+      };
+      img.onerror = () => apply(original);
+      img.src = original;
     };
     reader.readAsDataURL(file);
   }
