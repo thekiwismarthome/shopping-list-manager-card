@@ -2,6 +2,39 @@ import { LitElement, html, css } from 'lit';
 import { PRODUCT_ICON_MAP } from '../icons/product-icon-map.js';
 import { PRODUCT_ICONS } from '../icons/product-icons.js';
 
+const LOCAL_IMG_EXTS = ['webp', 'jpg', 'png', 'jpeg'];
+const LOCAL_IMG_CACHE_KEY = 'slm_local_img_cache';
+const LOCAL_IMG_TTL_MS = 24 * 60 * 60 * 1000;
+
+// base path -> index of extension that loaded, or -1 if none exist. Avoids
+// re-probing (and 404ing) up to 4 URLs per tile on every render/reload.
+let _localImgCacheStamp = Date.now();
+const _localImgCache = (() => {
+  try {
+    const raw = JSON.parse(localStorage.getItem(LOCAL_IMG_CACHE_KEY) || 'null');
+    if (raw && Date.now() - raw.t < LOCAL_IMG_TTL_MS) {
+      _localImgCacheStamp = raw.t;
+      return new Map(Object.entries(raw.m));
+    }
+  } catch (e) { /* ignore */ }
+  return new Map();
+})();
+let _localImgSaveTimer = null;
+
+function _rememberLocalImg(base, idx) {
+  if (_localImgCache.get(base) === idx) return;
+  _localImgCache.set(base, idx);
+  clearTimeout(_localImgSaveTimer);
+  _localImgSaveTimer = setTimeout(() => {
+    try {
+      localStorage.setItem(LOCAL_IMG_CACHE_KEY, JSON.stringify({
+        t: _localImgCacheStamp,
+        m: Object.fromEntries(_localImgCache),
+      }));
+    } catch (e) { /* ignore */ }
+  }, 500);
+}
+
 class SLMItemTile extends LitElement {
   static properties = {
     item: { type: Object },
@@ -283,7 +316,7 @@ class SLMItemTile extends LitElement {
   renderImage() {
     const name = this.item?.name;
     const categoryId = this.item?.category_id;
-    const exts = ['webp', 'jpg', 'png', 'jpeg'];
+    const exts = LOCAL_IMG_EXTS;
 
     // 1. Explicit product image URL (highest priority)
     if (this.item?.image_url) {
@@ -293,18 +326,29 @@ class SLMItemTile extends LitElement {
         </div>`;
     }
 
-    // 2. Local HA image folder — try webp → jpg → png → jpeg
+    // 2. Local HA image folder — try webp → jpg → png → jpeg (result cached)
     const localBase = this.getLocalImageBasePath(name);
-    if (localBase && this._localImgExtIdx < exts.length) {
-      return html`
-        <div class="image-area">
-          <img
-            src="${localBase}.${exts[this._localImgExtIdx]}"
-            alt="${name}"
-            class="product-icon"
-            @error=${() => { this._localImgExtIdx++; this.requestUpdate(); }}
-          >
-        </div>`;
+    if (localBase) {
+      const cached = _localImgCache.get(localBase);
+      const idx = cached === undefined ? this._localImgExtIdx : (cached < 0 ? exts.length : cached);
+      if (idx < exts.length) {
+        return html`
+          <div class="image-area">
+            <img
+              src="${localBase}.${exts[idx]}"
+              alt="${name}"
+              class="product-icon"
+              @load=${() => _rememberLocalImg(localBase, idx)}
+              @error=${() => {
+                const next = idx + 1;
+                if (next >= exts.length) _rememberLocalImg(localBase, -1);
+                else _localImgCache.delete(localBase);
+                this._localImgExtIdx = next;
+                this.requestUpdate();
+              }}
+            >
+          </div>`;
+      }
     }
 
     // 3. Bundled icons8 icon
