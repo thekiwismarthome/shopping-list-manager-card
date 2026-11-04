@@ -117,7 +117,7 @@ class ShoppingListManagerCard extends LitElement {
     const h = this.hass;
     const sock = h?.connection?.socket;
     return [
-      `card: SLMC ${CARD_VERSION} (diag build)`,
+      `card: SLMC ${CARD_VERSION} (diag build 2)`,
       `hass: ${h ? 'present' : 'MISSING'}  callWS: ${typeof h?.callWS}`,
       `ws: ${sock ? ['connecting', 'open', 'closing', 'closed'][sock.readyState] : 'n/a'}  external-app: ${h?.auth?.external ? 'yes' : 'no'}`,
       `ha: ${h?.config?.version || '?'}  origin: ${location.origin}`,
@@ -127,6 +127,53 @@ class ShoppingListManagerCard extends LitElement {
 
   _diagText() {
     return [...this._diagEnv(), '---', ...this._diagLines].join('\n');
+  }
+
+  // Log incoming WebSocket frames (id/type/success only) so we can see
+  // whether replies to our requests arrive at all.
+  _sniffSocket() {
+    const sock = this.hass?.connection?.socket;
+    if (!sock || sock === this._sniffedSocket) return;
+    this._sniffedSocket = sock;
+    this._frameCount = 0;
+    sock.addEventListener('message', (ev) => {
+      this._frameCount++;
+      if (this._frameCount > 40) return;
+      try {
+        const f = JSON.parse(ev.data);
+        const one = Array.isArray(f) ? f[0] : f;
+        this._diag(`rx #${this._frameCount} id=${one?.id ?? '-'} ${one?.type ?? ''}${one?.success === false ? ' FAIL' : ''} ${String(ev.data.length)}B`);
+      } catch (e) {
+        this._diag(`rx #${this._frameCount} (unparsable ${String(ev.data).length}B)`);
+      }
+    });
+    sock.addEventListener('close', () => this._diag('socket CLOSED'));
+    this._diag(`sniffing socket (state ${sock.readyState})`);
+  }
+
+  // Send a few commands to see which ones get answered.
+  async _runWsProbe() {
+    if (this._probed || !this.hass) return;
+    this._probed = true;
+    const h = this.hass;
+    const probe = async (label, fn) => {
+      const t0 = performance.now();
+      try {
+        await Promise.race([fn(), new Promise((_, rej) => setTimeout(() => rej(new Error('no reply in 8s')), 8000))]);
+        this._diag(`probe ${label}: OK ${Math.round(performance.now() - t0)}ms`);
+      } catch (e) {
+        this._diag(`probe ${label}: ${e?.code ? 'error reply ' + e.code : (e?.message || e)} ${Math.round(performance.now() - t0)}ms`);
+      }
+    };
+    this._diag(`probe start (commandId ${h.connection?.commandId ?? '?'})`);
+    await Promise.all([
+      probe('core ping', () => h.callWS({ type: 'ping' })),
+      probe('core get_config', () => h.callWS({ type: 'get_config' })),
+      probe('slm callWS', () => h.callWS({ type: 'shopping_list_manager/get_integration_settings' })),
+      probe('slm connection', () => h.connection.sendMessagePromise({ type: 'shopping_list_manager/get_integration_settings' })),
+      probe('rm tags', () => h.callWS({ type: 'recipe_manager/tags/get_all' })),
+    ]);
+    this._diag('probe done');
   }
 
   _retryLoad() {
@@ -243,6 +290,7 @@ class ShoppingListManagerCard extends LitElement {
         this._diagTimer = null;
         return;
       }
+      if (this.loading && performance.now() - this._diagStart > 6000) this._runWsProbe();
       this.requestUpdate();
     }, 1000);
 
@@ -251,6 +299,7 @@ class ShoppingListManagerCard extends LitElement {
       await new Promise((resolve) => { this._hassWaiter = resolve; });
       this._diag('hass received');
     }
+    this._sniffSocket();
     this.api = new ShoppingListAPI(this.hass, (m) => this._diag(m));
     await Promise.all([this.loadData(), this._loadIntegrationSettings()]);
     this._diag('startup complete');
@@ -879,15 +928,18 @@ class ShoppingListManagerCard extends LitElement {
     if (!this.hass?.connection) return;
 
     try {
+      this._diag('→ subscribe');
       const unsubscribe = await this.hass.connection.subscribeMessage(
         (message) => this._applySubscriptionEvent(message),
         { type: 'shopping_list_manager/subscribe' }
       );
 
+      this._diag('✓ subscribe');
       this._unsubscribers = [unsubscribe];
       console.log('[SLM] ✅ Subscribed to shopping list updates');
 
     } catch (err) {
+      this._diag(`✗ subscribe: ${err?.message || err?.code || err}`);
       console.error('[SLM] ❌ Failed to subscribe:', err);
     }
   }
