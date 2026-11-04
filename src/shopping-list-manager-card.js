@@ -190,8 +190,7 @@ class ShoppingListManagerCard extends LitElement {
 
   async firstUpdated() {
     this.api = new ShoppingListAPI(this.hass);
-    await this.loadData();
-    await this._loadIntegrationSettings();
+    await Promise.all([this.loadData(), this._loadIntegrationSettings()]);
     this.applyColorScheme();
     if (this.settings.keepScreenOn) this.acquireWakeLock();
     this._visibilityHandler = () => {
@@ -295,8 +294,12 @@ class ShoppingListManagerCard extends LitElement {
     try {
       this.loading = true;
 
-      const listsResult = await this.api.getLists();
+      const [listsResult, categoriesResult] = await Promise.all([
+        this.api.getLists(),
+        this.api.getCategories(),
+      ]);
       this.lists = listsResult.lists || [];
+      this.categories = categoriesResult.categories;
 
       const lastListKey = `slm_last_list_${this._settingsUserId || 'default'}`;
       // Preserve current selection if the list still exists (prevents subscription
@@ -313,9 +316,6 @@ class ShoppingListManagerCard extends LitElement {
         this.activeList = this.lists.find(l => l.active) || this.lists[0];
       }
 
-      const categoriesResult = await this.api.getCategories();
-      this.categories = categoriesResult.categories;
-
       if (this.activeList) {
         await this.loadActiveListData();
       }
@@ -330,10 +330,12 @@ class ShoppingListManagerCard extends LitElement {
   async loadActiveListData() {
     if (!this.activeList) return;
 
-    const itemsResult = await this.api.getItems(this.activeList.id);
+    const listId = this.activeList.id;
+    const [itemsResult, totalResult] = await Promise.all([
+      this.api.getItems(listId),
+      this.api.getListTotal(listId),
+    ]);
     this.items = itemsResult.items;
-
-    const totalResult = await this.api.getListTotal(this.activeList.id);
     this.total = totalResult;
 
     const lastListKey = `slm_last_list_${this._settingsUserId || 'default'}`;
