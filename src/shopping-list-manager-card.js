@@ -117,7 +117,7 @@ class ShoppingListManagerCard extends LitElement {
     const h = this.hass;
     const sock = h?.connection?.socket;
     return [
-      `card: SLMC ${CARD_VERSION} (diag build 3)`,
+      `card: SLMC ${CARD_VERSION} (diag build 4)`,
       `hass: ${h ? 'present' : 'MISSING'}  callWS: ${typeof h?.callWS}`,
       `ws: ${sock ? ['connecting', 'open', 'closing', 'closed'][sock.readyState] : 'n/a'}  external-app: ${h?.auth?.external ? 'yes' : 'no'}`,
       `ha: ${h?.config?.version || '?'}  origin: ${location.origin}`,
@@ -214,6 +214,25 @@ class ShoppingListManagerCard extends LitElement {
       probe('rm tags', () => h.callWS({ type: 'recipe_manager/tags/get_all' })),
     ]);
     this._diag('probe done');
+    this._sendDiagToHA('after probe');
+  }
+
+  // Write the diagnostics text to the HA log via the REST API (not the
+  // WebSocket, which is the channel under investigation).
+  async _sendDiagToHA(reason) {
+    this._diagSends = (this._diagSends || 0) + 1;
+    if (this._diagSends > 6 || !this.hass?.callApi) return;
+    const body = `[SLMC diag] ${reason} — ${new Date().toISOString()}\n${this._diagText()}`.slice(0, 9000);
+    try {
+      await this.hass.callApi('POST', 'services/system_log/write', {
+        message: body,
+        level: 'warning',
+        logger: 'custom_components.shopping_list_manager.card_diag',
+      });
+      this._diag(`sent diagnostics to HA log (${reason})`);
+    } catch (e) {
+      this._diag(`could not send to HA log: ${e?.message || e?.status_code || e}`);
+    }
   }
 
   _retryLoad() {
@@ -472,6 +491,7 @@ class ShoppingListManagerCard extends LitElement {
       console.error('Failed to load data:', err);
       this._loadError = err?.message || err?.code || String(err);
       this._diag(`loadData failed: ${this._loadError}`);
+      setTimeout(() => this._sendDiagToHA('load failed'), 500);
     } finally {
       this.loading = false;
     }
@@ -1150,6 +1170,7 @@ class ShoppingListManagerCard extends LitElement {
               <p class="diag-hint">Taking longer than expected. Diagnostics:</p>
               <pre class="diag">${this._diagText()}</pre>
               <button class="diag-btn" @click=${() => this._retryLoad()}>Retry</button>
+              <button class="diag-btn" @click=${() => this._sendDiagToHA('manual')}>Send to HA log</button>
             ` : ''}
           </div>
         </ha-card>
@@ -1164,6 +1185,7 @@ class ShoppingListManagerCard extends LitElement {
             <p class="diag-hint">${this._loadError}</p>
             <pre class="diag">${this._diagText()}</pre>
             <button class="diag-btn" @click=${() => this._retryLoad()}>Retry</button>
+              <button class="diag-btn" @click=${() => this._sendDiagToHA('manual')}>Send to HA log</button>
           </div>
         </ha-card>
       `;
