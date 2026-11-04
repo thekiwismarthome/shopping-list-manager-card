@@ -893,28 +893,39 @@ class ShoppingListManagerCard extends LitElement {
 
   renderCurrentView() {
     switch (this.currentView) {
-      case 'shopping':
-        return html`
+      case 'shopping': {
+        const header = html`
           <slm-list-header
             .activeList=${this.activeList}
             .itemCount=${this.items.filter(i => !i.checked).length}
             .settings=${this.settings}
             .currencySymbol=${this._currencySymbol}
+            ?compact=${this.isEmbedded}
             @back=${this.handleBackToLists}
             @share=${this.handleShareList}
             @menu-setting-change=${this.handleMenuSettingChange}
           ></slm-list-header>
+        `;
+        const searchBar = html`
+          <slm-search-bar
+            .api=${this.api}
+            .settings=${this.settings}
+            .categories=${this.categories}
+            .activeListId=${this.activeList?.id}
+            .currencySymbol=${this._currencySymbol}
+            @add-item=${this.handleAddItem}
+            @create-and-add-product=${this.handleCreateAndAddProduct}
+          ></slm-search-bar>
+        `;
+        // When embedded (e.g. in Recipe Manager Card) the host already shows a
+        // heading, so drop our own header row and put Share + menu beside search.
+        return html`
+          ${this.isEmbedded ? '' : header}
 
           <div class="content-area">
-            <slm-search-bar
-              .api=${this.api}
-              .settings=${this.settings}
-              .categories=${this.categories}
-              .activeListId=${this.activeList?.id}
-              .currencySymbol=${this._currencySymbol}
-              @add-item=${this.handleAddItem}
-              @create-and-add-product=${this.handleCreateAndAddProduct}
-            ></slm-search-bar>
+            ${this.isEmbedded
+              ? html`<div class="embedded-toolbar">${searchBar}${header}</div>`
+              : searchBar}
 
             ${this.settings.viewMode === 'list' ? html`
               <slm-item-list
@@ -953,6 +964,7 @@ class ShoppingListManagerCard extends LitElement {
             <div class="total-count">${this.total.item_count} ${t('items')}</div>
           </div>
         `;
+      }
 
       case 'lists':
         return html`
@@ -1077,6 +1089,18 @@ class ShoppingListManagerCard extends LitElement {
       flex-direction: column;
       overflow: hidden;
       position: relative;
+    }
+    .embedded-toolbar {
+      display: flex;
+      align-items: center;
+      background: var(--slm-bg-surface);
+    }
+    .embedded-toolbar slm-search-bar {
+      flex: 1;
+      min-width: 0;
+    }
+    .embedded-toolbar slm-list-header {
+      flex: none;
     }
     .content-area {
       flex: 1;

@@ -7,6 +7,9 @@ class SLMListHeader extends LitElement {
     activeList: { type: Object },
     itemCount: { type: Number },
     settings: { type: Object },
+    // Embedded in another card (e.g. Recipe Manager Card) that already shows the
+    // back button, title and wake-lock toggle: render only Share + the menu.
+    compact: { type: Boolean, reflect: true },
     _menuOpen: { type: Boolean, state: true },
     _wakeLockActive: { type: Boolean, state: true },
   };
@@ -91,15 +94,17 @@ class SLMListHeader extends LitElement {
     const showPrice = s.showPriceOnTile !== false;
 
     return html`
-      <div class="header">
-        <button class="back-btn" @click=${this.handleBack}>
-          <ha-icon icon="mdi:arrow-left"></ha-icon>
-        </button>
+      <div class="header ${this.compact ? 'compact' : ''}">
+        ${this.compact ? '' : html`
+          <button class="back-btn" @click=${this.handleBack}>
+            <ha-icon icon="mdi:arrow-left"></ha-icon>
+          </button>
 
-        <h2>${this.activeList?.name || t('Shopping List')}</h2>
+          <h2>${this.activeList?.name || t('Shopping List')}</h2>
+        `}
 
         <div class="header-actions">
-          ${'wakeLock' in navigator ? html`
+          ${!this.compact && 'wakeLock' in navigator ? html`
             <button
               class="action-btn ${this._wakeLockActive ? 'wake-active' : ''}"
               title=${this._wakeLockActive ? t('Screen On') : t('Keep Screen On')}
@@ -163,6 +168,9 @@ class SLMListHeader extends LitElement {
   }
 
   static styles = css`
+    :host {
+      display: block;
+    }
     .header {
       position: sticky;
       top: 0;
@@ -175,6 +183,14 @@ class SLMListHeader extends LitElement {
       z-index: 100;
       min-height: 40px;
       max-height: 40px;
+    }
+    .header.compact {
+      position: relative;
+      min-height: 0;
+      max-height: none;
+      padding: 0 8px 0 0;
+      border-bottom: none;
+      justify-content: flex-end;
     }
     .back-btn,
     .action-btn {
