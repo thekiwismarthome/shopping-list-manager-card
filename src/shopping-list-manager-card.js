@@ -117,16 +117,42 @@ class ShoppingListManagerCard extends LitElement {
     const h = this.hass;
     const sock = h?.connection?.socket;
     return [
-      `card: SLMC ${CARD_VERSION} (diag build 2)`,
+      `card: SLMC ${CARD_VERSION} (diag build 3)`,
       `hass: ${h ? 'present' : 'MISSING'}  callWS: ${typeof h?.callWS}`,
       `ws: ${sock ? ['connecting', 'open', 'closing', 'closed'][sock.readyState] : 'n/a'}  external-app: ${h?.auth?.external ? 'yes' : 'no'}`,
       `ha: ${h?.config?.version || '?'}  origin: ${location.origin}`,
+      `visible: ${document.visibilityState}  ticks: ${this._diagTicks || 0}  rx: ${this._frameCount || 0}  tx: ${this._txCount || 0}`,
       `ua: ${navigator.userAgent}`,
     ];
   }
 
   _diagText() {
     return [...this._diagEnv(), '---', ...this._diagLines].join('\n');
+  }
+
+  // (Re)attach diagnostics hooks. Called on first render and on every
+  // reconnect, because HA layouts may detach/re-attach cards.
+  _armDiag() {
+    if (!this._onWindowError) {
+      this._onWindowError = (e) => this._diag(`window error: ${e.message} (${(e.filename || '').split('/').pop()}:${e.lineno})`);
+      this._onRejection = (e) => this._diag(`unhandled rejection: ${e.reason?.message || e.reason?.code || e.reason}`);
+    }
+    window.removeEventListener('error', this._onWindowError);
+    window.removeEventListener('unhandledrejection', this._onRejection);
+    window.addEventListener('error', this._onWindowError);
+    window.addEventListener('unhandledrejection', this._onRejection);
+    this._diagTicks = this._diagTicks || 0;
+    if (!this._diagTimer) {
+      this._diagTimer = setInterval(() => {
+        this._diagTicks++;
+        if (!this.loading && !this._loadError) {
+          clearInterval(this._diagTimer);
+          this._diagTimer = null;
+          return;
+        }
+        this.requestUpdate();
+      }, 1000);
+    }
   }
 
   // Log incoming WebSocket frames (id/type/success only) so we can see
@@ -148,6 +174,20 @@ class ShoppingListManagerCard extends LitElement {
       }
     });
     sock.addEventListener('close', () => this._diag('socket CLOSED'));
+    // Log outgoing frames written to the socket (id/type only)
+    const origSend = sock.send.bind(sock);
+    this._txCount = 0;
+    sock.send = (data) => {
+      this._txCount++;
+      if (this._txCount <= 40) {
+        try {
+          const f = JSON.parse(data);
+          const one = Array.isArray(f) ? f[0] : f;
+          this._diag(`tx #${this._txCount} id=${one?.id ?? '-'} ${one?.type ?? ''} (buffered ${sock.bufferedAmount})`);
+        } catch (e) { this._diag(`tx #${this._txCount}`); }
+      }
+      return origSend(data);
+    };
     this._diag(`sniffing socket (state ${sock.readyState})`);
   }
 
@@ -184,6 +224,8 @@ class ShoppingListManagerCard extends LitElement {
 
   connectedCallback() {
     super.connectedCallback();
+    this._diag('connected');
+    if (this._diagArmed) this._armDiag();
     if (!this._assignedCardId && this._baseCardId) {
       // First connection: assign a position-based ID among cards with the same config hash
       const count = _slmInstanceCounters.get(this._baseCardId) ?? 0;
@@ -279,20 +321,10 @@ class ShoppingListManagerCard extends LitElement {
 
   async firstUpdated() {
     this._diag('firstUpdated');
-    this._onWindowError = (e) => this._diag(`window error: ${e.message} (${(e.filename || '').split('/').pop()}:${e.lineno})`);
-    this._onRejection = (e) => this._diag(`unhandled rejection: ${e.reason?.message || e.reason?.code || e.reason}`);
-    window.addEventListener('error', this._onWindowError);
-    window.addEventListener('unhandledrejection', this._onRejection);
-    // Re-render once a second while loading so the diagnostics panel can appear
-    this._diagTimer = setInterval(() => {
-      if (!this.loading && !this._loadError) {
-        clearInterval(this._diagTimer);
-        this._diagTimer = null;
-        return;
-      }
-      if (this.loading && performance.now() - this._diagStart > 6000) this._runWsProbe();
-      this.requestUpdate();
-    }, 1000);
+    this._diagArmed = true;
+    this._armDiag();
+    // Independent of lifecycle/loading state: probe the socket 3s after start
+    setTimeout(() => this._runWsProbe(), 3000);
 
     if (!this.hass) {
       this._diag('waiting for hass…');
@@ -315,9 +347,9 @@ class ShoppingListManagerCard extends LitElement {
 
   disconnectedCallback() {
     super.disconnectedCallback();
+    this._diag('disconnected');
     clearInterval(this._diagTimer);
-    window.removeEventListener('error', this._onWindowError);
-    window.removeEventListener('unhandledrejection', this._onRejection);
+    this._diagTimer = null;
     this.releaseWakeLock();
     document.removeEventListener('visibilitychange', this._visibilityHandler);
 
