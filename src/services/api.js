@@ -1,6 +1,44 @@
+// Startup reads should answer in well under a second; fail loudly instead of spinning forever.
+const STARTUP_TIMEOUT_MS = 20000;
+
 export class ShoppingListAPI {
-  constructor(hass) {
+  constructor(hass, trace = null) {
     this.hass = hass;
+    // Optional (event, detail) callback used for startup diagnostics
+    this.trace = trace;
+  }
+
+  // Wrapper around hass.callWS with optional timeout + timing trace.
+  // Without a timeout a WS call that never answers leaves the UI spinning forever.
+  _ws(msg, { timeout = 0 } = {}) {
+    const started = performance.now();
+    const label = msg.type.replace('shopping_list_manager/', '');
+    this.trace?.(`→ ${label}`);
+    let timer;
+    const call = this.hass.callWS(msg);
+    const guarded = timeout
+      ? Promise.race([
+          call,
+          new Promise((_, reject) => {
+            timer = setTimeout(
+              () => reject(new Error(`timed out after ${timeout / 1000}s: ${label}`)),
+              timeout
+            );
+          }),
+        ])
+      : call;
+    return guarded.then(
+      (res) => {
+        clearTimeout(timer);
+        this.trace?.(`✓ ${label} (${Math.round(performance.now() - started)}ms)`);
+        return res;
+      },
+      (err) => {
+        clearTimeout(timer);
+        this.trace?.(`✗ ${label} (${Math.round(performance.now() - started)}ms): ${err?.message || err?.code || JSON.stringify(err)}`);
+        throw err;
+      }
+    );
   }
 
   // Subscribe to events for real-time updates
@@ -25,11 +63,11 @@ export class ShoppingListAPI {
 
   // Lists
   async getLists() {
-    return await this.hass.callWS({ type: 'shopping_list_manager/lists/get_all' });
+    return await this._ws({ type: 'shopping_list_manager/lists/get_all' }, { timeout: STARTUP_TIMEOUT_MS });
   }
 
   async createList(name, icon = 'mdi:cart', isPrivate = true) {
-    return await this.hass.callWS({
+    return await this._ws({
       type: 'shopping_list_manager/lists/create',
       name,
       icon,
@@ -38,7 +76,7 @@ export class ShoppingListAPI {
   }
 
   async updateList(listId, data) {
-    return await this.hass.callWS({
+    return await this._ws({
       type: 'shopping_list_manager/lists/update',
       list_id: listId,
       ...data
@@ -46,14 +84,14 @@ export class ShoppingListAPI {
   }
 
   async deleteList(listId) {
-    return await this.hass.callWS({
+    return await this._ws({
       type: 'shopping_list_manager/lists/delete',
       list_id: listId
     });
   }
 
   async setActiveList(listId) {
-    return await this.hass.callWS({
+    return await this._ws({
       type: 'shopping_list_manager/lists/set_active',
       list_id: listId
     });
@@ -61,7 +99,7 @@ export class ShoppingListAPI {
 
   // Items
   async incrementItem(itemId, amount) {
-    return await this.hass.callWS({
+    return await this._ws({
       type: "shopping_list_manager/items/increment",
       item_id: itemId,
       amount: amount
@@ -69,14 +107,14 @@ export class ShoppingListAPI {
   }
 
   async getItems(listId) {
-    return await this.hass.callWS({
+    return await this._ws({
       type: 'shopping_list_manager/items/get',
       list_id: listId
-    });
+    }, { timeout: STARTUP_TIMEOUT_MS });
   }
 
   async addItem(listId, data) {
-    return await this.hass.callWS({
+    return await this._ws({
       type: 'shopping_list_manager/items/add',
       list_id: listId,
       ...data
@@ -84,7 +122,7 @@ export class ShoppingListAPI {
   }
 
   async updateItem(itemId, data) {
-    return await this.hass.callWS({
+    return await this._ws({
       type: 'shopping_list_manager/items/update',
       item_id: itemId,
       ...data
@@ -92,7 +130,7 @@ export class ShoppingListAPI {
   }
 
   async checkItem(itemId, checked) {
-    return await this.hass.callWS({
+    return await this._ws({
       type: 'shopping_list_manager/items/check',
       item_id: itemId,
       checked
@@ -100,14 +138,14 @@ export class ShoppingListAPI {
   }
 
   async deleteItem(itemId) {
-    return await this.hass.callWS({
+    return await this._ws({
       type: 'shopping_list_manager/items/delete',
       item_id: itemId
     });
   }
 
   async bulkCheckItems(itemIds, checked) {
-    return await this.hass.callWS({
+    return await this._ws({
       type: 'shopping_list_manager/items/bulk_check',
       item_ids: itemIds,
       checked
@@ -115,29 +153,29 @@ export class ShoppingListAPI {
   }
 
   async clearCheckedItems(listId) {
-    return await this.hass.callWS({
+    return await this._ws({
       type: 'shopping_list_manager/items/clear_checked',
       list_id: listId
     });
   }
 
   async getListTotal(listId) {
-    return await this.hass.callWS({
+    return await this._ws({
       type: 'shopping_list_manager/items/get_total',
       list_id: listId
-    });
+    }, { timeout: STARTUP_TIMEOUT_MS });
   }
 
   // Products
   async searchProductByBarcode(barcode) {
-    return await this.hass.callWS({
+    return await this._ws({
       type: 'shopping_list_manager/products/search_by_barcode',
       barcode
     });
   }
 
   async searchOpenFoodFacts(query, pageSize = 5) {
-    return await this.hass.callWS({
+    return await this._ws({
       type: 'shopping_list_manager/openfoodfacts/fetch',
       query,
       page_size: pageSize,
@@ -145,14 +183,14 @@ export class ShoppingListAPI {
   }
 
   async fetchOpenFoodFactsByBarcode(barcode) {
-    return await this.hass.callWS({
+    return await this._ws({
       type: 'shopping_list_manager/openfoodfacts/fetch',
       barcode,
     });
   }
 
   async downloadProductImage(imageUrl, productName) {
-    return await this.hass.callWS({
+    return await this._ws({
       type: 'shopping_list_manager/products/download_image',
       image_url: imageUrl,
       product_name: productName
@@ -160,7 +198,7 @@ export class ShoppingListAPI {
   }
 
   async searchProducts(query, filters = {}) {
-    return await this.hass.callWS({
+    return await this._ws({
       type: 'shopping_list_manager/products/search',
       query,
       limit: filters.limit || 20,
@@ -171,14 +209,14 @@ export class ShoppingListAPI {
   }
 
   async getProductSuggestions(limit = 20) {
-    return await this.hass.callWS({
+    return await this._ws({
       type: 'shopping_list_manager/products/suggestions',
       limit
     });
   }
 
   async getProductSubstitutes(productId, limit = 5) {
-    return await this.hass.callWS({
+    return await this._ws({
       type: 'shopping_list_manager/products/substitutes',
       product_id: productId,
       limit
@@ -186,14 +224,14 @@ export class ShoppingListAPI {
   }
 
   async addProduct(data) {
-    return await this.hass.callWS({
+    return await this._ws({
       type: 'shopping_list_manager/products/add',
       ...data
     });
   }
 
   async updateProduct(productId, data) {
-    return await this.hass.callWS({
+    return await this._ws({
       type: 'shopping_list_manager/products/update',
       product_id: productId,
       ...data
@@ -201,7 +239,7 @@ export class ShoppingListAPI {
   }
 
   async getProductsByIds(productIds) {
-    return await this.hass.callWS({
+    return await this._ws({
       type: 'shopping_list_manager/products/get_by_ids',
       product_ids: productIds
     });
@@ -209,27 +247,27 @@ export class ShoppingListAPI {
 
   // Categories
   async getCategories() {
-    return await this.hass.callWS({
+    return await this._ws({
       type: 'shopping_list_manager/categories/get_all'
-    });
+    }, { timeout: STARTUP_TIMEOUT_MS });
   }
 
   // Integration settings
   async getIntegrationSettings() {
-    return await this.hass.callWS({
+    return await this._ws({
       type: 'shopping_list_manager/get_integration_settings'
-    });
+    }, { timeout: STARTUP_TIMEOUT_MS });
   }
 
   async setCountry(country) {
-    return await this.hass.callWS({
+    return await this._ws({
       type: 'shopping_list_manager/set_country',
       country
     });
   }
 
   async createCustomRegion(code, name, currencySymbol = null, language = null) {
-    return await this.hass.callWS({
+    return await this._ws({
       type: 'shopping_list_manager/regions/create',
       code,
       name,
@@ -239,14 +277,14 @@ export class ShoppingListAPI {
   }
 
   async deleteCustomRegion(code) {
-    return await this.hass.callWS({
+    return await this._ws({
       type: 'shopping_list_manager/regions/delete',
       code
     });
   }
 
   async updateListMembers(listId, allowedUsers) {
-    return await this.hass.callWS({
+    return await this._ws({
       type: 'shopping_list_manager/lists/update_members',
       list_id: listId,
       allowed_users: allowedUsers
@@ -254,19 +292,19 @@ export class ShoppingListAPI {
   }
 
   async getHAUsers() {
-    return await this.hass.callWS({
+    return await this._ws({
       type: 'shopping_list_manager/users/get_all'
     });
   }
 
   async exportData() {
-    return await this.hass.callWS({
+    return await this._ws({
       type: 'shopping_list_manager/export_data'
     });
   }
 
   async importData(data) {
-    return await this.hass.callWS({
+    return await this._ws({
       type: 'shopping_list_manager/import_data',
       data
     });
@@ -274,20 +312,20 @@ export class ShoppingListAPI {
 
   // Loyalty cards
   async getLoyaltyCards() {
-    return await this.hass.callWS({
+    return await this._ws({
       type: 'shopping_list_manager/loyalty/get_all'
     });
   }
 
   async addLoyaltyCard(cardData) {
-    return await this.hass.callWS({
+    return await this._ws({
       type: 'shopping_list_manager/loyalty/add',
       ...cardData
     });
   }
 
   async updateLoyaltyCard(cardId, cardData) {
-    return await this.hass.callWS({
+    return await this._ws({
       type: 'shopping_list_manager/loyalty/update',
       card_id: cardId,
       ...cardData
@@ -295,14 +333,14 @@ export class ShoppingListAPI {
   }
 
   async deleteLoyaltyCard(cardId) {
-    return await this.hass.callWS({
+    return await this._ws({
       type: 'shopping_list_manager/loyalty/delete',
       card_id: cardId
     });
   }
 
   async updateLoyaltyCardMembers(cardId, allowedUsers) {
-    return await this.hass.callWS({
+    return await this._ws({
       type: 'shopping_list_manager/loyalty/update_members',
       card_id: cardId,
       allowed_users: allowedUsers

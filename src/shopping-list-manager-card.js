@@ -1,3 +1,4 @@
+import { CARD_VERSION } from 'virtual:card-version';
 import { LitElement, html, css } from 'lit';
 import { ShoppingListAPI } from './services/api.js';
 import { loadTranslations, getLanguageCode, setTranslations, t } from './services/translator.js';
@@ -35,11 +36,16 @@ class ShoppingListManagerCard extends LitElement {
     showEditDialog: { type: Boolean },
     editingItem: { type: Object },
     settings: { type: Object },
-    isEmbedded: { type: Boolean }
+    isEmbedded: { type: Boolean },
+    _loadError: { type: String, state: true }
   };
   set hass(hass) {
     const prevHass = this._hass;
     this._hass = hass;
+    if (hass && this._hassWaiter) {
+      this._hassWaiter();
+      this._hassWaiter = null;
+    }
     if (this.api) {
       this.api.hass = hass;
     }
@@ -91,6 +97,42 @@ class ShoppingListManagerCard extends LitElement {
     this._haTodoSyncTimers = {};
     this._currencySymbol = '$';
     this._integrationSettings = null;
+    this._loadError = '';
+    this._diagLines = [];
+    this._diagStart = performance.now();
+    this._hassWaiter = null;
+  }
+
+  // ── Startup diagnostics ────────────────────────────────────────────
+  // Shown on screen if loading stalls (e.g. in the HA Companion App where
+  // the browser console isn't reachable).
+  _diag(msg) {
+    const t = Math.round(performance.now() - this._diagStart);
+    this._diagLines.push(`+${t}ms ${msg}`);
+    if (this._diagLines.length > 60) this._diagLines.shift();
+    console.debug('[SLM]', msg);
+  }
+
+  _diagEnv() {
+    const h = this.hass;
+    const sock = h?.connection?.socket;
+    return [
+      `card: SLMC ${CARD_VERSION} (diag build)`,
+      `hass: ${h ? 'present' : 'MISSING'}  callWS: ${typeof h?.callWS}`,
+      `ws: ${sock ? ['connecting', 'open', 'closing', 'closed'][sock.readyState] : 'n/a'}  external-app: ${h?.auth?.external ? 'yes' : 'no'}`,
+      `ha: ${h?.config?.version || '?'}  origin: ${location.origin}`,
+      `ua: ${navigator.userAgent}`,
+    ];
+  }
+
+  _diagText() {
+    return [...this._diagEnv(), '---', ...this._diagLines].join('\n');
+  }
+
+  _retryLoad() {
+    this._loadError = '';
+    this._diag('retry requested');
+    this.loadData().then(() => this._loadIntegrationSettings());
   }
 
   connectedCallback() {
@@ -189,8 +231,29 @@ class ShoppingListManagerCard extends LitElement {
   }
 
   async firstUpdated() {
-    this.api = new ShoppingListAPI(this.hass);
+    this._diag('firstUpdated');
+    this._onWindowError = (e) => this._diag(`window error: ${e.message} (${(e.filename || '').split('/').pop()}:${e.lineno})`);
+    this._onRejection = (e) => this._diag(`unhandled rejection: ${e.reason?.message || e.reason?.code || e.reason}`);
+    window.addEventListener('error', this._onWindowError);
+    window.addEventListener('unhandledrejection', this._onRejection);
+    // Re-render once a second while loading so the diagnostics panel can appear
+    this._diagTimer = setInterval(() => {
+      if (!this.loading && !this._loadError) {
+        clearInterval(this._diagTimer);
+        this._diagTimer = null;
+        return;
+      }
+      this.requestUpdate();
+    }, 1000);
+
+    if (!this.hass) {
+      this._diag('waiting for hass…');
+      await new Promise((resolve) => { this._hassWaiter = resolve; });
+      this._diag('hass received');
+    }
+    this.api = new ShoppingListAPI(this.hass, (m) => this._diag(m));
     await Promise.all([this.loadData(), this._loadIntegrationSettings()]);
+    this._diag('startup complete');
     this.applyColorScheme();
     if (this.settings.keepScreenOn) this.acquireWakeLock();
     this._visibilityHandler = () => {
@@ -203,6 +266,9 @@ class ShoppingListManagerCard extends LitElement {
 
   disconnectedCallback() {
     super.disconnectedCallback();
+    clearInterval(this._diagTimer);
+    window.removeEventListener('error', this._onWindowError);
+    window.removeEventListener('unhandledrejection', this._onRejection);
     this.releaseWakeLock();
     document.removeEventListener('visibilitychange', this._visibilityHandler);
 
@@ -320,8 +386,11 @@ class ShoppingListManagerCard extends LitElement {
         await this.loadActiveListData();
       }
 
+      this._loadError = '';
     } catch (err) {
       console.error('Failed to load data:', err);
+      this._loadError = err?.message || err?.code || String(err);
+      this._diag(`loadData failed: ${this._loadError}`);
     } finally {
       this.loading = false;
     }
@@ -987,11 +1056,30 @@ class ShoppingListManagerCard extends LitElement {
 
   render() {
     if (this.loading) {
+      const stalled = performance.now() - this._diagStart > 6000;
       return html`
         <ha-card>
           <div class="loading">
             <div class="spinner"></div>
             <p>Loading...</p>
+            ${stalled ? html`
+              <p class="diag-hint">Taking longer than expected. Diagnostics:</p>
+              <pre class="diag">${this._diagText()}</pre>
+              <button class="diag-btn" @click=${() => this._retryLoad()}>Retry</button>
+            ` : ''}
+          </div>
+        </ha-card>
+      `;
+    }
+
+    if (this._loadError && !this.activeList) {
+      return html`
+        <ha-card>
+          <div class="loading">
+            <p><strong>Couldn't load your shopping lists.</strong></p>
+            <p class="diag-hint">${this._loadError}</p>
+            <pre class="diag">${this._diagText()}</pre>
+            <button class="diag-btn" @click=${() => this._retryLoad()}>Retry</button>
           </div>
         </ha-card>
       `;
@@ -1071,6 +1159,32 @@ class ShoppingListManagerCard extends LitElement {
       border-top-color: var(--primary-color);
       border-radius: 50%;
       animation: spin 0.8s linear infinite;
+    }
+    .diag-hint { margin: 0; font-size: 12px; color: var(--secondary-text-color); }
+    .diag {
+      margin: 0;
+      max-width: 100%;
+      max-height: 260px;
+      overflow: auto;
+      padding: 8px;
+      font-size: 10px;
+      line-height: 1.4;
+      white-space: pre-wrap;
+      word-break: break-all;
+      user-select: text;
+      -webkit-user-select: text;
+      background: var(--secondary-background-color);
+      color: var(--primary-text-color);
+      border-radius: 8px;
+    }
+    .diag-btn {
+      padding: 8px 20px;
+      border: none;
+      border-radius: 8px;
+      background: var(--primary-color);
+      color: var(--text-primary-color, #fff);
+      font-size: 14px;
+      cursor: pointer;
     }
     @keyframes spin {
       to { transform: rotate(360deg); }
