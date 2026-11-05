@@ -85,6 +85,7 @@ export const UI_STRINGS = [
   'The original look', 'Soft cards, floating menu', 'Dense list, flat tab bar',
   'Personalise', 'Behaviour', 'Connections', 'Search settings', 'No settings match',
   'In your basket', 'Estimated', 'Estimated total', 'of', 'left', 'Main',
+  'Accent', 'Meadow', 'Slate', 'Sunset', 'Periwinkle', 'Mint', 'Amber', 'Coral',
   'Colour mode', 'Light', 'Dark', 'Match device', 'Design default', 'Soft cards, summary card, floating menu', 'Dense list, checkboxes, flat tab bar', 'List options', 'Share list', 'Clear checked items', 'All', 'Categories', 'In basket', 'Undo', 'Decrease', 'Increase',
   'In-store', 'Wall panel', 'HA native', 'Big rows, tap to tick off', 'List and product picker side by side', 'Flat, uses your Home Assistant theme', 'The HA native style follows your Home Assistant theme, so dark mode and colour theme are set there.', 'The Wall panel style needs a wide card (tablet or wall display). On narrow screens it shows Fresh.', 'Add items', 'Add item',
   'Region & Catalog', 'Country-specific products and pricing',

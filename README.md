@@ -54,6 +54,7 @@ A feature-rich, multi-list shopping manager for Home Assistant Lovelace. Built a
 | **Fresh** *(default)* | Light, soft cards. Summary card with progress and estimated total, category chips, steppers on each row, a + button and a floating bottom bar. |
 | **Compact** | Dark, dense and list first. Checkbox rows, a progress line, collapsible categories and a flat tab bar with a total bar. |
 
+- Fresh has three themes (**Meadow**, **Slate**, **Sunset**); Compact has four accent colours (**Periwinkle**, **Mint**, **Amber**, **Coral**)
 - Colour mode: **Light / Dark / Match device** (Fresh starts light, Compact starts dark)
 - **Tile view** (category-grouped grid) and **List view**; **Recently Used** stays its own section under the categories
 - Tiles per row: 2 / 3 / 4 / 5 / 8 / 10 (configurable)

@@ -199,5 +199,13 @@ export default {
   "Undo": "Deshacer",
   "Decrease": "Disminuir",
   "Increase": "Aumentar",
-  "Style, colour mode, tiles, fonts": "Estilo, modo de color, mosaicos, fuentes"
+  "Style, colour mode, tiles, fonts": "Estilo, modo de color, mosaicos, fuentes",
+  "Accent": "Acento",
+  "Meadow": "Pradera",
+  "Slate": "Pizarra",
+  "Sunset": "Atardecer",
+  "Periwinkle": "Pervinca",
+  "Mint": "Menta",
+  "Amber": "Ámbar",
+  "Coral": "Coral"
 };

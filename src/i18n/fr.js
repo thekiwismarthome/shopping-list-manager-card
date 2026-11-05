@@ -199,5 +199,13 @@ export default {
   "Undo": "Annuler",
   "Decrease": "Diminuer",
   "Increase": "Augmenter",
-  "Style, colour mode, tiles, fonts": "Style, mode de couleur, tuiles, polices"
+  "Style, colour mode, tiles, fonts": "Style, mode de couleur, tuiles, polices",
+  "Accent": "Accent",
+  "Meadow": "Prairie",
+  "Slate": "Ardoise",
+  "Sunset": "Coucher de soleil",
+  "Periwinkle": "Pervenche",
+  "Mint": "Menthe",
+  "Amber": "Ambre",
+  "Coral": "Corail"
 };

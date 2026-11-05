@@ -2,6 +2,7 @@ import { pickSyncable, mergeRemote, decideSync } from './services/settings-sync.
 import { BUNDLED_TRANSLATIONS, BUILT_IN_REGION_LANGUAGE } from './i18n/index.js';
 import { LitElement, html, css } from 'lit';
 import { ShoppingListAPI } from './services/api.js';
+import { accentOverrides } from './styles/accents.js';
 import { loadTranslations, getLanguageCode, setTranslations, t } from './services/translator.js';
 import './components/slm-bottom-nav.js';
 import './components/slm-list-header.js';
@@ -420,6 +421,14 @@ class ShoppingListManagerCard extends LitElement {
     } else {
       this.setAttribute('data-ui', ui);
       this.setAttribute('data-mode', this._isDark ? 'dark' : 'light');
+    }
+
+    // Theme (A) / accent (B): override the accent tokens, or fall back to the design's palette
+    const ov = ui === 'classic' ? null : accentOverrides(ui, this.settings.accent, this._isDark);
+    const accentTokens = { '--slm-accent-primary': 'a', '--slm-accent-ink': 'i', '--slm-accent-soft': 's', '--slm-accent-text': 't', '--slm-total-bar-bg': 'a' };
+    for (const [prop, key] of Object.entries(accentTokens)) {
+      if (ov) this.style.setProperty(prop, ov[key]);
+      else this.style.removeProperty(prop);
     }
 
     // Font: each design has its own typeface unless the user picked one in Appearance > Font Family
