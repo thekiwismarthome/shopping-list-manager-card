@@ -1,3 +1,4 @@
+import { BUNDLED_TRANSLATIONS, BUILT_IN_REGION_LANGUAGE } from './i18n/index.js';
 import { LitElement, html, css } from 'lit';
 import { ShoppingListAPI } from './services/api.js';
 import { loadTranslations, getLanguageCode, setTranslations, t } from './services/translator.js';
@@ -283,17 +284,20 @@ class ShoppingListManagerCard extends LitElement {
       this._integrationSettings = result;
       this._metricUnitsOnly = result.metric_units_only !== false;
       this._enablePriceTracking = result.enable_price_tracking !== false;
-      this._applyRegionSettings(result.country, result.custom_regions || {});
+      this._applyRegionSettings(result.country, result.custom_regions || {}, result.currency_symbol);
     } catch (err) {
       console.warn('[SLM] Failed to load integration settings:', err);
     }
   }
 
-  async _applyRegionSettings(activeCountry, customRegions) {
+  async _applyRegionSettings(activeCountry, customRegions, builtInCurrencySymbol) {
     const region = customRegions[activeCountry];
     if (!region) {
-      this._currencySymbol = '$';
-      setTranslations(null);
+      // Built-in region: the integration supplies its currency symbol, and
+      // regions with a bundled UI language (e.g. ES, FR) are translated offline.
+      this._currencySymbol = builtInCurrencySymbol || '$';
+      const bundled = BUNDLED_TRANSLATIONS[BUILT_IN_REGION_LANGUAGE[activeCountry]];
+      setTranslations(bundled || null);
       return;
     }
     this._currencySymbol = region.currency_symbol || '$';
