@@ -1,5 +1,6 @@
 import { t, I18nController } from '../services/translator.js';
 import { LitElement, html, css } from 'lit';
+import { fontInherit } from '../styles/ui-styles.js';
 import './slm-item-tile.js';
 
 class SLMItemGrid extends LitElement {
@@ -268,7 +269,7 @@ class SLMItemGrid extends LitElement {
     }));
   }
 
-  static styles = css`
+  static styles = [css`
     .grid-container {
       padding: 4px;
     }
@@ -339,6 +340,7 @@ class SLMItemGrid extends LitElement {
     :host([ui-style="fresh"]) .category-name,
     :host([ui-style="compact"]) .category-name {
       flex: none;
+      color: var(--slm-text-secondary) !important;
     }
     :host([ui-style="fresh"]) .cat-count,
     :host([ui-style="compact"]) .cat-count {
@@ -363,7 +365,7 @@ class SLMItemGrid extends LitElement {
       font-size: 14px;
       opacity: 0.7;
     }
-  `;
+  `, fontInherit];
 }
 
 customElements.define('slm-item-grid', SLMItemGrid);

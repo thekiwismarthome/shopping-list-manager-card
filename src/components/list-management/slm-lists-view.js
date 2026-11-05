@@ -1,4 +1,5 @@
 import { LitElement, html, css } from 'lit';
+import { fontInherit } from '../../styles/ui-styles.js';
 import { t, I18nController } from '../../services/translator.js';
 import './slm-list-card.js';
 import { viewHeaderStyles } from '../../styles/ui-styles.js';
@@ -575,7 +576,7 @@ class SLMListsView extends LitElement {
       --mdc-icon-size: 20px;
       color: var(--secondary-text-color);
     }
-  `, viewHeaderStyles];
+  `, viewHeaderStyles, fontInherit];
 }
 
 customElements.define('slm-lists-view', SLMListsView);

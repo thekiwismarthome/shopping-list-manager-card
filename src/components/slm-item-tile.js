@@ -1,4 +1,5 @@
 import { LitElement, html, css } from 'lit';
+import { fontInherit } from '../styles/ui-styles.js';
 import { PRODUCT_ICON_MAP } from '../icons/product-icon-map.js';
 import { PRODUCT_ICONS } from '../icons/product-icons.js';
 
@@ -438,7 +439,7 @@ class SLMItemTile extends LitElement {
     `;
   }
 
-  static styles = css`
+  static styles = [css`
     :host {
       font-size: var(--slm-font-size-base, 16px);
       font-weight: var(--slm-font-weight-base, 400);
@@ -482,7 +483,7 @@ class SLMItemTile extends LitElement {
       justify-content: center;
       padding: 0;
       box-sizing: border-box;
-      color: white;
+      color: var(--slm-on-cat, white);
       border: none;
       font-size: 14px;
       font-weight: 700;
@@ -621,7 +622,7 @@ class SLMItemTile extends LitElement {
     .note-badge ha-icon { --mdc-icon-size: 17px; }
     .recipe-note { color: #9fa8da; }
     .info-note { color: #b0b0b0; }
-  `;
+  `, fontInherit];
 }
 
 customElements.define('slm-item-tile', SLMItemTile);

@@ -1,4 +1,5 @@
 import { LitElement, html, css } from 'lit';
+import { fontInherit } from '../../styles/ui-styles.js';
 import { t, I18nController } from '../../services/translator.js';
 
 class SLMListCard extends LitElement {
@@ -147,7 +148,7 @@ class SLMListCard extends LitElement {
     `;
   }
 
-  static styles = css`
+  static styles = [css`
     .list-card {
       position: relative;
       border-radius: 14px;
@@ -371,7 +372,7 @@ class SLMListCard extends LitElement {
     .menu-popup ha-icon {
       --mdc-icon-size: 20px;
     }
-  `;
+  `, fontInherit];
 }
 
 customElements.define('slm-list-card', SLMListCard);

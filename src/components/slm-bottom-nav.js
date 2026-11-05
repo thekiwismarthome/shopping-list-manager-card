@@ -1,4 +1,5 @@
 import { LitElement, html, css } from 'lit';
+import { fontInherit } from '../styles/ui-styles.js';
 import { t, I18nController } from '../services/translator.js';
 
 const TABS = [
@@ -50,7 +51,7 @@ class SLMBottomNav extends LitElement {
     `;
   }
 
-  static styles = css`
+  static styles = [css`
     .bottom-nav {
       position: sticky;
       bottom: 0;
@@ -153,7 +154,7 @@ class SLMBottomNav extends LitElement {
       border-radius: 0 0 3px 3px;
       background: var(--slm-accent-primary);
     }
-  `;
+  `, fontInherit];
 }
 
 customElements.define('slm-bottom-nav', SLMBottomNav);

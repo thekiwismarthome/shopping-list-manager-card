@@ -8,7 +8,7 @@ class FontSettings extends LitElement {
   };
 
   fonts = [
-    { name: 'System Default', value: 'system' },
+    { name: 'Design default', value: 'system' },
     { name: 'Roboto', value: 'Roboto, sans-serif' },
     { name: 'Open Sans', value: '"Open Sans", sans-serif' },
     { name: 'Lato', value: 'Lato, sans-serif' },

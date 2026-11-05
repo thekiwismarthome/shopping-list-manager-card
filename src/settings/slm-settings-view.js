@@ -1,4 +1,5 @@
 import { LitElement, html, css } from 'lit';
+import { fontInherit } from '../styles/ui-styles.js';
 import { t, I18nController } from '../services/translator.js';
 import { CARD_VERSION } from 'virtual:card-version';
 import { settingsGroupStyles } from '../styles/ui-styles.js';
@@ -88,7 +89,7 @@ class SLMSettingsView extends LitElement {
         id: 'personalise',
         title: t('Personalise'),
         rows: [
-          nav('appearance', '🎨', 'mdi:palette-outline', '--slm-cat-beverages', t('Appearance'), t('Theme, tiles, fonts')),
+          nav('appearance', '🎨', 'mdi:palette-outline', '--slm-cat-beverages', t('Appearance'), t('Style, colour mode, tiles, fonts')),
           nav('data', '🌏', 'mdi:earth', '--slm-cat-dairy', t('Region & Catalog'), t('Country-specific products and pricing')),
           nav('categories', '📦', 'mdi:shape-outline', '--slm-cat-bakery', t('Manage Categories'), `${(this.categories || []).length} ${t('categories')}`),
         ]
@@ -547,7 +548,7 @@ class SLMSettingsView extends LitElement {
       color: var(--slm-text-secondary);
       font-size: 14px;
     }
-  `, settingsGroupStyles];
+  `, settingsGroupStyles, fontInherit];
 }
 
 customElements.define('slm-settings-view', SLMSettingsView);

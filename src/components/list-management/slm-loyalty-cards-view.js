@@ -1,5 +1,6 @@
 import { t, I18nController } from '../../services/translator.js';
 import { LitElement, html, css } from 'lit';
+import { fontInherit } from '../../styles/ui-styles.js';
 import JsBarcode from 'jsbarcode';
 import { Html5Qrcode } from 'html5-qrcode';
 import qrcode from 'qrcode-generator';
@@ -1247,7 +1248,7 @@ class SLMLoyaltyCardsView extends LitElement {
       border-radius: 14px;
       box-shadow: none;
     }
-  `, viewHeaderStyles];
+  `, viewHeaderStyles, fontInherit];
 }
 
 customElements.define('slm-loyalty-cards-view', SLMLoyaltyCardsView);

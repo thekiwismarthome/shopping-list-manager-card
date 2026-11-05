@@ -1,4 +1,5 @@
 import { LitElement, html, css } from 'lit';
+import { fontInherit } from '../styles/ui-styles.js';
 import { t, I18nController } from '../services/translator.js';
 import { Html5Qrcode } from 'html5-qrcode';
 
@@ -454,6 +455,10 @@ class SLMSearchBar extends LitElement {
 
   // ── Render ────────────────────────────────────────────────────────────────────
 
+  focusInput() {
+    this.renderRoot?.querySelector('input')?.focus();
+  }
+
   render() {
     const cats = this.categories || [];
 
@@ -618,7 +623,7 @@ class SLMSearchBar extends LitElement {
     `;
   }
 
-  static styles = css`
+  static styles = [css`
     .search-container {
       padding: 8px;
       position: relative;
@@ -929,7 +934,7 @@ class SLMSearchBar extends LitElement {
       background: var(--slm-bg-elevated);
       color: var(--slm-text-primary);
     }
-  `;
+  `, fontInherit];
 }
 
 customElements.define('slm-search-bar', SLMSearchBar);

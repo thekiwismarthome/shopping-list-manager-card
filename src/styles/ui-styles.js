@@ -197,6 +197,18 @@ export const viewHeaderStyles = css`
     padding: 14px 0 0;
     margin-bottom: 16px;
   }
+  :host([ui-style="fresh"]) .header h2,
+  :host([ui-style="compact"]) .header h2 {
+    color: var(--slm-text-primary);
+  }
+  :host([ui-style="fresh"]) .create-btn,
+  :host([ui-style="fresh"]) .primary-btn,
+  :host([ui-style="compact"]) .create-btn,
+  :host([ui-style="compact"]) .primary-btn,
+  :host([ui-style="fresh"]) .add-btn,
+  :host([ui-style="compact"]) .add-btn {
+    color: var(--slm-accent-ink, #fff);
+  }
   :host([ui-style="fresh"]) .header h2 {
     font-size: 30px;
     font-weight: 800;
@@ -244,7 +256,9 @@ export const viewHeaderStyles = css`
   }
 `;
 
-/** Helper: the interface style to use ('classic' | 'fresh' | 'compact'). */
-export function normaliseUiStyle(value) {
-  return value === 'fresh' || value === 'compact' ? value : 'classic';
-}
+/** Buttons and inputs do not inherit the font by default; this makes them follow the card font. */
+export const fontInherit = css`
+  button, input, select, textarea {
+    font-family: inherit;
+  }
+`;

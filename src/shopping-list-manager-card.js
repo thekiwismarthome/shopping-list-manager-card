@@ -5,6 +5,7 @@ import { ShoppingListAPI } from './services/api.js';
 import { loadTranslations, getLanguageCode, setTranslations, t } from './services/translator.js';
 import './components/slm-bottom-nav.js';
 import './components/slm-list-header.js';
+import './components/slm-options-sheet.js';
 import './components/slm-search-bar.js';
 import './components/slm-item-grid.js';
 import './components/slm-item-list.js';
@@ -13,6 +14,29 @@ import './components/slm-edit-item-dialog.js';
 import './components/list-management/slm-lists-view.js';
 import './components/list-management/slm-loyalty-cards-view.js';
 import './settings/slm-settings-view.js';
+
+// Each design has its own typeface. The font files are loaded from Google Fonts on demand;
+// until they arrive (or if the browser is offline) the system font is used.
+const DESIGN_FONTS = {
+  fresh: {
+    stack: "'Plus Jakarta Sans', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif",
+    url: 'https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap',
+  },
+  compact: {
+    stack: "'DM Sans', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif",
+    url: 'https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&display=swap',
+  },
+};
+function ensureFontLoaded(url) {
+  try {
+    if (document.querySelector(`link[data-slm-font="${url}"]`)) return;
+    const link = document.createElement('link');
+    link.rel = 'stylesheet';
+    link.href = url;
+    link.setAttribute('data-slm-font', url);
+    document.head.appendChild(link);
+  } catch { /* no document (tests) */ }
+}
 
 // Tracks how many instances with each config-hash are currently connected.
 // Resets on full page reload, so DOM-order assignments are stable across refreshes.
@@ -39,12 +63,16 @@ class ShoppingListManagerCard extends LitElement {
     settings: { type: Object },
     isEmbedded: { type: Boolean },
     _loadError: { type: String, state: true },
-    _wide: { type: Boolean, state: true },
-    _instoreSearch: { type: Boolean, state: true }
+    _searchOpen: { type: Boolean, state: true },
+    _optionsOpen: { type: Boolean, state: true },
+    _catFilter: { type: String, state: true }
   };
   set hass(hass) {
     const prevHass = this._hass;
     this._hass = hass;
+    if (this.settings?.darkMode === 'device' && prevHass?.themes?.darkMode !== hass?.themes?.darkMode) {
+      this.applyColorScheme();
+    }
     if (hass && this._hassWaiter) {
       this._hassWaiter();
       this._hassWaiter = null;
@@ -102,8 +130,9 @@ class ShoppingListManagerCard extends LitElement {
     this._integrationSettings = null;
     this._loadError = '';
     this._hassWaiter = null;
-    this._wide = false;
-    this._instoreSearch = false;
+    this._searchOpen = false;
+    this._optionsOpen = false;
+    this._catFilter = 'all';
   }
 
   _retryLoad() {
@@ -113,7 +142,6 @@ class ShoppingListManagerCard extends LitElement {
 
   connectedCallback() {
     super.connectedCallback();
-    this._observeSize();
     if (!this._assignedCardId && this._baseCardId) {
       // First connection: assign a position-based ID among cards with the same config hash
       const count = _slmInstanceCounters.get(this._baseCardId) ?? 0;
@@ -158,9 +186,8 @@ class ShoppingListManagerCard extends LitElement {
 
   loadSettings() {
     const defaults = {
-      theme: 'auto',
-      uiStyle: 'classic',   // 'classic' | 'fresh' | 'compact'
-      darkMode: 'system',
+      uiStyle: 'fresh',     // 'fresh' (A) | 'compact' (B)
+      darkMode: 'style',    // 'style' (A light, B dark) | 'on' | 'off' | 'device'
       fontSize: 16,
       fontFamily: 'system',
       useSystemTextSize: true,
@@ -174,7 +201,7 @@ class ShoppingListManagerCard extends LitElement {
       tilesPerRow: this.isEmbedded ? 8 : 3,
       useEmojis: true,
       colorScheme: 'pastel',
-      viewMode: 'tile',
+      viewMode: 'list',
       sortMode: 'category',
       showRecentlyUsed: true,
       showPriceOnTile: true,
@@ -318,8 +345,6 @@ class ShoppingListManagerCard extends LitElement {
     clearTimeout(this._settingsPushTimer);
     this.releaseWakeLock();
     document.removeEventListener('visibilitychange', this._visibilityHandler);
-    this._ro?.disconnect();
-    this._ro = null;
 
     for (const t of Object.values(this._haTodoSyncTimers)) clearTimeout(t);
     this._haTodoSyncTimers = {};
@@ -349,99 +374,64 @@ class ShoppingListManagerCard extends LitElement {
   // Interface style in use. The embedded view (inside Recipe Manager Card) always
   // keeps the classic layout because it has no header or bottom-nav space to restyle.
   //
-  // Styles: classic | fresh | compact | instore | panel | native
-  //   panel   = list + product picker side by side; needs a wide card, otherwise it shows Fresh
-  //   instore = big tick-off rows in aisle order, for use while shopping
-  //   native  = flat, uses the Home Assistant theme colours only
+  // Two designs: 'fresh' (A: light, card based) and 'compact' (B: dark, dense list).
+  // Embedded in Recipe Manager Card keeps the plain classic layout.
   get _ui() {
     if (this.isEmbedded) return 'classic';
-    const s = this.settings?.uiStyle;
-    if (!['fresh', 'compact', 'instore', 'panel', 'native'].includes(s)) return 'classic';
-    if (s === 'panel' && !this._wide) return 'fresh';
-    return s;
+    return this.settings?.uiStyle === 'compact' ? 'compact' : 'fresh';
   }
 
-  // The style the user picked (before any wide/narrow fallback)
-  get _styleId() {
-    const s = this.settings?.uiStyle;
-    return ['fresh', 'compact', 'instore', 'panel', 'native'].includes(s) ? s : 'classic';
-  }
-
-  // Style "family" for shared chrome (settings pages, lists, loyalty, search): classic | fresh | compact
-  get _fam() {
-    return { fresh: 'fresh', panel: 'fresh', compact: 'compact', instore: 'compact', native: 'compact' }[this._ui] || 'classic';
-  }
-
-  // Style for the header and bottom nav (the wall panel uses the flat tab bar)
-  get _hs() {
-    return this._ui === 'panel' ? 'compact' : this._fam;
-  }
-
-  // Same settings object every render unless this.settings changes, so child components
-  // don't treat a fresh copy as a settings change (which would reload recent items).
-  _derivedSettings(key, overrides) {
-    this._dcache = this._dcache || {};
-    const hit = this._dcache[key];
-    if (hit && hit.base === this.settings) return hit.val;
-    const val = { ...this.settings, ...overrides };
-    this._dcache[key] = { base: this.settings, val };
-    return val;
-  }
-
-  _syncUiAttrs() {
-    const ui = this._ui, fam = this._fam;
-    if (ui === 'classic') {
-      if (this.hasAttribute('data-ui')) this.removeAttribute('data-ui');
-      if (this.hasAttribute('data-fam')) this.removeAttribute('data-fam');
-      return;
+  // Is the dark palette in use? 'on' / 'off' are explicit, 'device' follows Home Assistant
+  // (or the OS), anything else uses the design's own default: A is light, B is dark.
+  get _isDark() {
+    const m = this.settings?.darkMode;
+    if (m === 'on') return true;
+    if (m === 'off') return false;
+    if (m === 'device') {
+      const ha = this._hass?.themes?.darkMode;
+      if (typeof ha === 'boolean') return ha;
+      return typeof matchMedia === 'function' && matchMedia('(prefers-color-scheme: dark)').matches;
     }
-    if (this.getAttribute('data-ui') !== ui) this.setAttribute('data-ui', ui);
-    if (this.getAttribute('data-fam') !== fam) this.setAttribute('data-fam', fam);
+    return this._ui === 'compact';
   }
 
   willUpdate() {
-    // Keep the interface-style attributes in sync (e.g. if isEmbedded or the card width changes)
-    this._syncUiAttrs();
-  }
-
-  _observeSize() {
-    if (this._ro || typeof ResizeObserver === 'undefined') return;
-    this._ro = new ResizeObserver(entries => {
-      const wide = (entries[0]?.contentRect?.width || 0) >= 720;
-      if (wide !== this._wide) {
-        this._wide = wide;
-        this.applyColorScheme();
-      }
-    });
-    this._ro.observe(this);
+    // Keep the design attributes in sync (e.g. if isEmbedded changes after settings load)
+    const ui = this._ui;
+    if (ui === 'classic') {
+      if (this.hasAttribute('data-ui')) this.removeAttribute('data-ui');
+      if (this.hasAttribute('data-mode')) this.removeAttribute('data-mode');
+      return;
+    }
+    if (this.getAttribute('data-ui') !== ui) this.setAttribute('data-ui', ui);
+    const mode = this._isDark ? 'dark' : 'light';
+    if (this.getAttribute('data-mode') !== mode) this.setAttribute('data-mode', mode);
   }
 
   applyColorScheme() {
-    const mode = this.settings.darkMode;
+    const ui = this._ui;
+    // The old colour themes were removed; make sure no stale attributes linger
+    this.removeAttribute('data-theme');
+    this.removeAttribute('data-theme-name');
 
-    // Interface style hooks for the card-level CSS below
-    this._syncUiAttrs();
-
-    if (this._ui === 'native') {
-      // Native style: follow the Home Assistant theme only (no pastel/dark overrides)
-      this.removeAttribute('data-theme');
-      this.removeAttribute('data-theme-name');
+    if (ui === 'classic') {
+      this.removeAttribute('data-ui');
+      this.removeAttribute('data-mode');
     } else {
-      if (mode === 'on') {
-        this.setAttribute('data-theme', 'dark');
-      } else if (mode === 'off') {
-        this.setAttribute('data-theme', 'light');
-      } else {
-        this.removeAttribute('data-theme');
-      }
+      this.setAttribute('data-ui', ui);
+      this.setAttribute('data-mode', this._isDark ? 'dark' : 'light');
+    }
 
-      // Apply named theme (layered on top of dark/light)
-      const themeName = this.settings.theme;
-      if (themeName && themeName !== 'soft') {
-        this.setAttribute('data-theme-name', themeName);
-      } else {
-        this.removeAttribute('data-theme-name');
-      }
+    // Font: each design has its own typeface unless the user picked one in Appearance > Font Family
+    const chosen = this.settings.fontFamily;
+    const design = DESIGN_FONTS[ui];
+    if (chosen && chosen !== 'system') {
+      this.style.setProperty('--slm-font', chosen);
+    } else if (design) {
+      ensureFontLoaded(design.url);
+      this.style.setProperty('--slm-font', design.stack);
+    } else {
+      this.style.removeProperty('--slm-font');
     }
 
     // Apply font size as a CSS custom property (cascades through shadow DOM)
@@ -1079,7 +1069,13 @@ class ShoppingListManagerCard extends LitElement {
     }
   }
 
-  // Basket summary shown above the list in the Fresh / Compact styles.
+  // Items shown in the list / grid after the category chip filter (design A)
+  get _visibleItems() {
+    if (this._ui !== 'fresh' || this._catFilter === 'all') return this.items;
+    return this.items.filter(i => i.category_id === this._catFilter);
+  }
+
+  // Basket summary shown above the list: a summary card in A, a thin progress line in B.
   renderSummary() {
     const ui = this._ui;
     if (ui === 'classic') return '';
@@ -1093,24 +1089,6 @@ class ShoppingListManagerCard extends LitElement {
       </div>
     `;
     if (ui === 'compact') return bar;
-    if (ui === 'native') return '';
-    if (ui === 'instore') {
-      // Big "n left" counter + progress, and a button that reveals the search box
-      return html`
-        <div class="instore-bar">
-          <div class="in-count"><b>${total - done}</b> <span>${t('left')}</span></div>
-          ${bar}
-          <button
-            class="in-add"
-            aria-label=${t('Add item')}
-            aria-expanded=${this._instoreSearch ? 'true' : 'false'}
-            @click=${() => { this._instoreSearch = !this._instoreSearch; }}
-          >
-            <ha-icon icon=${this._instoreSearch ? 'mdi:close' : 'mdi:plus'}></ha-icon>
-          </button>
-        </div>
-      `;
-    }
     return html`
       <div class="hero">
         <div class="hero-row">
@@ -1128,30 +1106,49 @@ class ShoppingListManagerCard extends LitElement {
     `;
   }
 
-  // The list view, shared by the normal, in-store and wall-panel layouts.
-  renderItemList(settings) {
+  // Category filter chips under the summary card (design A)
+  renderChips() {
+    if (this._ui !== 'fresh') return '';
+    const present = (this.categories || []).filter(c => this.items.some(i => i.category_id === c.id));
+    if (this._catFilter !== 'all' && !present.some(c => c.id === this._catFilter)) this._catFilter = 'all';
+    if (present.length < 2) return '';
     return html`
-      <slm-item-list
-        .items=${this.items}
-        .categories=${this.categories}
-        .settings=${settings}
-        .api=${this.api}
-        .currencySymbol=${this._currencySymbol}
-        .uiStyle=${this._fam}
-        ?instore=${this._ui === 'instore'}
-        @add-item=${this.handleAddItem}
-        @item-click=${this.handleItemClick}
-        @item-decrease=${this.handleItemDecrease}
-        @item-check=${this.handleItemCheck}
-        @item-long-press=${this.handleItemLongPress}
-        @item-swipe-delete=${this.handleItemSwipeDelete}
-      ></slm-item-list>
+      <div class="chips" role="group" aria-label=${t('Categories')}>
+        <button class="chip ${this._catFilter === 'all' ? 'on' : ''}"
+                @click=${() => { this._catFilter = 'all'; }}>${t('All')} · ${this.items.length}</button>
+        ${present.map(c => html`
+          <button class="chip ${this._catFilter === c.id ? 'on' : ''}"
+                  @click=${() => { this._catFilter = c.id; }}>${c.name}</button>
+        `)}
+      </div>
     `;
+  }
+
+  // Search / add-item box. Design A hides it until the search or + button is pressed.
+  async _toggleSearch() {
+    if (this._ui === 'fresh') this._searchOpen = !this._searchOpen;
+    await this.updateComplete;
+    if (this._ui === 'compact' || this._searchOpen) {
+      this.shadowRoot.querySelector('slm-search-bar')?.focusInput?.();
+    }
+  }
+
+  async _clearChecked() {
+    if (!this.activeList) return;
+    this._optionsOpen = false;
+    try {
+      await this.api.clearCheckedItems(this.activeList.id);
+      this.items = this.items.filter(i => !i.checked);
+      this._refreshTotal();
+    } catch (err) {
+      console.error('[SLM] Clear checked failed:', err);
+    }
   }
 
   renderCurrentView() {
     switch (this.currentView) {
       case 'shopping': {
+        const ui = this._ui;
         const header = html`
           <slm-list-header
             .activeList=${this.activeList}
@@ -1159,10 +1156,12 @@ class ShoppingListManagerCard extends LitElement {
             .settings=${this.settings}
             .currencySymbol=${this._currencySymbol}
             .totalAmount=${this.total.total}
-            .uiStyle=${this._hs}
+            .uiStyle=${ui}
             ?compact=${this.isEmbedded}
             @back=${this.handleBackToLists}
             @share=${this.handleShareList}
+            @search-toggle=${this._toggleSearch}
+            @open-options=${() => { this._optionsOpen = true; }}
             @menu-setting-change=${this.handleMenuSettingChange}
           ></slm-list-header>
         `;
@@ -1173,39 +1172,12 @@ class ShoppingListManagerCard extends LitElement {
             .categories=${this.categories}
             .activeListId=${this.activeList?.id}
             .currencySymbol=${this._currencySymbol}
-            .uiStyle=${this._fam}
+            .uiStyle=${ui}
             @add-item=${this.handleAddItem}
             @create-and-add-product=${this.handleCreateAndAddProduct}
           ></slm-search-bar>
         `;
-        const ui = this._ui;
-
-        // Wall panel (wide cards): the list on the left, a product picker on the right
-        if (ui === 'panel') {
-          return html`
-            ${header}
-            <div class="panel-body">
-              <div class="panel-pane panel-list">
-                ${this.renderSummary()}
-                ${this.renderItemList(this._derivedSettings('list', { viewMode: 'list' }))}
-              </div>
-              <div class="panel-pane panel-picker">
-                <div class="panel-title">${t('Add items')}</div>
-                ${searchBar}
-                <slm-item-grid
-                  .items=${this.items}
-                  .categories=${this.categories}
-                  .settings=${this._derivedSettings('picker', { showRecentlyUsed: true, recentProductsCount: 24, tilesPerRow: 4 })}
-                  .api=${this.api}
-                  .uiStyle=${this._fam}
-                  .pickerOnly=${true}
-                  @add-item=${this.handleAddItem}
-                ></slm-item-grid>
-              </div>
-            </div>
-          `;
-        }
-
+        const showSearch = this.isEmbedded || ui === 'compact' || this._searchOpen;
         // When embedded (e.g. in Recipe Manager Card) the host already shows a
         // heading, so drop our own header row and put Share + menu beside search.
         return html`
@@ -1213,22 +1185,34 @@ class ShoppingListManagerCard extends LitElement {
 
           <div class="content-area">
             ${this.renderSummary()}
+            ${this.renderChips()}
 
             ${this.isEmbedded
               ? html`<div class="embedded-toolbar">${searchBar}${header}</div>`
-              : ui === 'instore'
-                ? (this._instoreSearch ? searchBar : '')
-                : searchBar}
+              : showSearch ? searchBar : ''}
 
-            ${ui === 'instore'
-              ? this.renderItemList(this._derivedSettings('instore', { viewMode: 'list', sortMode: 'category', showRecentlyUsed: false }))
-              : this.settings.viewMode === 'list' ? this.renderItemList(this.settings) : html`
-              <slm-item-grid
-                .items=${this.items}
+            ${this.settings.viewMode === 'list' ? html`
+              <slm-item-list
+                .items=${this._visibleItems}
                 .categories=${this.categories}
                 .settings=${this.settings}
                 .api=${this.api}
-                .uiStyle=${this._fam}
+                .currencySymbol=${this._currencySymbol}
+                .uiStyle=${ui}
+                @add-item=${this.handleAddItem}
+                @item-click=${this.handleItemClick}
+                @item-decrease=${this.handleItemDecrease}
+                @item-check=${this.handleItemCheck}
+                @item-long-press=${this.handleItemLongPress}
+                @item-swipe-delete=${this.handleItemSwipeDelete}
+              ></slm-item-list>
+            ` : html`
+              <slm-item-grid
+                .items=${this._visibleItems}
+                .categories=${this.categories}
+                .settings=${this.settings}
+                .api=${this.api}
+                .uiStyle=${ui}
                 @add-item=${this.handleAddItem}
                 @item-click=${this.handleItemClick}
                 @item-decrease=${this.handleItemDecrease}
@@ -1259,7 +1243,7 @@ class ShoppingListManagerCard extends LitElement {
             .total=${this.total}
             .currentUserId=${this._hass?.user?.id || ''}
             .isAdmin=${this._hass?.user?.is_admin || false}
-            .uiStyle=${this._fam}
+            .uiStyle=${this._ui}
             @list-selected=${this.handleListChange}
             @lists-updated=${() => this.loadData()}
           ></slm-lists-view>
@@ -1272,7 +1256,7 @@ class ShoppingListManagerCard extends LitElement {
               .api=${this.api}
               .userId=${this._hass?.user?.id || null}
               .isAdmin=${this._hass?.user?.is_admin || false}
-              .uiStyle=${this._fam}
+              .uiStyle=${this._ui}
             ></slm-loyalty-cards-view>
           </div>
         `;
@@ -1287,7 +1271,7 @@ class ShoppingListManagerCard extends LitElement {
               .lists=${this.lists}
               .isEmbedded=${this.isEmbedded}
               .categories=${this.categories}
-              .uiStyle=${this._fam}
+              .uiStyle=${this._ui}
               @settings-changed=${this.handleSettingsChange}
               @lists-updated=${async () => { await this.loadData(); await this._loadIntegrationSettings(); }}
               @region-changed=${() => this._loadIntegrationSettings()}
@@ -1330,11 +1314,30 @@ class ShoppingListManagerCard extends LitElement {
           ${this.renderCurrentView()}
         </div>
 
+        ${this._ui === 'fresh' && this.currentView === 'shopping' ? html`
+          <button class="fab" aria-label=${t('Add item')} @click=${this._toggleSearch}>
+            <ha-icon icon=${this._searchOpen ? 'mdi:close' : 'mdi:plus'}></ha-icon>
+          </button>
+        ` : ''}
+
         <slm-bottom-nav
           .currentView=${this.currentView}
-          .uiStyle=${this._hs}
+          .uiStyle=${this._ui}
           @nav-changed=${this.handleNavChange}
         ></slm-bottom-nav>
+
+        ${this._optionsOpen && this._ui === 'fresh' ? html`
+          <slm-options-sheet
+            .settings=${this.settings}
+            .hasChecked=${this.items.some(i => i.checked)}
+            .wakeLockSupported=${'wakeLock' in navigator}
+            @close=${() => { this._optionsOpen = false; }}
+            @menu-setting-change=${this.handleMenuSettingChange}
+            @settings-changed=${this.handleSettingsChange}
+            @share=${() => { this._optionsOpen = false; this.handleShareList(); }}
+            @clear-checked=${this._clearChecked}
+          ></slm-options-sheet>
+        ` : ''}
 
         ${this.showEditDialog ? html`
           <slm-edit-item-dialog
@@ -1454,34 +1457,52 @@ class ShoppingListManagerCard extends LitElement {
     }
 
     /* ===============================
-      INTERFACE STYLES (Appearance > Interface style)
-      Classic is the original look and needs no overrides.
+      DESIGNS A (fresh) AND B (compact)
+      The old colour themes were removed; each design has its own palette (see below).
     ================================ */
+    ha-card {
+      font-family: var(--slm-font, inherit);
+    }
     .hero,
-    .progress {
+    .progress,
+    .chips,
+    .fab {
       display: none;
     }
-    :host([data-fam="fresh"]) ha-card,
-    :host([data-fam="compact"]) ha-card {
+    :host([data-ui="fresh"]) ha-card,
+    :host([data-ui="compact"]) ha-card {
       background: var(--slm-bg-main);
+      color: var(--slm-text-primary);
+    }
+    .progress {
+      height: 8px;
+      border-radius: 99px;
+      overflow: hidden;
+      background: var(--slm-border-subtle);
+    }
+    .progress i {
+      display: block;
+      height: 100%;
+      border-radius: 99px;
+      background: var(--slm-accent-primary);
+      transition: width 0.35s;
     }
 
-    /* ----- Fresh: summary card + floating nav ----- */
-    :host([data-fam="fresh"]) .content-area {
-      padding-bottom: 120px;
+    /* ----- A: summary card, category chips, + button, floating nav ----- */
+    :host([data-ui="fresh"]) .content-area {
+      padding-bottom: 130px;
     }
-    :host([data-fam="fresh"]) .total-bar {
+    :host([data-ui="fresh"]) .total-bar {
       display: none;
     }
-    :host([data-fam="fresh"]) .hero {
+    :host([data-ui="fresh"]) .hero {
       display: grid;
       gap: 12px;
-      margin: 12px 16px 0;
+      margin: 16px 20px 0;
       padding: 18px 20px;
       border-radius: 24px;
-      background: var(--slm-total-bar-bg, var(--slm-accent-primary));
-      color: white;
-      box-shadow: var(--slm-shadow-soft);
+      background: var(--slm-accent-primary);
+      color: var(--slm-accent-ink);
     }
     .hero-row {
       display: flex;
@@ -1515,37 +1536,76 @@ class ShoppingListManagerCard extends LitElement {
       font-weight: 800;
       font-variant-numeric: tabular-nums;
     }
-    .hero .progress {
+    :host([data-ui="fresh"]) .hero .progress {
       display: block;
-      background: rgba(255,255,255,0.28);
+      background: color-mix(in srgb, var(--slm-accent-ink) 28%, transparent);
     }
-    .hero .progress i {
-      background: #fff;
+    :host([data-ui="fresh"]) .hero .progress i {
+      background: var(--slm-accent-ink);
     }
-    .progress {
-      height: 8px;
-      border-radius: 99px;
-      overflow: hidden;
-      background: var(--slm-border-subtle);
+    :host([data-ui="fresh"]) .chips {
+      display: flex;
+      gap: 8px;
+      padding: 16px 20px 0;
+      overflow-x: auto;
+      scrollbar-width: none;
     }
-    .progress i {
-      display: block;
-      height: 100%;
-      border-radius: 99px;
-      background: var(--slm-accent-primary);
-      transition: width 0.35s;
+    .chip {
+      flex: none;
+      min-height: 40px;
+      padding: 0 16px;
+      border-radius: 999px;
+      border: 1px solid var(--slm-border-subtle);
+      background: var(--slm-bg-surface);
+      color: var(--slm-text-primary);
+      font: inherit;
+      font-size: 14px;
+      font-weight: 600;
+      white-space: nowrap;
+      cursor: pointer;
+    }
+    .chip.on {
+      background: var(--slm-text-primary);
+      border-color: var(--slm-text-primary);
+      color: var(--slm-bg-main);
+      font-weight: 700;
+    }
+    :host([data-ui="fresh"]) .fab {
+      position: absolute;
+      right: 24px;
+      bottom: 104px;
+      z-index: 120;
+      width: 56px;
+      height: 56px;
+      padding: 0;
+      border: none;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: var(--slm-text-primary);
+      color: var(--slm-bg-main);
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.28);
+      cursor: pointer;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .fab ha-icon {
+      --mdc-icon-size: 26px;
+      color: inherit;
+      --icon-primary-color: currentColor;
     }
 
-    /* ----- Compact: thin progress line + flat total bar ----- */
-    :host([data-fam="compact"]) .progress {
+    /* ----- B: thin progress line + flat total bar ----- */
+    :host([data-ui="compact"]) .progress {
       display: block;
       height: 4px;
-      margin: 8px 16px 0;
+      margin: 14px 20px 0;
+      background: var(--slm-bg-elevated);
     }
-    :host([data-fam="compact"]) .content-area {
+    :host([data-ui="compact"]) .content-area {
       padding-bottom: 8px;
     }
-    :host([data-fam="compact"]) .total-bar {
+    :host([data-ui="compact"]) .total-bar {
       position: static;
       margin: 0;
       padding: 12px 20px;
@@ -1556,125 +1616,20 @@ class ShoppingListManagerCard extends LitElement {
       box-shadow: none;
       gap: 12px;
     }
-    :host([data-fam="compact"]) .total-label {
+    :host([data-ui="compact"]) .total-label {
       display: block;
       flex: 1;
       font-size: 13px;
       color: var(--slm-text-secondary);
     }
-    :host([data-fam="compact"]) .total-amount {
+    :host([data-ui="compact"]) .total-amount {
       font-size: 20px;
       font-weight: 700;
       font-variant-numeric: tabular-nums;
     }
-    :host([data-fam="compact"]) .total-count {
+    :host([data-ui="compact"]) .total-count {
       color: var(--slm-text-secondary);
       opacity: 1;
-    }
-
-    /* ----- Native: flat, Home Assistant colours only ----- */
-    :host([data-ui="native"]) .progress {
-      display: none;
-    }
-    :host([data-ui="native"]) ha-card {
-      background: var(--slm-bg-surface);
-    }
-
-    /* ----- In-store: big counter bar, tick-off rows ----- */
-    .instore-bar {
-      display: none;
-    }
-    :host([data-ui="instore"]) .instore-bar {
-      display: flex;
-      align-items: center;
-      gap: 14px;
-      margin: 8px 16px 4px;
-      padding: 10px 12px 10px 18px;
-      border-radius: 20px;
-      background: var(--slm-bg-surface);
-      border: 1px solid var(--slm-border-subtle);
-    }
-    .in-count {
-      display: flex;
-      align-items: baseline;
-      gap: 6px;
-      color: var(--slm-text-secondary);
-      font-size: 14px;
-      font-weight: 600;
-    }
-    .in-count b {
-      font-size: 34px;
-      line-height: 1;
-      font-weight: 800;
-      color: var(--slm-text-primary);
-      font-variant-numeric: tabular-nums;
-    }
-    .instore-bar .progress {
-      display: block;
-      flex: 1;
-      height: 10px;
-      margin: 0;
-    }
-    .in-add {
-      width: 52px;
-      height: 52px;
-      border-radius: 50%;
-      border: none;
-      background: var(--slm-accent-primary);
-      color: white;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      flex-shrink: 0;
-      -webkit-tap-highlight-color: transparent;
-    }
-    .in-add ha-icon {
-      --mdc-icon-size: 28px;
-      color: white;
-      --icon-primary-color: white;
-    }
-
-    /* ----- Wall panel: list on the left, product picker on the right ----- */
-    .panel-body {
-      display: none;
-    }
-    :host([data-ui="panel"]) .panel-body {
-      flex: 1;
-      min-height: 0;
-      display: flex;
-      gap: 16px;
-      padding: 4px 16px 8px;
-    }
-    :host([data-ui="panel"]) .panel-pane {
-      min-width: 0;
-      overflow-y: auto;
-      overflow-x: hidden;
-      -webkit-overflow-scrolling: touch;
-    }
-    :host([data-ui="panel"]) .panel-list {
-      flex: 0 0 42%;
-    }
-    :host([data-ui="panel"]) .panel-list .hero {
-      margin: 4px 16px 0;
-    }
-    :host([data-ui="panel"]) .panel-picker {
-      flex: 1;
-      background: var(--slm-bg-surface);
-      border: 1px solid var(--slm-border-subtle);
-      border-radius: 22px;
-      padding: 4px 0 8px;
-    }
-    .panel-title {
-      padding: 14px 16px 0;
-      font-size: 12px;
-      font-weight: 700;
-      letter-spacing: 0.06em;
-      text-transform: uppercase;
-      color: var(--slm-text-secondary);
-    }
-    :host([data-ui="panel"]) .total-bar {
-      display: none;
     }
 
     /* ===============================
@@ -1727,444 +1682,182 @@ class ShoppingListManagerCard extends LitElement {
     }
 
     /* ===============================
-      LIGHT – Soft Pastel Modern
+      PALETTES
     ================================ */
-    :host([data-theme="light"]) {
-      --slm-bg-main: #fafbfc;
-      --slm-bg-surface: #ffffff;
-      --slm-bg-elevated: #ffffff;
-
-      --slm-text-primary: #424242;
-      --slm-text-secondary: #757575;
-      --slm-text-muted: #9e9e9e;
-
-      --slm-border-subtle: #e8eaf6;
-
-      --slm-accent-primary: #9fa8da;
-      --slm-accent-secondary: #a5d6a7;
-      --slm-accent-warning: #ffcc80;
-      --slm-accent-danger: #ef9a9a;
-
-      --slm-tile-bg: #ffffff;
+    :host([data-ui="fresh"][data-mode="light"]) {
+      --slm-bg-main: #F3F6F4;
+      --slm-bg-surface: #FFFFFF;
+      --slm-bg-elevated: #E8EEEA;
+      --slm-text-primary: #12201B;
+      --slm-text-secondary: #5A6B64;
+      --slm-text-muted: #5A6B64;
+      --slm-border-subtle: #E3EAE6;
+      --slm-line-soft: #EEF2EF;
+      --slm-accent-primary: #0F7B5A;
+      --slm-accent-secondary: #2A5DA8;
+      --slm-accent-warning: #9A5A0B;
+      --slm-accent-danger: #A32B2B;
+      --slm-accent-ink: #FFFFFF;
+      --slm-accent-soft: #DDF1E8;
+      --slm-accent-text: #0B6048;
+      --slm-on-cat: #FFFFFF;
+      --slm-tile-bg: #FFFFFF;
       --slm-tile-checked-opacity: 0.4;
-
-      --slm-shadow-soft: 0 2px 6px rgba(0,0,0,0.08);
-      --slm-shadow-medium: 0 4px 12px rgba(0,0,0,0.15);
-
-      --slm-list-gradient-0: linear-gradient(135deg, #7986cb, #9fa8da);
-      --slm-list-gradient-1: linear-gradient(135deg, #81c784, #a5d6a7);
-      --slm-list-gradient-2: linear-gradient(135deg, #ffb74d, #ffcc80);
-      --slm-list-gradient-3: linear-gradient(135deg, #ba68c8, #ce93d8);
-      --slm-list-gradient-4: linear-gradient(135deg, #4dd0e1, #80deea);
-      --slm-list-gradient-5: linear-gradient(135deg, #f06292, #f48fb1);
-      --slm-total-bar-bg: linear-gradient(90deg, #9fa8da 0%, #c5cae9 100%);
-
-      --slm-cat-produce: #66bb6a;
-      --slm-cat-dairy: #4fc3f7;
-      --slm-cat-meat: #e57373;
-      --slm-cat-bakery: #ffb74d;
-      --slm-cat-pantry: #ff8a65;
-      --slm-cat-frozen: #4dd0e1;
-      --slm-cat-beverages: #9575cd;
-      --slm-cat-snacks: #dce775;
-      --slm-cat-household: #4db6ac;
-      --slm-cat-health: #81c784;
-      --slm-cat-pet: #a1887f;
-      --slm-cat-baby: #f06292;
-      --slm-cat-other: #90a4ae;
-      --slm-cat-recent: #9e9e9e;
+      --slm-shadow-soft: 0 1px 3px rgba(18,32,27,0.10);
+      --slm-shadow-medium: 0 10px 30px rgba(18,32,27,0.14);
+      --slm-list-gradient-0: linear-gradient(135deg, #0F7B5A, #3FA583);
+      --slm-list-gradient-1: linear-gradient(135deg, #2A5DA8, #5B8BD0);
+      --slm-list-gradient-2: linear-gradient(135deg, #9A5A0B, #D08A2E);
+      --slm-list-gradient-3: linear-gradient(135deg, #6A3FA8, #9B73D4);
+      --slm-list-gradient-4: linear-gradient(135deg, #0E6B7A, #3FA3B3);
+      --slm-list-gradient-5: linear-gradient(135deg, #A32B2B, #D35F5F);
+      --slm-total-bar-bg: #0F7B5A;
+      --slm-cat-produce: #0F7B5A;
+      --slm-cat-dairy: #2A5DA8;
+      --slm-cat-meat: #A32B2B;
+      --slm-cat-bakery: #9A5A0B;
+      --slm-cat-pantry: #6A3FA8;
+      --slm-cat-frozen: #1C6E8C;
+      --slm-cat-beverages: #5B4BB0;
+      --slm-cat-snacks: #8A6A0B;
+      --slm-cat-household: #0E6B7A;
+      --slm-cat-health: #2E7D4F;
+      --slm-cat-pet: #7A5A48;
+      --slm-cat-baby: #B03A6E;
+      --slm-cat-other: #5A6B64;
+      --slm-cat-recent: #5A6B64;
     }
 
-    /* ===============================
-      DARK – Soft Pastel Modern
-    ================================ */
-    :host([data-theme="dark"]) {
-      --slm-bg-main: #14161a;
-      --slm-bg-surface: #1b1f25;
-      --slm-bg-elevated: #232833;
-
-      --slm-text-primary: #e4e7ec;
-      --slm-text-secondary: #a8b0bd;
-      --slm-text-muted: #7a8594;
-
-      --slm-border-subtle: #2b313c;
-
-      --slm-accent-primary: #9fa8da;
-      --slm-accent-secondary: #81c784;
-      --slm-accent-warning: #ffb74d;
-      --slm-accent-danger: #ef9a9a;
-
-      --slm-tile-bg: #20242c;
-      --slm-tile-checked-opacity: 0.35;
-
-      --slm-shadow-soft: 0 2px 6px rgba(0,0,0,0.1);
-      --slm-shadow-medium: 0 6px 18px rgba(0,0,0,0.6);
-
-      --slm-list-gradient-0: linear-gradient(135deg, #5c6bc0, #7986cb);
-      --slm-list-gradient-1: linear-gradient(135deg, #43a047, #66bb6a);
-      --slm-list-gradient-2: linear-gradient(135deg, #fb8c00, #ffb74d);
-      --slm-list-gradient-3: linear-gradient(135deg, #8e24aa, #ab47bc);
-      --slm-list-gradient-4: linear-gradient(135deg, #00838f, #26c6da);
-      --slm-list-gradient-5: linear-gradient(135deg, #c2185b, #ec407a);
-      --slm-total-bar-bg: linear-gradient(90deg, #2a2f3b 0%, #353d4a 100%);
-
-      --slm-cat-produce: #4caf50;
-      --slm-cat-dairy: #29b6f6;
-      --slm-cat-meat: #ef5350;
-      --slm-cat-bakery: #ffa726;
-      --slm-cat-pantry: #ff7043;
-      --slm-cat-frozen: #26c6da;
-      --slm-cat-beverages: #7c4dff;
-      --slm-cat-snacks: #d4e157;
-      --slm-cat-household: #26a69a;
-      --slm-cat-health: #66bb6a;
-      --slm-cat-pet: #8d6e63;
-      --slm-cat-baby: #ec407a;
-      --slm-cat-other: #78909c;
-      --slm-cat-recent: #9e9e9e;
-    }
-
-    /* ===============================
-      DARK – Midnight Ocean
-    ================================ */
-    :host([data-theme-name="midnight"]) {
-      --slm-bg-main: #0d1117;
-      --slm-bg-surface: #161b22;
-      --slm-bg-elevated: #1c2333;
-
-      --slm-text-primary: #c9d1d9;
-      --slm-text-secondary: #8b949e;
-      --slm-text-muted: #6e7681;
-
-      --slm-border-subtle: #21262d;
-
-      --slm-accent-primary: #58a6ff;
-      --slm-accent-secondary: #3fb950;
-      --slm-accent-warning: #d29922;
-      --slm-accent-danger: #f85149;
-
-      --slm-tile-bg: #161b22;
-      --slm-tile-checked-opacity: 0.3;
-
-      --slm-shadow-soft: 0 2px 8px rgba(0,0,0,0.4);
-      --slm-shadow-medium: 0 6px 20px rgba(0,0,0,0.7);
-
-      --slm-list-gradient-0: linear-gradient(135deg, #1f6feb, #58a6ff);
-      --slm-list-gradient-1: linear-gradient(135deg, #238636, #3fb950);
-      --slm-list-gradient-2: linear-gradient(135deg, #9e6a03, #d29922);
-      --slm-list-gradient-3: linear-gradient(135deg, #6e40c9, #a371f7);
-      --slm-list-gradient-4: linear-gradient(135deg, #0d7377, #14a8b5);
-      --slm-list-gradient-5: linear-gradient(135deg, #b62324, #f85149);
-      --slm-total-bar-bg: linear-gradient(90deg, #1f6feb 0%, #58a6ff 100%);
-
-      --slm-cat-produce: #3fb950;
-      --slm-cat-dairy: #58a6ff;
-      --slm-cat-meat: #f85149;
-      --slm-cat-bakery: #d29922;
-      --slm-cat-pantry: #e3b341;
-      --slm-cat-frozen: #79c0ff;
-      --slm-cat-beverages: #a371f7;
-      --slm-cat-snacks: #f0d080;
-      --slm-cat-household: #39d0d8;
-      --slm-cat-health: #56d364;
-      --slm-cat-pet: #c9a46e;
-      --slm-cat-baby: #ff7b72;
-      --slm-cat-other: #8b949e;
-      --slm-cat-recent: #6e7681;
-    }
-
-    /* ===============================
-      DARK – Ember
-    ================================ */
-    :host([data-theme-name="ember"]) {
-      --slm-bg-main: #111111;
-      --slm-bg-surface: #1c1a17;
-      --slm-bg-elevated: #242018;
-
-      --slm-text-primary: #f5f0e8;
-      --slm-text-secondary: #a89880;
-      --slm-text-muted: #7a6a55;
-
-      --slm-border-subtle: #2a2520;
-
-      --slm-accent-primary: #f0a500;
-      --slm-accent-secondary: #76c442;
-      --slm-accent-warning: #ff6b35;
-      --slm-accent-danger: #ff4d4d;
-
-      --slm-tile-bg: #1c1a17;
-      --slm-tile-checked-opacity: 0.3;
-
-      --slm-shadow-soft: 0 2px 8px rgba(0,0,0,0.5);
-      --slm-shadow-medium: 0 6px 20px rgba(0,0,0,0.7);
-
-      --slm-list-gradient-0: linear-gradient(135deg, #c48c15, #f0a500);
-      --slm-list-gradient-1: linear-gradient(135deg, #5a9e34, #76c442);
-      --slm-list-gradient-2: linear-gradient(135deg, #c84815, #ff6b35);
-      --slm-list-gradient-3: linear-gradient(135deg, #8b3a8b, #b05ab0);
-      --slm-list-gradient-4: linear-gradient(135deg, #1a5f7a, #2d9ab5);
-      --slm-list-gradient-5: linear-gradient(135deg, #c23838, #e05555);
-      --slm-total-bar-bg: linear-gradient(90deg, #c48c15 0%, #f0a500 100%);
-
-      --slm-cat-produce: #76c442;
-      --slm-cat-dairy: #64b5f6;
-      --slm-cat-meat: #ff4d4d;
-      --slm-cat-bakery: #f0a500;
-      --slm-cat-pantry: #ff6b35;
-      --slm-cat-frozen: #64dfdf;
-      --slm-cat-beverages: #b05ab0;
-      --slm-cat-snacks: #f9c74f;
-      --slm-cat-household: #4db6ac;
-      --slm-cat-health: #81c784;
-      --slm-cat-pet: #a1887f;
-      --slm-cat-baby: #f48fb1;
-      --slm-cat-other: #8d9e98;
-      --slm-cat-recent: #7a6a55;
-    }
-
-    /* ===============================
-      LIGHT – Arctic
-    ================================ */
-    :host([data-theme-name="arctic"]) {
-      --slm-bg-main: #f0f4f8;
-      --slm-bg-surface: #ffffff;
-      --slm-bg-elevated: #ffffff;
-
-      --slm-text-primary: #1a2332;
-      --slm-text-secondary: #526070;
-      --slm-text-muted: #8097aa;
-
-      --slm-border-subtle: #d1dce8;
-
-      --slm-accent-primary: #2979ff;
-      --slm-accent-secondary: #00897b;
-      --slm-accent-warning: #f57c00;
-      --slm-accent-danger: #d32f2f;
-
-      --slm-tile-bg: #ffffff;
+    :host([data-ui="fresh"][data-mode="dark"]) {
+      --slm-bg-main: #0F1714;
+      --slm-bg-surface: #18231E;
+      --slm-bg-elevated: #1F2D26;
+      --slm-text-primary: #E8F1EC;
+      --slm-text-secondary: #9DB0A7;
+      --slm-text-muted: #9DB0A7;
+      --slm-border-subtle: #26352E;
+      --slm-line-soft: #202D27;
+      --slm-accent-primary: #3FBF92;
+      --slm-accent-secondary: #6CB6FF;
+      --slm-accent-warning: #FFB454;
+      --slm-accent-danger: #FF8F8F;
+      --slm-accent-ink: #0B1A14;
+      --slm-accent-soft: #1B3A2F;
+      --slm-accent-text: #7FE0BC;
+      --slm-on-cat: #0B1A14;
+      --slm-tile-bg: #18231E;
       --slm-tile-checked-opacity: 0.4;
-
-      --slm-shadow-soft: 0 2px 6px rgba(26,35,50,0.08);
-      --slm-shadow-medium: 0 4px 14px rgba(26,35,50,0.14);
-
-      --slm-list-gradient-0: linear-gradient(135deg, #1a56db, #2979ff);
-      --slm-list-gradient-1: linear-gradient(135deg, #00695c, #00897b);
-      --slm-list-gradient-2: linear-gradient(135deg, #bf360c, #f57c00);
-      --slm-list-gradient-3: linear-gradient(135deg, #4527a0, #673ab7);
-      --slm-list-gradient-4: linear-gradient(135deg, #006064, #00bcd4);
-      --slm-list-gradient-5: linear-gradient(135deg, #880e4f, #e91e63);
-      --slm-total-bar-bg: linear-gradient(90deg, #1a56db 0%, #2979ff 100%);
-
-      --slm-cat-produce: #00897b;
-      --slm-cat-dairy: #2979ff;
-      --slm-cat-meat: #d32f2f;
-      --slm-cat-bakery: #f57c00;
-      --slm-cat-pantry: #e64a19;
-      --slm-cat-frozen: #00bcd4;
-      --slm-cat-beverages: #673ab7;
-      --slm-cat-snacks: #f9a825;
-      --slm-cat-household: #00838f;
-      --slm-cat-health: #43a047;
-      --slm-cat-pet: #795548;
-      --slm-cat-baby: #e91e63;
-      --slm-cat-other: #607d8b;
-      --slm-cat-recent: #8097aa;
+      --slm-shadow-soft: 0 1px 3px rgba(0,0,0,0.4);
+      --slm-shadow-medium: 0 10px 30px rgba(0,0,0,0.5);
+      --slm-list-gradient-0: linear-gradient(135deg, #1F8F6C, #3FBF92);
+      --slm-list-gradient-1: linear-gradient(135deg, #3F78C4, #6CB6FF);
+      --slm-list-gradient-2: linear-gradient(135deg, #C98A25, #FFB454);
+      --slm-list-gradient-3: linear-gradient(135deg, #8A5BD0, #C79BFF);
+      --slm-list-gradient-4: linear-gradient(135deg, #2A93A4, #5CCBDC);
+      --slm-list-gradient-5: linear-gradient(135deg, #C84C4C, #FF8F8F);
+      --slm-total-bar-bg: #3FBF92;
+      --slm-cat-produce: #5BD6A4;
+      --slm-cat-dairy: #6CB6FF;
+      --slm-cat-meat: #FF8F8F;
+      --slm-cat-bakery: #FFB454;
+      --slm-cat-pantry: #C79BFF;
+      --slm-cat-frozen: #5CCBDC;
+      --slm-cat-beverages: #A89BFF;
+      --slm-cat-snacks: #E3D25A;
+      --slm-cat-household: #5CCBDC;
+      --slm-cat-health: #7FE0A0;
+      --slm-cat-pet: #C9A48E;
+      --slm-cat-baby: #FF8FB8;
+      --slm-cat-other: #9DB0A7;
+      --slm-cat-recent: #9DB0A7;
     }
 
-    /* ===============================
-      LIGHT – Meadow
-    ================================ */
-    :host([data-theme-name="meadow"]) {
-      --slm-bg-main: #f4f7f0;
-      --slm-bg-surface: #fefffe;
-      --slm-bg-elevated: #ffffff;
-
-      --slm-text-primary: #2d3a2a;
-      --slm-text-secondary: #6b7c64;
-      --slm-text-muted: #96a98e;
-
-      --slm-border-subtle: #d4e0cb;
-
-      --slm-accent-primary: #4caf50;
-      --slm-accent-secondary: #29b6f6;
-      --slm-accent-warning: #ffb300;
-      --slm-accent-danger: #e53935;
-
-      --slm-tile-bg: #fefffe;
+    :host([data-ui="compact"][data-mode="dark"]) {
+      --slm-bg-main: #0E1014;
+      --slm-bg-surface: #171A20;
+      --slm-bg-elevated: #1F232B;
+      --slm-text-primary: #ECEFF4;
+      --slm-text-secondary: #9AA3B2;
+      --slm-text-muted: #9AA3B2;
+      --slm-border-subtle: #2A2F39;
+      --slm-line-soft: #1E222A;
+      --slm-accent-primary: #8B9BFF;
+      --slm-accent-secondary: #5BD6A4;
+      --slm-accent-warning: #FFB454;
+      --slm-accent-danger: #FF8F8F;
+      --slm-accent-ink: #0E1014;
+      --slm-accent-soft: #232B52;
+      --slm-accent-text: #B4BEFF;
+      --slm-on-cat: #0E1014;
+      --slm-tile-bg: #171A20;
       --slm-tile-checked-opacity: 0.4;
-
-      --slm-shadow-soft: 0 2px 6px rgba(45,58,42,0.08);
-      --slm-shadow-medium: 0 4px 14px rgba(45,58,42,0.13);
-
-      --slm-list-gradient-0: linear-gradient(135deg, #2e7d32, #4caf50);
-      --slm-list-gradient-1: linear-gradient(135deg, #0277bd, #29b6f6);
-      --slm-list-gradient-2: linear-gradient(135deg, #e65100, #ffb300);
-      --slm-list-gradient-3: linear-gradient(135deg, #6a1b9a, #9c27b0);
-      --slm-list-gradient-4: linear-gradient(135deg, #006064, #26c6da);
-      --slm-list-gradient-5: linear-gradient(135deg, #b71c1c, #e53935);
-      --slm-total-bar-bg: linear-gradient(90deg, #2e7d32 0%, #4caf50 100%);
-
-      --slm-cat-produce: #4caf50;
-      --slm-cat-dairy: #29b6f6;
-      --slm-cat-meat: #e53935;
-      --slm-cat-bakery: #ffb300;
-      --slm-cat-pantry: #fb8c00;
-      --slm-cat-frozen: #26c6da;
-      --slm-cat-beverages: #9c27b0;
-      --slm-cat-snacks: #cddc39;
-      --slm-cat-household: #26a69a;
-      --slm-cat-health: #66bb6a;
-      --slm-cat-pet: #8d6e63;
-      --slm-cat-baby: #ec407a;
-      --slm-cat-other: #78909c;
-      --slm-cat-recent: #96a98e;
+      --slm-shadow-soft: 0 1px 3px rgba(0,0,0,0.4);
+      --slm-shadow-medium: 0 20px 50px rgba(0,0,0,0.5);
+      --slm-list-gradient-0: linear-gradient(135deg, #6E80F0, #8B9BFF);
+      --slm-list-gradient-1: linear-gradient(135deg, #3FB88A, #5BD6A4);
+      --slm-list-gradient-2: linear-gradient(135deg, #E09A3A, #FFB454);
+      --slm-list-gradient-3: linear-gradient(135deg, #A87BE8, #C79BFF);
+      --slm-list-gradient-4: linear-gradient(135deg, #3CB0C4, #5CCBDC);
+      --slm-list-gradient-5: linear-gradient(135deg, #E05A5A, #FF7A7A);
+      --slm-total-bar-bg: #8B9BFF;
+      --slm-cat-produce: #5BD6A4;
+      --slm-cat-dairy: #6CB6FF;
+      --slm-cat-meat: #FF7A7A;
+      --slm-cat-bakery: #FFB454;
+      --slm-cat-pantry: #C79BFF;
+      --slm-cat-frozen: #5CCBDC;
+      --slm-cat-beverages: #A89BFF;
+      --slm-cat-snacks: #E3D25A;
+      --slm-cat-household: #5CCBDC;
+      --slm-cat-health: #7FE0A0;
+      --slm-cat-pet: #C9A48E;
+      --slm-cat-baby: #FF8FB8;
+      --slm-cat-other: #9AA3B2;
+      --slm-cat-recent: #9AA3B2;
     }
 
-    /* ===============================
-      LIGHT – Blossom
-    ================================ */
-    :host([data-theme-name="blossom"]) {
-      --slm-bg-main: #fdf8fb;
-      --slm-bg-surface: #ffffff;
-      --slm-bg-elevated: #fff8fc;
-
-      --slm-text-primary: #3d1f35;
-      --slm-text-secondary: #8c5e79;
-      --slm-text-muted: #b48fa5;
-
-      --slm-border-subtle: #f0d6e8;
-
-      --slm-accent-primary: #c2668a;
-      --slm-accent-secondary: #7cb9a3;
-      --slm-accent-warning: #e8a87c;
-      --slm-accent-danger: #e57373;
-
-      --slm-tile-bg: #ffffff;
+    :host([data-ui="compact"][data-mode="light"]) {
+      --slm-bg-main: #F4F5F8;
+      --slm-bg-surface: #FFFFFF;
+      --slm-bg-elevated: #ECEEF3;
+      --slm-text-primary: #14161C;
+      --slm-text-secondary: #5B6270;
+      --slm-text-muted: #5B6270;
+      --slm-border-subtle: #E1E4EB;
+      --slm-line-soft: #EDEFF4;
+      --slm-accent-primary: #4F5FD6;
+      --slm-accent-secondary: #0F7B5A;
+      --slm-accent-warning: #9A5A0B;
+      --slm-accent-danger: #A32B2B;
+      --slm-accent-ink: #FFFFFF;
+      --slm-accent-soft: #E3E6FA;
+      --slm-accent-text: #3A47B0;
+      --slm-on-cat: #FFFFFF;
+      --slm-tile-bg: #FFFFFF;
       --slm-tile-checked-opacity: 0.4;
-
-      --slm-shadow-soft: 0 2px 6px rgba(61,31,53,0.07);
-      --slm-shadow-medium: 0 4px 14px rgba(61,31,53,0.13);
-
-      --slm-list-gradient-0: linear-gradient(135deg, #a03a62, #c2668a);
-      --slm-list-gradient-1: linear-gradient(135deg, #4a7a6a, #7cb9a3);
-      --slm-list-gradient-2: linear-gradient(135deg, #b06040, #e8a87c);
-      --slm-list-gradient-3: linear-gradient(135deg, #7a4090, #b07abd);
-      --slm-list-gradient-4: linear-gradient(135deg, #3570a0, #6aacdb);
-      --slm-list-gradient-5: linear-gradient(135deg, #a03030, #e57373);
-      --slm-total-bar-bg: linear-gradient(90deg, #a03a62 0%, #c2668a 100%);
-
-      --slm-cat-produce: #7cb9a3;
-      --slm-cat-dairy: #6aacdb;
-      --slm-cat-meat: #e57373;
-      --slm-cat-bakery: #e8a87c;
-      --slm-cat-pantry: #c2668a;
-      --slm-cat-frozen: #80cbc4;
-      --slm-cat-beverages: #b07abd;
-      --slm-cat-snacks: #f4d03f;
-      --slm-cat-household: #7cb9a3;
-      --slm-cat-health: #a5d6a7;
-      --slm-cat-pet: #bcaaa4;
-      --slm-cat-baby: #f48fb1;
-      --slm-cat-other: #b0bec5;
-      --slm-cat-recent: #b48fa5;
-    }
-
-    /* ===============================
-      DARK – Neon (Purple & Cyan)
-    ================================ */
-    :host([data-theme-name="neon"]) {
-      --slm-bg-main: #0a0b10;
-      --slm-bg-surface: #121420;
-      --slm-bg-elevated: #1a1d2e;
-
-      --slm-text-primary: #e0e0f0;
-      --slm-text-secondary: #a0a5c0;
-      --slm-text-muted: #6a6f8e;
-
-      --slm-border-subtle: #2a2d45;
-
-      --slm-accent-primary: #bb86fc;
-      --slm-accent-secondary: #03dac6;
-      --slm-accent-warning: #ffb74d;
-      --slm-accent-danger: #cf6679;
-
-      --slm-tile-bg: #1a1d2e;
-      --slm-tile-checked-opacity: 0.3;
-
-      --slm-shadow-soft: 0 4px 10px rgba(0,0,0,0.4);
-      --slm-shadow-medium: 0 8px 25px rgba(0,0,0,0.7);
-
-      --slm-list-gradient-0: linear-gradient(135deg, #6200ee, #bb86fc);
-      --slm-list-gradient-1: linear-gradient(135deg, #018786, #03dac6);
-      --slm-list-gradient-2: linear-gradient(135deg, #f57c00, #ffb74d);
-      --slm-list-gradient-3: linear-gradient(135deg, #7b1fa2, #ab47bc);
-      --slm-list-gradient-4: linear-gradient(135deg, #00796b, #009688);
-      --slm-list-gradient-5: linear-gradient(135deg, #c2185b, #ec407a);
-      --slm-total-bar-bg: linear-gradient(90deg, #6200ee 0%, #bb86fc 100%);
-
-      --slm-cat-produce: #03dac6;
-      --slm-cat-dairy: #bb86fc;
-      --slm-cat-meat: #cf6679;
-      --slm-cat-bakery: #ffb300;
-      --slm-cat-pantry: #ff7043;
-      --slm-cat-frozen: #03dac6;
-      --slm-cat-beverages: #bb86fc;
-      --slm-cat-snacks: #c6ff00;
-      --slm-cat-household: #00bcd4;
-      --slm-cat-health: #69f0ae;
-      --slm-cat-pet: #ff80ab;
-      --slm-cat-baby: #f48fb1;
-      --slm-cat-other: #6a6f8e;
-      --slm-cat-recent: #a0a5c0;
-    }
-
-    /* ===============================
-      LIGHT – Ocean (Ocean Blue)
-    ================================ */
-    :host([data-theme-name="ocean"]) {
-      --slm-bg-main: #f0f7ff;
-      --slm-bg-surface: #ffffff;
-      --slm-bg-elevated: #f9fbff;
-
-      --slm-text-primary: #1a3a5f;
-      --slm-text-secondary: #4a6b8c;
-      --slm-text-muted: #7a9bbd;
-
-      --slm-border-subtle: #d0e1f2;
-
-      --slm-accent-primary: #0077ff;
-      --slm-accent-secondary: #4c51bf;
-      --slm-accent-warning: #f6ad55;
-      --slm-accent-danger: #e53e3e;
-
-      --slm-tile-bg: #ffffff;
-      --slm-tile-checked-opacity: 0.4;
-
-      --slm-shadow-soft: 0 2px 8px rgba(26,58,95,0.08);
-      --slm-shadow-medium: 0 6px 18px rgba(26,58,95,0.15);
-
-      --slm-list-gradient-0: linear-gradient(135deg, #0077ff, #3182ce);
-      --slm-list-gradient-1: linear-gradient(135deg, #2c5282, #4c51bf);
-      --slm-list-gradient-2: linear-gradient(135deg, #c05621, #f6ad55);
-      --slm-list-gradient-3: linear-gradient(135deg, #6b46c1, #9f7aea);
-      --slm-list-gradient-4: linear-gradient(135deg, #2c7a7b, #38b2ac);
-      --slm-list-gradient-5: linear-gradient(135deg, #9b2c2c, #e53e3e);
-      --slm-total-bar-bg: linear-gradient(90deg, #0077ff 0%, #4c51bf 100%);
-
-      --slm-cat-produce: #38b2ac;
-      --slm-cat-dairy: #63b3ed;
-      --slm-cat-meat: #e53e3e;
-      --slm-cat-bakery: #f6ad55;
-      --slm-cat-pantry: #ed8936;
-      --slm-cat-frozen: #63b3ed;
-      --slm-cat-beverages: #667eea;
-      --slm-cat-snacks: #ecc94b;
-      --slm-cat-household: #38b2ac;
-      --slm-cat-health: #48bb78;
-      --slm-cat-pet: #a0785a;
-      --slm-cat-baby: #ed64a6;
-      --slm-cat-other: #7a9bbd;
-      --slm-cat-recent: #4a6b8c;
+      --slm-shadow-soft: 0 1px 3px rgba(18,32,27,0.10);
+      --slm-shadow-medium: 0 20px 50px rgba(20,22,28,0.18);
+      --slm-list-gradient-0: linear-gradient(135deg, #0F7B5A, #3FA583);
+      --slm-list-gradient-1: linear-gradient(135deg, #2A5DA8, #5B8BD0);
+      --slm-list-gradient-2: linear-gradient(135deg, #9A5A0B, #D08A2E);
+      --slm-list-gradient-3: linear-gradient(135deg, #6A3FA8, #9B73D4);
+      --slm-list-gradient-4: linear-gradient(135deg, #0E6B7A, #3FA3B3);
+      --slm-list-gradient-5: linear-gradient(135deg, #A32B2B, #D35F5F);
+      --slm-total-bar-bg: #4F5FD6;
+      --slm-cat-produce: #0F7B5A;
+      --slm-cat-dairy: #2A5DA8;
+      --slm-cat-meat: #A32B2B;
+      --slm-cat-bakery: #9A5A0B;
+      --slm-cat-pantry: #6A3FA8;
+      --slm-cat-frozen: #1C6E8C;
+      --slm-cat-beverages: #5B4BB0;
+      --slm-cat-snacks: #8A6A0B;
+      --slm-cat-household: #0E6B7A;
+      --slm-cat-health: #2E7D4F;
+      --slm-cat-pet: #7A5A48;
+      --slm-cat-baby: #B03A6E;
+      --slm-cat-other: #5A6B64;
+      --slm-cat-recent: #5A6B64;
     }
 
   `;
@@ -2185,3 +1878,15 @@ class ShoppingListManagerCard extends LitElement {
 }
 
 customElements.define('shopping-list-manager-card', ShoppingListManagerCard);
+
+// Lets Home Assistant list the card in the "Add card" picker
+window.customCards = window.customCards || [];
+if (!window.customCards.some(c => c.type === 'shopping-list-manager-card')) {
+  window.customCards.push({
+    type: 'shopping-list-manager-card',
+    name: 'Shopping List Manager',
+    description: 'Multi-list shopping manager with product search, categories, loyalty cards and Home Assistant to-do sync.',
+    preview: false,
+    documentationURL: 'https://github.com/thekiwismarthome/shopping-list-manager-card',
+  });
+}

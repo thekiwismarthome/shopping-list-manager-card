@@ -182,5 +182,22 @@ export default {
   "The HA native style follows your Home Assistant theme, so dark mode and colour theme are set there.": "Le style HA natif suit le thème de votre Home Assistant : le mode sombre et le thème de couleur se règlent donc là-bas.",
   "The Wall panel style needs a wide card (tablet or wall display). On narrow screens it shows Fresh.": "Le style Panneau mural nécessite une carte large (tablette ou écran mural). Sur les écrans étroits, il affiche Frais.",
   "Add items": "Ajouter des articles",
-  "Add item": "Ajouter un article"
+  "Add item": "Ajouter un article",
+  "Colour mode": "Mode de couleur",
+  "Light": "Clair",
+  "Dark": "Sombre",
+  "Match device": "Selon l'appareil",
+  "Design default": "Par défaut du design",
+  "Soft cards, summary card, floating menu": "Cartes douces, carte de résumé et menu flottant",
+  "Dense list, checkboxes, flat tab bar": "Liste dense, cases à cocher et barre plate",
+  "List options": "Options de la liste",
+  "Share list": "Partager la liste",
+  "Clear checked items": "Retirer les articles cochés",
+  "All": "Tous",
+  "Categories": "Catégories",
+  "In basket": "Dans le panier",
+  "Undo": "Annuler",
+  "Decrease": "Diminuer",
+  "Increase": "Augmenter",
+  "Style, colour mode, tiles, fonts": "Style, mode de couleur, tuiles, polices"
 };

@@ -1,17 +1,13 @@
 import { LitElement, html, css } from 'lit';
+import { fontInherit } from '../styles/ui-styles.js';
 import { t, I18nController } from '../services/translator.js';
 import { settingsGroupStyles } from '../styles/ui-styles.js';
-import './slm-dark-mode-popup.js';
 import './slm-font-settings.js';
 
 // Interface styles the user can pick between (see styles in each component)
 const UI_STYLES = [
-  { id: 'classic', label: 'Classic', hint: 'The original look' },
-  { id: 'fresh',   label: 'Fresh',   hint: 'Soft cards, floating menu' },
-  { id: 'compact', label: 'Compact', hint: 'Dense list, flat tab bar' },
-  { id: 'instore', label: 'In-store', hint: 'Big rows, tap to tick off' },
-  { id: 'panel',   label: 'Wall panel', hint: 'List and product picker side by side' },
-  { id: 'native',  label: 'HA native', hint: 'Flat, uses your Home Assistant theme' },
+  { id: 'fresh',   label: 'Fresh',   hint: 'Soft cards, summary card, floating menu' },
+  { id: 'compact', label: 'Compact', hint: 'Dense list, checkboxes, flat tab bar' },
 ];
 
 class SLMAppearanceSettings extends LitElement {
@@ -21,7 +17,6 @@ class SLMAppearanceSettings extends LitElement {
     isEmbedded: { type: Boolean },
     // 'classic' | 'fresh' | 'compact' (current interface style)
     uiStyle: { type: String, attribute: 'ui-style', reflect: true },
-    showDarkModePopup: { type: Boolean },
     showFontSettings: { type: Boolean }
   };
 
@@ -29,17 +24,7 @@ class SLMAppearanceSettings extends LitElement {
     super();
     this.uiStyle = 'classic';
     this.isEmbedded = false;
-    this.showDarkModePopup = false;
     this.showFontSettings = false;
-  }
-
-  _themeLabel(theme) {
-    const labels = {
-      soft: 'Soft Pastel', arctic: '🧊 Arctic', meadow: '🌿 Meadow',
-      blossom: '🌸 Blossom', midnight: '🌊 Midnight Ocean', ember: '🔥 Ember',
-      neon: '🍇 Purple & Cyan', ocean: '🌊 Ocean Blue'
-    };
-    return labels[theme] || 'Soft Pastel';
   }
 
   handleSettingChange(key, value) {
@@ -68,9 +53,9 @@ class SLMAppearanceSettings extends LitElement {
                 <div class="style-options" role="radiogroup" aria-label=${t('Interface style')}>
                   ${UI_STYLES.map(s => html`
                     <button
-                      class="style-option ${(this.settings.uiStyle || 'classic') === s.id ? 'selected' : ''}"
+                      class="style-option ${this._style() === s.id ? 'selected' : ''}"
                       role="radio"
-                      aria-checked=${(this.settings.uiStyle || 'classic') === s.id ? 'true' : 'false'}
+                      aria-checked=${this._style() === s.id ? 'true' : 'false'}
                       @click=${() => this.handleSettingChange('uiStyle', s.id)}
                     >
                       <span class="sp sp-${s.id}" aria-hidden="true"></span>
@@ -83,68 +68,22 @@ class SLMAppearanceSettings extends LitElement {
             </div>
           </div>
 
-          <div class="section-header">${t('Theme')}</div>
-          ${(this.settings.uiStyle === 'native') ? html`
-            <div class="style-note">${t('The HA native style follows your Home Assistant theme, so dark mode and colour theme are set there.')}</div>
-          ` : ''}
-          ${(this.settings.uiStyle === 'panel') ? html`
-            <div class="style-note">${t('The Wall panel style needs a wide card (tablet or wall display). On narrow screens it shows Fresh.')}</div>
-          ` : ''}
-          <div class="group ${this.settings.uiStyle === 'native' ? 'is-disabled' : ''}">
-          <button class="settings-item" @click=${() => this.showDarkModePopup = true}>
-            <div class="item-content">
-              <div class="item-title">${t('Dark Mode')}</div>
-              <div class="item-subtitle">${this.getDarkModeLabel()}</div>
-            </div>
-            <ha-icon icon="mdi:chevron-right"></ha-icon>
-          </button>
-
-          <div class="settings-item">
-            <div class="item-content">
-              <div class="item-title">${t('Theme')}</div>
-              <div class="item-subtitle">
-                ${this._themeLabel(this.settings.theme)}
+          <div class="section-header">${t('Colour mode')}</div>
+          <div class="group">
+            <div class="settings-item">
+              <div class="item-content full-width">
+                <div class="mode-seg" role="radiogroup" aria-label=${t('Colour mode')}>
+                  ${[['light', 'Light'], ['dark', 'Dark'], ['device', 'Match device']].map(([val, label]) => html`
+                    <button
+                      role="radio"
+                      aria-checked=${this._modeValue() === val ? 'true' : 'false'}
+                      class="mode-opt ${this._modeValue() === val ? 'selected' : ''}"
+                      @click=${() => this.handleSettingChange('darkMode', val === 'dark' ? 'on' : val === 'light' ? 'off' : 'device')}
+                    >${t(label)}</button>
+                  `)}
+                </div>
               </div>
             </div>
-
-            <select
-              class="theme-select"
-              @change=${(e) =>
-        this.handleSettingChange('theme', e.target.value)}
-            >
-              <optgroup label="All Modes">
-                <option value="soft" ?selected=${!this.settings.theme || this.settings.theme === 'soft'}>
-                  Soft Pastel
-                </option>
-              </optgroup>
-              <optgroup label="Light Themes">
-                <option value="arctic" ?selected=${this.settings.theme === 'arctic'}>
-                  🧊 Arctic
-                </option>
-                <option value="meadow" ?selected=${this.settings.theme === 'meadow'}>
-                  🌿 Meadow
-                </option>
-                <option value="blossom" ?selected=${this.settings.theme === 'blossom'}>
-                  🌸 Blossom
-                </option>
-                <option value="ocean" ?selected=${this.settings.theme === 'ocean'}>
-                  🌊 Ocean Blue
-                </option>
-              </optgroup>
-              <optgroup label="Dark Themes">
-                <option value="midnight" ?selected=${this.settings.theme === 'midnight'}>
-                  🌊 Midnight Ocean
-                </option>
-                <option value="ember" ?selected=${this.settings.theme === 'ember'}>
-                  🔥 Ember
-                </option>
-                <option value="neon" ?selected=${this.settings.theme === 'neon'}>
-                  🍇 Purple & Cyan
-                </option>
-              </optgroup>
-            </select>
-          </div>
-
           </div>
 
           <div class="section-header">${t('Display')}</div>
@@ -274,23 +213,12 @@ class SLMAppearanceSettings extends LitElement {
           <button class="settings-item" @click=${() => this.showFontSettings = true}>
             <div class="item-content">
               <div class="item-title">Font Family</div>
-              <div class="item-subtitle">${this.settings.fontFamily}</div>
+              <div class="item-subtitle">${this.settings.fontFamily === 'system' || !this.settings.fontFamily ? t('Design default') : this.settings.fontFamily}</div>
             </div>
             <ha-icon icon="mdi:chevron-right"></ha-icon>
           </button>
           </div>
         </div>
-
-        ${this.showDarkModePopup ? html`
-          <slm-dark-mode-popup
-            .currentMode=${this.settings.darkMode}
-            @mode-selected=${(e) => {
-          this.handleSettingChange('darkMode', e.detail.mode);
-          this.showDarkModePopup = false;
-        }}
-            @close=${() => this.showDarkModePopup = false}
-          ></slm-dark-mode-popup>
-        ` : ''}
 
         ${this.showFontSettings ? html`
           <slm-font-settings
@@ -306,19 +234,23 @@ class SLMAppearanceSettings extends LitElement {
     `;
   }
 
-  getDarkModeLabel() {
-    switch (this.settings.darkMode) {
-      case 'on': return 'On';
-      case 'off': return 'Off';
-      case 'system': return 'As on Device';
-      default: return 'As on Device';
-    }
+  // Effective colour mode shown in the selector: 'light' | 'dark' | 'device'
+  _modeValue() {
+    const m = this.settings.darkMode;
+    if (m === 'on') return 'dark';
+    if (m === 'off') return 'light';
+    if (m === 'device') return 'device';
+    return this._style() === 'compact' ? 'dark' : 'light';
+  }
+
+  _style() {
+    return this.settings.uiStyle === 'compact' ? 'compact' : 'fresh';
   }
 
   static styles = [css`
     .style-options {
       display: grid;
-      grid-template-columns: repeat(3, minmax(0, 1fr));
+      grid-template-columns: repeat(2, minmax(0, 1fr));
       gap: 8px;
     }
     .style-option {
@@ -343,15 +275,31 @@ class SLMAppearanceSettings extends LitElement {
       outline: 2px solid var(--slm-accent-primary);
       outline-offset: 2px;
     }
-    .style-note {
-      margin: 0 16px 8px;
-      font-size: 12px;
-      line-height: 1.35;
-      color: var(--slm-text-secondary);
+    .mode-seg {
+      display: flex;
+      gap: 4px;
+      padding: 4px;
+      border-radius: 16px;
+      background: var(--slm-bg-elevated);
     }
-    .is-disabled {
-      opacity: 0.45;
-      pointer-events: none;
+    .mode-opt {
+      flex: 1;
+      min-height: 44px;
+      padding: 0 8px;
+      border: none;
+      border-radius: 12px;
+      background: transparent;
+      color: var(--slm-text-secondary);
+      font: inherit;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    .mode-opt.selected {
+      background: var(--slm-bg-surface);
+      color: var(--slm-text-primary);
+      font-weight: 700;
+      box-shadow: var(--slm-shadow-soft);
     }
     .so-label {
       font-size: 13px;
@@ -404,55 +352,6 @@ class SLMAppearanceSettings extends LitElement {
       background-repeat: no-repeat;
       background-size: 60% 7px;
       background-position: center bottom 5px;
-    }
-    .sp-instore {
-      background-image: linear-gradient(var(--slm-accent-primary), var(--slm-accent-primary));
-      background-repeat: no-repeat;
-      background-size: 22% 6px;
-      background-position: 8px 8px;
-    }
-    .sp-instore::before {
-      top: 5px;
-      left: auto;
-      right: 6px;
-      width: 38%;
-    }
-    .sp-instore::after {
-      top: 20px;
-      height: 14px;
-      border-radius: 5px;
-      box-shadow: 0 17px 0 -1px var(--slm-bg-surface);
-    }
-    .sp-panel {
-      background-image:
-        linear-gradient(var(--slm-border-subtle), var(--slm-border-subtle)),
-        linear-gradient(var(--slm-border-subtle), var(--slm-border-subtle));
-      background-repeat: no-repeat;
-      background-size: 1px 38px, 100% 0;
-      background-position: 42% 14px, 0 0;
-    }
-    .sp-panel::before {
-      right: auto;
-      width: 36%;
-    }
-    .sp-panel::after {
-      right: auto;
-      width: 36%;
-    }
-    .sp-native {
-      border-radius: 4px;
-    }
-    .sp-native::before {
-      border-radius: 0;
-      height: 6px;
-    }
-    .sp-native::after {
-      border-radius: 0;
-      box-shadow: none;
-      background: transparent;
-      border-bottom: 1px solid var(--slm-border-subtle);
-      border-top: 1px solid var(--slm-border-subtle);
-      height: 14px;
     }
     .sp-compact {
       background-image: linear-gradient(var(--slm-accent-primary), var(--slm-accent-primary));
@@ -570,6 +469,7 @@ class SLMAppearanceSettings extends LitElement {
       border-color: var(--slm-accent-primary);
     }
     .size-slider {
+      accent-color: var(--slm-accent-primary);
       width: 100%;
       margin: 12px 0;
     }
@@ -633,7 +533,7 @@ class SLMAppearanceSettings extends LitElement {
       outline: none;
       border-color: var(--slm-accent-primary);
     }
-  `, settingsGroupStyles];
+  `, settingsGroupStyles, fontInherit];
 }
 
 customElements.define('slm-appearance-settings', SLMAppearanceSettings);

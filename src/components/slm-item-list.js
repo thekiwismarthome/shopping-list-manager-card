@@ -2,6 +2,7 @@ import { LitElement, html, css } from 'lit';
 import { t, I18nController } from '../services/translator.js';
 import { PRODUCT_ICON_MAP } from '../icons/product-icon-map.js';
 import { PRODUCT_ICONS } from '../icons/product-icons.js';
+import { fontInherit } from '../styles/ui-styles.js';
 
 class SLMItemList extends LitElement {
   _i18n = new I18nController(this);
@@ -14,8 +15,7 @@ class SLMItemList extends LitElement {
     currencySymbol: { type: String },
     // 'classic' | 'fresh' | 'compact' (see Appearance settings)
     uiStyle: { type: String, attribute: 'ui-style', reflect: true },
-    // In-store mode: big tick-off rows, checked items stay visible (struck through)
-    instore: { type: Boolean, reflect: true },
+    _collapsed: { type: Object, state: true },
     _recentItems: { type: Array, state: true },
     _longPressTimer: { state: true },
     _longPressTriggered: { state: true }
@@ -24,7 +24,7 @@ class SLMItemList extends LitElement {
   constructor() {
     super();
     this.uiStyle = 'classic';
-    this.instore = false;
+    this._collapsed = {};
     this._recentItems = [];
     this._longPressTimer = null;
     this._longPressTriggered = false;
@@ -183,13 +183,14 @@ class SLMItemList extends LitElement {
 
   groupItems() {
     const sortMode = this.settings?.sortMode || 'category';
-    // Only show unchecked items (same behaviour as tile view). In-store mode keeps
-    // ticked items visible, after the unchecked ones, so a mis-tap is easy to undo.
-    const unchecked = (this.items || []).filter(i => this.instore || !i.checked);
-    if (this.instore) unchecked.sort((a, b) => Number(!!a.checked) - Number(!!b.checked));
+    // The classic layout (embedded) only shows unchecked items. Designs A and B keep ticked items
+    // visible, after the unchecked ones, so a mis-tap is easy to undo.
+    const design = this.uiStyle === 'fresh' || this.uiStyle === 'compact';
+    const unchecked = (this.items || []).filter(i => design || !i.checked);
+    if (design) unchecked.sort((a, b) => Number(!!a.checked) - Number(!!b.checked));
 
     if (sortMode === 'alphabetical') {
-      unchecked.sort((a, b) => (this.instore ? Number(!!a.checked) - Number(!!b.checked) : 0) || a.name.localeCompare(b.name));
+      unchecked.sort((a, b) => (design ? Number(!!a.checked) - Number(!!b.checked) : 0) || a.name.localeCompare(b.name));
       return { mode: 'alpha', sections: [{ id: '_alpha', items: unchecked }] };
     }
 
@@ -310,7 +311,96 @@ class SLMItemList extends LitElement {
     return html`<span class="row-emoji">${this.getProductEmoji(name, categoryId)}</span>`;
   }
 
+  _qtyLabel(item) {
+    const unit = item.unit && item.unit !== 'units' ? ` ${item.unit}` : '';
+    return `${item.quantity}${unit}`;
+  }
+
+  _rowEvents(item) {
+    return {
+      click: (e) => this.handleRowClick(e, item),
+      down: () => this.handleMouseDown(item),
+    };
+  }
+
+  // Design A row: product icon in a tinted tile, name + "qty · price", − n + stepper
+  renderRowFresh(item) {
+    const color = this.getCategoryColor(item.category_id);
+    const showPrice = this.settings?.showPriceOnTile !== false;
+    const sub = `${this._qtyLabel(item)}${showPrice && item.price ? ` · ${this.currencySymbol}${(item.price * item.quantity).toFixed(2)}` : ''}`;
+    return html`
+      <div
+        class="list-row ${item._pending ? 'pending-row' : ''} ${item.checked ? 'checked-row' : ''}"
+        style="--rc: ${color}"
+        @click=${(e) => this.handleRowClick(e, item)}
+        @mousedown=${() => this.handleMouseDown(item)}
+        @mouseup=${this.handleMouseUp}
+        @mouseleave=${this.handleMouseUp}
+        @touchstart=${() => this.handleMouseDown(item)}
+        @touchend=${this.handleMouseUp}
+      >
+        <div class="row-icon">
+          ${item.checked
+            ? html`<ha-icon icon="mdi:check"></ha-icon>`
+            : this.renderRowIcon(item.name, item.category_id, item.image_url)}
+        </div>
+        <div class="row-middle">
+          <div class="row-name">${item.name}</div>
+          <div class="row-sub">${item.checked ? t('In basket') : sub}</div>
+        </div>
+        ${item.checked ? html`
+          <button class="undo" @click=${(e) => this.handleRowClick(e, item)}>${t('Undo')}</button>
+        ` : html`
+          <div class="stepper">
+            <button class="st-btn" aria-label="${t('Decrease')} ${item.name}" @click=${(e) => this.handleDecrease(e, item)}>
+              <ha-icon icon="mdi:minus"></ha-icon>
+            </button>
+            <span class="st-qty">${item.quantity}</span>
+            <button class="st-btn" aria-label="${t('Increase')} ${item.name}" @click=${(e) => this.handleQtyClick(e, item)}>
+              <ha-icon icon="mdi:plus"></ha-icon>
+            </button>
+          </div>
+        `}
+      </div>
+    `;
+  }
+
+  // Design B row: checkbox, "name · qty", price
+  renderRowCompact(item) {
+    const color = this.getCategoryColor(item.category_id);
+    const showPrice = this.settings?.showPriceOnTile !== false;
+    return html`
+      <div
+        class="list-row ${item._pending ? 'pending-row' : ''} ${item.checked ? 'checked-row' : ''}"
+        style="--rc: ${color}"
+        @click=${(e) => this.handleRowClick(e, item)}
+        @mousedown=${() => this.handleMouseDown(item)}
+        @mouseup=${this.handleMouseUp}
+        @mouseleave=${this.handleMouseUp}
+        @touchstart=${() => this.handleMouseDown(item)}
+        @touchend=${this.handleMouseUp}
+      >
+        <span class="cbx ${item.checked ? 'on' : ''}" aria-hidden="true">
+          ${item.checked ? html`<ha-icon icon="mdi:check-bold"></ha-icon>` : ''}
+        </span>
+        <div class="row-middle">
+          <span class="row-name">${item.name}</span>
+          <span class="row-qty">· ${this._qtyLabel(item)}</span>
+        </div>
+        ${showPrice && item.price ? html`
+          <span class="row-price">${this.currencySymbol}${(item.price * item.quantity).toFixed(2)}</span>
+        ` : ''}
+      </div>
+    `;
+  }
+
   renderRow(item) {
+    if (this.uiStyle === 'fresh') return this.renderRowFresh(item);
+    if (this.uiStyle === 'compact') return this.renderRowCompact(item);
+    return this.renderRowClassic(item);
+  }
+
+  renderRowClassic(item) {
     const color = this.getCategoryColor(item.category_id);
     const { r, g, b } = this.hexToRgb(color);
     const showPrice = this.settings?.showPriceOnTile !== false;
@@ -319,7 +409,7 @@ class SLMItemList extends LitElement {
 
     return html`
       <div
-        class="list-row ${item._pending ? 'pending-row' : ''} ${item.checked ? 'checked-row' : ''}"
+        class="list-row ${item._pending ? 'pending-row' : ''}"
         style="--rc: ${color}"
         @click=${(e) => this.handleRowClick(e, item)}
         @mousedown=${() => this.handleMouseDown(item)}
@@ -367,7 +457,29 @@ class SLMItemList extends LitElement {
   renderRecentRow(product) {
     const recentColor = this.getRecentColor();
     const showPrice = this.settings?.showPriceOnTile !== false;
+    const design = this.uiStyle === 'fresh' || this.uiStyle === 'compact';
 
+    if (this.uiStyle === 'fresh') {
+      return html`
+        <div class="list-row recent-row" style="--rc: ${recentColor}" @click=${() => this.handleRecentClick(product)}>
+          <div class="row-icon">${this.renderRowIcon(product.name, product.category_id, product.image_url)}</div>
+          <div class="row-middle">
+            <div class="row-name">${product.name}</div>
+            ${showPrice && product.price ? html`<div class="row-sub">${this.currencySymbol}${product.price.toFixed(2)}</div>` : ''}
+          </div>
+          <span class="add-pill" aria-hidden="true"><ha-icon icon="mdi:plus"></ha-icon></span>
+        </div>
+      `;
+    }
+    if (this.uiStyle === 'compact') {
+      return html`
+        <div class="list-row recent-row" style="--rc: ${recentColor}" @click=${() => this.handleRecentClick(product)}>
+          <span class="cbx add" aria-hidden="true"><ha-icon icon="mdi:plus"></ha-icon></span>
+          <div class="row-middle"><span class="row-name">${product.name}</span></div>
+          ${showPrice && product.price ? html`<span class="row-price">${this.currencySymbol}${product.price.toFixed(2)}</span>` : ''}
+        </div>
+      `;
+    }
     return html`
       <div
         class="list-row recent-row"
@@ -395,6 +507,26 @@ class SLMItemList extends LitElement {
     `;
   }
 
+  _toggleCollapse(id) {
+    this._collapsed = { ...this._collapsed, [id]: !this._collapsed[id] };
+  }
+
+  // Section header. B lets you collapse a category by tapping it.
+  _renderHeader(id, color, emoji, label, count) {
+    const collapsible = this.uiStyle === 'compact';
+    const open = !this._collapsed[id];
+    const inner = html`
+      <span class="hdr-dot" style="background: ${color}"></span>
+      <span class="cat-emoji">${emoji}</span>
+      <span class="cat-name" style="color: ${color}">${label}</span>
+      <span class="cat-count">${count}</span>
+      ${collapsible ? html`<ha-icon class="hdr-chev" icon=${open ? 'mdi:chevron-down' : 'mdi:chevron-right'}></ha-icon>` : ''}
+    `;
+    return collapsible
+      ? html`<button class="category-header" aria-expanded=${open ? 'true' : 'false'} @click=${() => this._toggleCollapse(id)}>${inner}</button>`
+      : html`<div class="category-header" style="${this.getCategoryHeaderStyle(color)}">${inner}</div>`;
+  }
+
   render() {
     const { mode, sections } = this.groupItems();
     const showRecent = this.settings?.showRecentlyUsed !== false;
@@ -415,31 +547,22 @@ class SLMItemList extends LitElement {
       <div class="list-container">
 
         ${sections.map(section => {
-          const catColor = this.getCategoryColor(section.category.id);
+          const catColor = mode === 'category' ? this.getCategoryColor(section.category.id) : '';
+          const id = mode === 'category' ? section.category.id : '_alpha';
           return html`
           <div class="list-section">
-            ${mode === 'category' ? html`
-              <div class="category-header" style="${this.getCategoryHeaderStyle(catColor)}">
-                <span class="hdr-dot" style="background: ${catColor}"></span>
-                <span class="cat-emoji">${this.getCategoryEmoji(section.category.id)}</span>
-                <span class="cat-name" style="color: ${catColor}">${section.category.name}</span>
-                <span class="cat-count">${section.items.length}</span>
-              </div>
-            ` : ''}
-            ${section.items.map(item => this.renderRow(item))}
+            ${mode === 'category'
+              ? this._renderHeader(id, catColor, this.getCategoryEmoji(section.category.id), section.category.name, section.items.length)
+              : ''}
+            ${this._collapsed[id] ? '' : html`<div class="rows">${section.items.map(item => this.renderRow(item))}</div>`}
           </div>
         `;})}
 
 
         ${showRecent && this._recentItems.length > 0 ? html`
           <div class="list-section">
-            <div class="category-header" style="${this.getCategoryHeaderStyle(recentColor)}">
-              <span class="hdr-dot" style="background: ${recentColor}"></span>
-              <span class="cat-emoji">⏱️</span>
-              <span class="cat-name" style="color: ${recentColor}">${t('Recently Used')}</span>
-              <span class="cat-count">${this._recentItems.length}</span>
-            </div>
-            ${this._recentItems.map(product => this.renderRecentRow(product))}
+            ${this._renderHeader('_recent', recentColor, '⏱️', t('Recently Used'), this._recentItems.length)}
+            ${this._collapsed['_recent'] ? '' : html`<div class="rows">${this._recentItems.map(product => this.renderRecentRow(product))}</div>`}
           </div>
         ` : ''}
 
@@ -447,7 +570,7 @@ class SLMItemList extends LitElement {
     `;
   }
 
-  static styles = css`
+  static styles = [css`
     :host {
       font-size: var(--slm-font-size-base, 16px);
       font-weight: var(--slm-font-weight-base, 400);
@@ -593,23 +716,41 @@ class SLMItemList extends LitElement {
       cursor: default;
     }
     .hdr-dot,
-    .cat-count {
+    .cat-count,
+    .hdr-chev,
+    .stepper,
+    .undo,
+    .cbx,
+    .add-pill {
       display: none;
     }
+    button.category-header {
+      width: 100%;
+      border: none;
+      background: transparent;
+      color: inherit;
+      text-align: left;
+      cursor: pointer;
+    }
 
-    /* ---------- Fresh + Compact: plain section labels ---------- */
+    /* ---------- Designs A (fresh) and B (compact) ---------- */
     :host([ui-style="fresh"]) .list-container,
     :host([ui-style="compact"]) .list-container {
-      padding: 4px 16px;
+      padding: 4px 20px 8px;
     }
     :host([ui-style="fresh"]) .category-header,
     :host([ui-style="compact"]) .category-header {
-      padding: 14px 2px 6px;
-      margin: 0;
+      display: flex;
+      align-items: center;
       gap: 8px;
+      min-height: 32px;
+      padding: 14px 4px 6px;
+      margin: 0;
       font-size: 12px;
+      font-weight: 700;
       letter-spacing: 0.06em;
       text-transform: uppercase;
+      box-sizing: border-box;
     }
     :host([ui-style="fresh"]) .cat-emoji,
     :host([ui-style="compact"]) .cat-emoji {
@@ -626,45 +767,70 @@ class SLMItemList extends LitElement {
     :host([ui-style="fresh"]) .cat-name,
     :host([ui-style="compact"]) .cat-name {
       flex: none;
+      color: var(--slm-text-secondary) !important;
     }
     :host([ui-style="fresh"]) .cat-count,
     :host([ui-style="compact"]) .cat-count {
       display: inline;
+      flex: 1;
       color: var(--slm-text-secondary);
       font-weight: 600;
     }
-    :host([ui-style="fresh"]) .row-left .cat-dot,
-    :host([ui-style="compact"]) .row-left .cat-dot {
-      display: none;
+    :host([ui-style="compact"]) .hdr-chev {
+      display: inline-flex;
+      --mdc-icon-size: 16px;
+      color: var(--slm-text-secondary);
     }
     :host([ui-style="fresh"]) .list-row,
     :host([ui-style="compact"]) .list-row {
       border-radius: 0;
-      border-bottom: 1px solid var(--slm-border-subtle);
+      border-bottom: 1px solid var(--slm-line-soft, var(--slm-border-subtle));
+      color: var(--slm-text-primary);
     }
     :host([ui-style="fresh"]) .list-row:last-child,
     :host([ui-style="compact"]) .list-row:last-child {
       border-bottom: none;
     }
+    :host([ui-style="fresh"]) .row-name,
+    :host([ui-style="compact"]) .row-name {
+      font-size: 1em;
+      font-weight: 700;
+    }
+    .row-sub {
+      font-size: 0.83em;
+      font-weight: 500;
+      color: var(--slm-text-secondary);
+    }
+    .list-row.checked-row .row-name {
+      text-decoration: line-through;
+      color: var(--slm-text-secondary);
+    }
 
-    /* ---------- Fresh: each category is a rounded card ---------- */
+    /* A: each category is a card */
+    .rows {
+      display: contents;
+    }
     :host([ui-style="fresh"]) .list-section {
+      margin-bottom: 8px;
+    }
+    :host([ui-style="fresh"]) .rows {
+      display: block;
       background: var(--slm-bg-surface);
       border: 1px solid var(--slm-border-subtle);
       border-radius: 22px;
-      padding: 0 14px 4px;
-      margin-bottom: 14px;
+      padding: 2px 14px;
     }
-    :host([ui-style="fresh"]) .list-row {
+    :host([ui-style="fresh"]) .rows > .list-row {
       padding: 10px 0;
       gap: 12px;
-      min-height: 52px;
+      min-height: 64px;
     }
     :host([ui-style="fresh"]) .row-icon {
       width: 44px;
       height: 44px;
       border-radius: 14px;
       background: color-mix(in srgb, var(--rc, var(--slm-accent-primary)) 16%, var(--slm-bg-surface));
+      color: var(--rc);
     }
     :host([ui-style="fresh"]) .row-img {
       width: 34px;
@@ -673,103 +839,133 @@ class SLMItemList extends LitElement {
     :host([ui-style="fresh"]) .row-emoji {
       font-size: 26px;
     }
-    :host([ui-style="fresh"]) .row-name {
-      font-size: 0.95em;
-      font-weight: 700;
+    :host([ui-style="fresh"]) .checked-row .row-icon {
+      background: var(--slm-bg-elevated);
+      color: var(--slm-text-secondary);
     }
-    :host([ui-style="fresh"]) .list-decrease-btn {
+    :host([ui-style="fresh"]) .stepper {
+      display: flex;
+      align-items: center;
+      flex: none;
+      padding: 2px;
+      border-radius: 999px;
+      background: var(--slm-bg-main);
+    }
+    .st-btn {
+      width: 40px;
+      height: 40px;
+      border: none;
+      border-radius: 50%;
+      background: transparent;
+      color: var(--slm-text-primary);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .st-btn ha-icon {
+      --mdc-icon-size: 16px;
+      color: inherit;
+    }
+    .st-qty {
+      min-width: 18px;
+      text-align: center;
+      font-weight: 700;
+      font-variant-numeric: tabular-nums;
+    }
+    :host([ui-style="fresh"]) .undo {
+      display: block;
+      flex: none;
+      min-height: 36px;
+      padding: 0 14px;
+      border-radius: 999px;
+      border: 1px solid var(--slm-border-subtle);
+      background: var(--slm-bg-surface);
+      color: var(--slm-text-primary);
+      font-weight: 700;
+      font-size: 0.87em;
+      cursor: pointer;
+    }
+    :host([ui-style="fresh"]) .add-pill {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex: none;
       width: 36px;
       height: 36px;
+      border-radius: 50%;
+      background: var(--slm-accent-soft);
+      color: var(--slm-accent-text);
     }
-    :host([ui-style="fresh"]) .list-qty-badge {
-      min-width: 36px;
-      height: 36px;
-      border-radius: 999px;
+    .add-pill ha-icon {
+      --mdc-icon-size: 18px;
+      color: inherit;
     }
 
-    /* ---------- Compact: flat hairline list ---------- */
-    :host([ui-style="compact"]) .list-section {
-      margin-bottom: 6px;
-    }
+    /* B: flat hairline list with checkboxes */
     :host([ui-style="compact"]) .list-row {
-      padding: 8px 2px;
-      gap: 12px;
-      min-height: 48px;
-    }
-    :host([ui-style="compact"]) .row-icon {
-      width: 32px;
-      height: 32px;
-      border-radius: 8px;
-    }
-    :host([ui-style="compact"]) .row-img {
-      width: 30px;
-      height: 30px;
-    }
-    :host([ui-style="compact"]) .row-emoji {
-      font-size: 22px;
-    }
-    :host([ui-style="compact"]) .row-name {
-      font-size: 0.95em;
-      font-weight: 600;
-    }
-    :host([ui-style="compact"]) .list-decrease-btn {
-      width: 30px;
-      height: 30px;
-    }
-    :host([ui-style="compact"]) .list-qty-badge {
-      min-width: 30px;
-      height: 30px;
-      border-radius: 8px;
-    }
-
-    /* ---------- In-store: big rows, tap anywhere to tick off ---------- */
-    :host([instore]) .list-container {
-      padding: 4px 16px 24px;
-    }
-    :host([instore]) .list-row {
-      min-height: 68px;
-      padding: 10px 4px;
+      min-height: 54px;
+      padding: 0;
       gap: 14px;
     }
-    :host([instore]) .row-icon {
-      width: 48px;
-      height: 48px;
-      border-radius: 14px;
-      background: color-mix(in srgb, var(--rc, var(--slm-accent-primary)) 16%, var(--slm-bg-surface));
+    :host([ui-style="compact"]) .row-name {
+      font-weight: 500;
+      font-size: 1.07em;
     }
-    :host([instore]) .row-img {
-      width: 38px;
-      height: 38px;
+    .row-qty {
+      font-size: 0.93em;
+      color: var(--slm-text-secondary);
+      margin-left: 2px;
     }
-    :host([instore]) .row-emoji {
-      font-size: 30px;
+    :host([ui-style="compact"]) .row-middle {
+      display: flex;
+      align-items: baseline;
+      gap: 6px;
+      flex-wrap: wrap;
     }
-    :host([instore]) .row-name {
-      font-size: 1.15em;
-      font-weight: 700;
-      white-space: normal;
+    :host([ui-style="compact"]) .row-price {
+      flex: none;
+      margin: 0;
+      font-size: 0.93em;
+      font-weight: 500;
+      color: var(--slm-text-secondary);
+      font-variant-numeric: tabular-nums;
     }
-    :host([instore]) .row-price {
-      font-size: 0.85em;
+    :host([ui-style="compact"]) .cbx {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex: none;
+      width: 24px;
+      height: 24px;
+      box-sizing: border-box;
+      border-radius: 8px;
+      border: 2px solid var(--slm-text-muted, var(--slm-text-secondary));
+      color: var(--slm-accent-ink, #fff);
     }
-    :host([instore]) .list-decrease-btn {
-      display: none;
+    :host([ui-style="compact"]) .cbx.on {
+      border-color: var(--slm-accent-primary);
+      background: var(--slm-accent-primary);
     }
-    :host([instore]) .list-qty-badge {
-      min-width: 40px;
-      height: 40px;
-      border-radius: 12px;
-      font-size: 17px;
+    :host([ui-style="compact"]) .cbx.add {
+      border-style: dashed;
+      color: var(--slm-text-secondary);
     }
-    :host([instore]) .list-row:active {
-      background: color-mix(in srgb, var(--slm-accent-primary) 12%, transparent);
+    .cbx ha-icon {
+      --mdc-icon-size: 16px;
+      color: inherit;
     }
-    .list-row.checked-row .row-name,
-    .list-row.checked-row .row-price {
+    :host([ui-style="compact"]) .list-row.checked-row .row-qty,
+    :host([ui-style="compact"]) .list-row.checked-row .row-price {
       text-decoration: line-through;
     }
     .list-row.checked-row {
-      opacity: 0.45;
+      opacity: 0.6;
+    }
+    :host([ui-style="fresh"]) .list-section > .list-row.recent-row,
+    :host([ui-style="compact"]) .recent-row {
+      opacity: 1;
     }
 
     .empty {
@@ -789,7 +985,7 @@ class SLMItemList extends LitElement {
       font-size: 14px;
       opacity: 0.7;
     }
-  `;
+  `, fontInherit];
 }
 
 customElements.define('slm-item-list', SLMItemList);
