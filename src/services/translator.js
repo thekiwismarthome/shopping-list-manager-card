@@ -79,6 +79,7 @@ export const UI_STRINGS = [
   'Profile', 'Appearance', 'Theme, tiles, fonts',
   'Notifications', 'List sharing, emails',
   'Preferences', 'Open last used list at launch', 'Keep screen turned on',
+  'Sync settings across devices', 'Keep your theme and list options the same on all your devices',
   'Region & Catalog', 'Country-specific products and pricing',
   'Manage Categories', 'categories',
   'HA Todo Sync', 'Link lists to Home Assistant todo',

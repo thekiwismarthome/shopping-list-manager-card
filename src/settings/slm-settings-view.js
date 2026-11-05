@@ -117,6 +117,21 @@ class SLMSettingsView extends LitElement {
 
           <div class="settings-item">
             <div class="item-content">
+              <div class="item-title">${t('Sync settings across devices')}</div>
+              <div class="item-subtitle">${t('Keep your theme and list options the same on all your devices')}</div>
+            </div>
+            <label class="toggle">
+              <input 
+                type="checkbox" 
+                .checked=${this.settings.syncAcrossDevices !== false}
+                @change=${(e) => this.handleSettingChange('syncAcrossDevices', e.target.checked)}
+              />
+              <span class="slider"></span>
+            </label>
+          </div>
+
+          <div class="settings-item">
+            <div class="item-content">
               <div class="item-title">${t('Keep screen turned on')}</div>
             </div>
             <label class="toggle">
