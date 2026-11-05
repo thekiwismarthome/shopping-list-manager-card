@@ -1,3 +1,5 @@
+import { pickSyncable, mergeRemote, decideSync } from './services/settings-sync.js';
+import { BUNDLED_TRANSLATIONS, BUILT_IN_REGION_LANGUAGE } from './i18n/index.js';
 import { LitElement, html, css } from 'lit';
 import { ShoppingListAPI } from './services/api.js';
 import { loadTranslations, getLanguageCode, setTranslations, t } from './services/translator.js';
@@ -171,7 +173,8 @@ class ShoppingListManagerCard extends LitElement {
       showRecentlyUsed: true,
       showPriceOnTile: true,
       localImagePath: '/local/images/groceries',
-      fontWeight: 'normal'
+      fontWeight: 'normal',
+      syncAcrossDevices: true
     };
 
     const key = this._getSettingsKey();
@@ -198,6 +201,92 @@ class ShoppingListManagerCard extends LitElement {
   saveSettings() {
     const key = this._getSettingsKey();
     localStorage.setItem(key, JSON.stringify(this.settings));
+    this._queueSettingsPush();
+  }
+
+  // ── Settings sync across devices ──────────────────────────────────────
+  // The integration keeps one settings blob per HA user. Device-specific
+  // settings (see DEVICE_ONLY_KEYS) always stay local.
+
+  _canSyncSettings() {
+    return !!(this.api && this._settingsUserId && this.settings.syncAcrossDevices !== false && !this._syncUnsupported);
+  }
+
+  _syncMetaKey() {
+    return `slm_settings_sync_${this._settingsUserId}`;
+  }
+
+  _loadSyncMeta() {
+    try {
+      return { syncedAt: null, dirty: false, ...JSON.parse(localStorage.getItem(this._syncMetaKey()) || '{}') };
+    } catch (err) {
+      return { syncedAt: null, dirty: false };
+    }
+  }
+
+  _saveSyncMeta(meta) {
+    try { localStorage.setItem(this._syncMetaKey(), JSON.stringify(meta)); } catch (err) { /* storage unavailable */ }
+  }
+
+  // Called after every local settings change: mark unsent edits and push (debounced).
+  _queueSettingsPush() {
+    if (!this._canSyncSettings()) return;
+    if (JSON.stringify(pickSyncable(this.settings)) === this._lastPushedJson) return; // device-only change
+    this._saveSyncMeta({ ...this._loadSyncMeta(), dirty: true });
+    clearTimeout(this._settingsPushTimer);
+    this._settingsPushTimer = setTimeout(() => this._pushSettings(), 800);
+  }
+
+  async _pushSettings() {
+    if (!this._canSyncSettings()) return;
+    const payload = pickSyncable(this.settings);
+    const json = JSON.stringify(payload);
+    try {
+      const res = await this.api.setUserSettings(payload);
+      this._lastPushedJson = json;
+      // Only clear "dirty" if nothing changed while the request was in flight.
+      const unchanged = json === JSON.stringify(pickSyncable(this.settings));
+      this._saveSyncMeta({ syncedAt: res?.updated_at || null, dirty: !unchanged });
+    } catch (err) {
+      this._handleSyncError(err, 'push');
+    }
+  }
+
+  // Fetch the server copy and either adopt it, push ours, or do nothing.
+  async _syncSettingsFromServer({ throttleMs = 0 } = {}) {
+    if (!this._canSyncSettings()) return;
+    const now = Date.now();
+    if (throttleMs && now - (this._lastSettingsFetch || 0) < throttleMs) return;
+    this._lastSettingsFetch = now;
+    try {
+      const remote = await this.api.getUserSettings();
+      const meta = this._loadSyncMeta();
+      const action = decideSync(meta, remote);
+      if (action === 'push') {
+        await this._pushSettings();
+      } else if (action === 'apply') {
+        this.settings = mergeRemote(this.settings, remote.settings);
+        localStorage.setItem(this._getSettingsKey(), JSON.stringify(this.settings));
+        this._lastPushedJson = JSON.stringify(pickSyncable(this.settings));
+        this._saveSyncMeta({ syncedAt: remote.updated_at, dirty: false });
+        this.applyColorScheme();
+        this.requestUpdate();
+      } else {
+        this._lastPushedJson = JSON.stringify(pickSyncable(this.settings));
+      }
+    } catch (err) {
+      this._handleSyncError(err, 'fetch');
+    }
+  }
+
+  _handleSyncError(err, what) {
+    // Older integration without the user_settings commands: stop trying.
+    if (err?.code === 'unknown_command') {
+      this._syncUnsupported = true;
+      console.info('[SLM] Settings sync needs a newer Shopping List Manager integration');
+      return;
+    }
+    console.warn(`[SLM] Settings sync ${what} failed:`, err?.message || err?.code || err);
   }
 
   async firstUpdated() {
@@ -208,16 +297,19 @@ class ShoppingListManagerCard extends LitElement {
     await Promise.all([this.loadData(), this._loadIntegrationSettings()]);
     this.applyColorScheme();
     if (this.settings.keepScreenOn) this.acquireWakeLock();
+    // Pull this user's synced settings in the background (doesn't block first paint)
+    this._syncSettingsFromServer();
     this._visibilityHandler = () => {
-      if (this.settings.keepScreenOn && document.visibilityState === 'visible') {
-        this.acquireWakeLock();
-      }
+      if (document.visibilityState !== 'visible') return;
+      if (this.settings.keepScreenOn) this.acquireWakeLock();
+      this._syncSettingsFromServer({ throttleMs: 15000 });
     };
     document.addEventListener('visibilitychange', this._visibilityHandler);
   }
 
   disconnectedCallback() {
     super.disconnectedCallback();
+    clearTimeout(this._settingsPushTimer);
     this.releaseWakeLock();
     document.removeEventListener('visibilitychange', this._visibilityHandler);
 
@@ -283,17 +375,20 @@ class ShoppingListManagerCard extends LitElement {
       this._integrationSettings = result;
       this._metricUnitsOnly = result.metric_units_only !== false;
       this._enablePriceTracking = result.enable_price_tracking !== false;
-      this._applyRegionSettings(result.country, result.custom_regions || {});
+      this._applyRegionSettings(result.country, result.custom_regions || {}, result.currency_symbol);
     } catch (err) {
       console.warn('[SLM] Failed to load integration settings:', err);
     }
   }
 
-  async _applyRegionSettings(activeCountry, customRegions) {
+  async _applyRegionSettings(activeCountry, customRegions, builtInCurrencySymbol) {
     const region = customRegions[activeCountry];
     if (!region) {
-      this._currencySymbol = '$';
-      setTranslations(null);
+      // Built-in region: the integration supplies its currency symbol, and
+      // regions with a bundled UI language (e.g. ES, FR) are translated offline.
+      this._currencySymbol = builtInCurrencySymbol || '$';
+      const bundled = BUNDLED_TRANSLATIONS[BUILT_IN_REGION_LANGUAGE[activeCountry]];
+      setTranslations(bundled || null);
       return;
     }
     this._currencySymbol = region.currency_symbol || '$';
@@ -595,8 +690,14 @@ class ShoppingListManagerCard extends LitElement {
   }
 
   handleSettingsChange(e) {
+    const syncJustEnabled = 'syncAcrossDevices' in e.detail && e.detail.syncAcrossDevices && !this.settings.syncAcrossDevices;
     this.settings = { ...this.settings, ...e.detail };
     this.saveSettings();
+    if (syncJustEnabled) {
+      // Switching sync on: take the server copy (seeds it from here if empty)
+      this._saveSyncMeta({ syncedAt: null, dirty: false });
+      this._syncSettingsFromServer();
+    }
     this.applyColorScheme();
     if (this.settings.keepScreenOn) {
       this.acquireWakeLock();

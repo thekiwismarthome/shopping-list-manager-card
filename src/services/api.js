@@ -246,6 +246,20 @@ export class ShoppingListAPI {
     }, { timeout: STARTUP_TIMEOUT_MS });
   }
 
+  // Per-user card settings, synced across the user's devices
+  async getUserSettings() {
+    return await this._ws({
+      type: 'shopping_list_manager/user_settings/get'
+    }, { timeout: STARTUP_TIMEOUT_MS });
+  }
+
+  async setUserSettings(settings) {
+    return await this._ws({
+      type: 'shopping_list_manager/user_settings/set',
+      settings
+    });
+  }
+
   // Integration settings
   async getIntegrationSettings() {
     return await this._ws({

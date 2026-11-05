@@ -1,7 +1,9 @@
 import { t, I18nController } from '../services/translator.js';
 import { LitElement, html, css } from 'lit';
 
-const BUILT_IN_COUNTRIES = ['NZ', 'AU', 'US', 'GB', 'CA', 'BE'];
+// Fallback only: the real list comes from the integration (available_countries minus custom_regions),
+// so regions added to the integration appear without a card update.
+const BUILT_IN_COUNTRIES = ['NZ', 'AU', 'US', 'GB', 'CA', 'BE', 'ES', 'FR'];
 
 class SLMDataSettings extends LitElement {
   _i18n = new I18nController(this);
@@ -171,7 +173,7 @@ class SLMDataSettings extends LitElement {
       this._regionMessage = 'error:Code must be 2–8 uppercase letters (A–Z only).';
       return;
     }
-    if (BUILT_IN_COUNTRIES.includes(code)) {
+    if (BUILT_IN_COUNTRIES.includes(code) || (code in this._availableCountries && !this._customRegions[code])) {
       this._regionMessage = `error:"${code}" is a built-in region code.`;
       return;
     }
@@ -263,7 +265,7 @@ class SLMDataSettings extends LitElement {
               >
                 <optgroup label="Built-in">
                   ${Object.entries(this._availableCountries)
-                    .filter(([code]) => BUILT_IN_COUNTRIES.includes(code))
+                    .filter(([code]) => !this._customRegions[code])
                     .map(([code, name]) => html`
                       <option value=${code} ?selected=${this._currentCountry === code}>
                         ${code} — ${name}
