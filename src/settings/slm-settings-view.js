@@ -10,6 +10,7 @@ import './slm-category-settings.js';
 import './slm-support-settings.js';
 import './slm-data-settings.js';
 import './slm-ha-sync-settings.js';
+import './slm-backup-settings.js';
 
 class SLMSettingsView extends LitElement {
   _i18n = new I18nController(this);
@@ -24,8 +25,8 @@ class SLMSettingsView extends LitElement {
     uiStyle: { type: String, attribute: 'ui-style', reflect: true },
     currentSection: { type: String },
     _query: { type: String, state: true },
-    _slmVersion:  { type: String },
-    _slmcVersion: { type: String },
+    // Installed integration version, from the integration itself (get_integration_settings)
+    integrationVersion: { type: String },
   };
 
   constructor() {
@@ -33,24 +34,15 @@ class SLMSettingsView extends LitElement {
     this.uiStyle = 'classic';
     this.currentSection = 'main';
     this._query = '';
-    this._slmVersion  = '…';
-    this._slmcVersion = '…';
   }
 
-  updated(changedProps) {
-    if (changedProps.has('hass') && this.hass && this._slmVersion === '…') {
-      this.hass.callWS({ type: 'hacs/repositories/list' })
-        .then(repos => {
-          const slm  = repos.find(r => r.full_name === 'thekiwismarthome/shopping-list-manager');
-          const slmc = repos.find(r => r.full_name === 'thekiwismarthome/shopping-list-manager-card');
-          this._slmVersion  = slm?.installed_version  ?? '—';
-          this._slmcVersion = slmc?.installed_version ?? CARD_VERSION;
-        })
-        .catch(() => {
-          this._slmVersion  = '—';
-          this._slmcVersion = CARD_VERSION;
-        });
-    }
+  // Integration: reported by the running integration. Card: the version built into this file.
+  get _slmVersion() {
+    return this.integrationVersion || '—';
+  }
+
+  get _slmcVersion() {
+    return CARD_VERSION;
   }
 
   get _classic() {
@@ -116,6 +108,7 @@ class SLMSettingsView extends LitElement {
         title: t('Support'),
         rows: [
           nav('support', '❓', 'mdi:help-circle-outline', '--slm-cat-household', t('FAQ & Support')),
+          nav('backup', '💾', 'mdi:backup-restore', '--slm-cat-pantry', t('Backup & Restore'), t('Export or restore your lists and products')),
           { type: 'action', emoji: '🔄', icon: 'mdi:refresh', color: '--slm-cat-other', title: t('Refresh'), action: () => window.location.reload() },
         ]
       },
@@ -287,6 +280,15 @@ class SLMSettingsView extends LitElement {
             .api=${this.api}
             @back=${() => this.currentSection = 'main'}
           ></slm-data-settings>
+        `;
+
+      case 'backup':
+        return html`
+          <slm-backup-settings
+            .uiStyle=${this.uiStyle}
+            .api=${this.api}
+            @back=${() => this.currentSection = 'main'}
+          ></slm-backup-settings>
         `;
 
       case 'ha-sync':

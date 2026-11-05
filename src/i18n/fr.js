@@ -207,5 +207,11 @@ export default {
   "Periwinkle": "Pervenche",
   "Mint": "Menthe",
   "Amber": "Ambre",
-  "Coral": "Corail"
+  "Coral": "Corail",
+  "Export or restore your lists and products": "Exportez ou restaurez vos listes et produits",
+  "New list": "Nouvelle liste",
+  "Private": "Privée",
+  "Only visible to me (and members I add)": "Visible uniquement par moi (et les membres que j'ajoute)",
+  "Tap to scan": "Touchez pour scanner",
+  "Hold the screen up to the scanner.": "Approchez l'écran du lecteur."
 };

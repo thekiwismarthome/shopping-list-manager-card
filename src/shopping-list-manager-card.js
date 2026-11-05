@@ -2,7 +2,7 @@ import { pickSyncable, mergeRemote, decideSync } from './services/settings-sync.
 import { BUNDLED_TRANSLATIONS, BUILT_IN_REGION_LANGUAGE } from './i18n/index.js';
 import { LitElement, html, css } from 'lit';
 import { ShoppingListAPI } from './services/api.js';
-import { accentOverrides } from './styles/accents.js';
+import { themeOverrides } from './styles/accents.js';
 import { loadTranslations, getLanguageCode, setTranslations, t } from './services/translator.js';
 import './components/slm-bottom-nav.js';
 import './components/slm-list-header.js';
@@ -423,8 +423,8 @@ class ShoppingListManagerCard extends LitElement {
       this.setAttribute('data-mode', this._isDark ? 'dark' : 'light');
     }
 
-    // Theme (A) / accent (B): override the accent tokens, or fall back to the design's palette
-    const ov = ui === 'classic' ? null : accentOverrides(ui, this.settings.accent, this._isDark);
+    // Theme (Meadow / Slate / Sunset): override the accent tokens, or fall back to the design's palette
+    const ov = ui === 'classic' ? null : themeOverrides(ui, this.settings.designTheme, this._isDark);
     const accentTokens = { '--slm-accent-primary': 'a', '--slm-accent-ink': 'i', '--slm-accent-soft': 's', '--slm-accent-text': 't', '--slm-total-bar-bg': 'a' };
     for (const [prop, key] of Object.entries(accentTokens)) {
       if (ov) this.style.setProperty(prop, ov[key]);
@@ -1115,6 +1115,42 @@ class ShoppingListManagerCard extends LitElement {
     `;
   }
 
+  // The chip row scrolls sideways: touch swipes natively, and a mouse can drag it or use the wheel.
+  _chipsDown(e) {
+    if (e.pointerType !== 'mouse' || e.button !== 0) return;
+    const el = e.currentTarget;
+    this._chipDrag = { x: e.clientX, left: el.scrollLeft, moved: false };
+  }
+
+  _chipsMove(e) {
+    const d = this._chipDrag;
+    if (!d) return;
+    const dx = e.clientX - d.x;
+    if (Math.abs(dx) > 4) d.moved = true;
+    if (d.moved) e.currentTarget.scrollLeft = d.left - dx;
+  }
+
+  _chipsUp() {
+    if (this._chipDrag?.moved) this._chipSuppressClick = true;
+    this._chipDrag = null;
+  }
+
+  _chipsClick(e) {
+    // A drag with the mouse should not also select the chip under the pointer
+    if (this._chipSuppressClick) {
+      this._chipSuppressClick = false;
+      e.stopPropagation();
+      e.preventDefault();
+    }
+  }
+
+  _chipsWheel(e) {
+    const el = e.currentTarget;
+    if (el.scrollWidth <= el.clientWidth || Math.abs(e.deltaY) <= Math.abs(e.deltaX)) return;
+    el.scrollLeft += e.deltaY;
+    e.preventDefault();
+  }
+
   // Category filter chips under the summary card (design A)
   renderChips() {
     if (this._ui !== 'fresh') return '';
@@ -1122,7 +1158,10 @@ class ShoppingListManagerCard extends LitElement {
     if (this._catFilter !== 'all' && !present.some(c => c.id === this._catFilter)) this._catFilter = 'all';
     if (present.length < 2) return '';
     return html`
-      <div class="chips" role="group" aria-label=${t('Categories')}>
+      <div class="chips" role="group" aria-label=${t('Categories')}
+           @pointerdown=${this._chipsDown} @pointermove=${this._chipsMove}
+           @pointerup=${this._chipsUp} @pointercancel=${this._chipsUp} @pointerleave=${this._chipsUp}
+           @wheel=${this._chipsWheel} @click=${this._chipsClick}>
         <button class="chip ${this._catFilter === 'all' ? 'on' : ''}"
                 @click=${() => { this._catFilter = 'all'; }}>${t('All')} · ${this.items.length}</button>
         ${present.map(c => html`
@@ -1281,6 +1320,7 @@ class ShoppingListManagerCard extends LitElement {
               .isEmbedded=${this.isEmbedded}
               .categories=${this.categories}
               .uiStyle=${this._ui}
+              .integrationVersion=${this._integrationSettings?.version}
               @settings-changed=${this.handleSettingsChange}
               @lists-updated=${async () => { await this.loadData(); await this._loadIntegrationSettings(); }}
               @region-changed=${() => this._loadIntegrationSettings()}
@@ -1557,7 +1597,24 @@ class ShoppingListManagerCard extends LitElement {
       gap: 8px;
       padding: 16px 20px 0;
       overflow-x: auto;
+      overflow-y: hidden;
       scrollbar-width: none;
+      touch-action: pan-x pan-y;
+      overscroll-behavior-x: contain;
+      -webkit-overflow-scrolling: touch;
+      cursor: grab;
+      user-select: none;
+      /* fade the right edge so it is clear there is more to swipe to */
+      -webkit-mask-image: linear-gradient(to right, #000 calc(100% - 28px), transparent);
+      mask-image: linear-gradient(to right, #000 calc(100% - 28px), transparent);
+    }
+    :host([data-ui="fresh"]) .chips::-webkit-scrollbar {
+      display: none;
+    }
+    :host([data-ui="fresh"]) .chips::after {
+      content: "";
+      flex: none;
+      width: 20px;
     }
     .chip {
       flex: none;

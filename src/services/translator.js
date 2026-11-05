@@ -81,7 +81,7 @@ export const UI_STRINGS = [
   'Preferences', 'Open last used list at launch', 'Keep screen turned on',
   'Sync settings across devices', 'Keep your theme and list options the same on all your devices',
   // Interface styles + tidied settings
-  'Interface style', 'Classic', 'Fresh', 'Compact', 'Style, colour mode, tiles, fonts',
+  'Interface style', 'Classic', 'Fresh', 'Compact', 'Style, colour mode, tiles, fonts', 'New list', 'Private', 'Only visible to me (and members I add)', 'Tap to scan', 'Hold the screen up to the scanner.', 'Export or restore your lists and products',
   'The original look', 'Soft cards, floating menu', 'Dense list, flat tab bar',
   'Personalise', 'Behaviour', 'Connections', 'Search settings', 'No settings match',
   'In your basket', 'Estimated', 'Estimated total', 'of', 'left', 'Main',

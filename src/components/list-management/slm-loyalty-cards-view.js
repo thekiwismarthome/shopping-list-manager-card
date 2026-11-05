@@ -4,7 +4,7 @@ import { fontInherit } from '../../styles/ui-styles.js';
 import JsBarcode from 'jsbarcode';
 import { Html5Qrcode } from 'html5-qrcode';
 import qrcode from 'qrcode-generator';
-import { viewHeaderStyles } from '../../styles/ui-styles.js';
+import { viewHeaderStyles, bottomSheetStyles } from '../../styles/ui-styles.js';
 
 class SLMLoyaltyCardsView extends LitElement {
   _i18n = new I18nController(this);
@@ -435,32 +435,35 @@ class SLMLoyaltyCardsView extends LitElement {
     `;
   }
 
+  _maskedNumber(number) {
+    const digits = String(number || '').replace(/\D/g, '');
+    return digits ? `•••• ${digits.slice(-4)}` : '';
+  }
+
   renderCardGrid() {
     return html`
       <div class="cards-grid">
         ${this.cards.map(card => html`
           <div class="loyalty-card" style="background: ${card.color}" @click=${() => this.handleCardClick(card)}>
-            ${card.owner_id ? html`
-              <div class="private-badge">
-                <ha-icon icon="mdi:lock"></ha-icon>
-              </div>
-            ` : ''}
-            <button class="card-menu-btn" @click=${(e) => { e.stopPropagation(); this.handleEditCard(card); }}>
+            <button class="card-menu-btn" aria-label=${t('Edit Card')} @click=${(e) => { e.stopPropagation(); this.handleEditCard(card); }}>
               <ha-icon icon="mdi:dots-vertical"></ha-icon>
             </button>
+            <div class="card-top">
+              <ha-icon icon="mdi:credit-card-outline"></ha-icon>
+              <span class="scan-hint">${t('Tap to scan')}</span>
+            </div>
             <div class="card-body">
               ${card.logo ? html`
                 <img src="${card.logo}" alt="${card.name}" class="card-logo">
               ` : ''}
               <h3>${card.name}</h3>
-              <div class="card-number">${card.number}</div>
-              ${card.barcode ? html`
-                <div class="barcode-preview">
-                  <ha-icon icon="${card.barcode_type === 'qrcode' ? 'mdi:qrcode' : 'mdi:barcode'}"></ha-icon>
-                  <span>${card.barcode}</span>
-                </div>
-              ` : ''}
+              <div class="card-number">${this._maskedNumber(card.number)}</div>
             </div>
+            ${card.owner_id ? html`
+              <div class="private-badge">
+                <ha-icon icon="mdi:lock"></ha-icon>
+              </div>
+            ` : ''}
           </div>
         `)}
       </div>
@@ -694,23 +697,29 @@ class SLMLoyaltyCardsView extends LitElement {
 
   renderFullscreen() {
     const card = this.fullscreenCard;
+    const close = () => { this.showFullscreenCard = false; };
     return html`
-      <div class="fullscreen-overlay" @click=${() => this.showFullscreenCard = false}>
-        <div class="fullscreen-card">
-          <h2>${card.name}</h2>
-          <div class="fullscreen-number">${card.number}</div>
+      <div class="sheet-layer">
+        <div class="scrim" @click=${close}></div>
+        <div class="sheet" role="dialog" aria-modal="true" aria-label=${card.name}>
+          <div class="grab"></div>
+          <div class="sheet-head">
+            <h2>${card.name}</h2>
+            <button class="done" @click=${close}>${t('Done')}</button>
+          </div>
           ${card.barcode ? html`
-            <div class="fullscreen-barcode">
+            <div class="scan-box">
               ${card.barcode_type === 'qrcode' ? html`
                 <canvas id="qrcode-canvas"></canvas>
+                <span class="scan-number">${card.number}</span>
               ` : html`
-                <div class="barcode-display">
-                  <svg id="barcode-svg"></svg>
-                </div>
+                <svg id="barcode-svg"></svg>
               `}
             </div>
-          ` : ''}
-          <p class="tap-hint">Tap anywhere to close</p>
+          ` : html`
+            <div class="scan-box"><span class="scan-number">${card.number}</span></div>
+          `}
+          <p class="scan-tip">${t('Hold the screen up to the scanner.')}</p>
         </div>
       </div>
     `;
@@ -1188,57 +1197,112 @@ class SLMLoyaltyCardsView extends LitElement {
     .action-btn.danger { background: var(--slm-accent-danger, #ef9a9a); color: white; }
     .action-btn ha-icon { --mdc-icon-size: 18px; }
 
-    /* ── Fullscreen ───────────────────────────────── */
-    .fullscreen-overlay {
-      position: fixed;
-      inset: 0;
-      background: rgba(0,0,0,0.95);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      z-index: 2000;
-      cursor: pointer;
+    /* ── Scan sheet ───────────────────────────────── */
+    .scan-box {
+      display: grid;
+      justify-items: center;
+      gap: 10px;
+      margin-top: 10px;
+      padding: 18px 14px;
+      border-radius: 18px;
+      background: #ffffff;
+      color: #000000;
     }
-    .fullscreen-card {
-      text-align: center;
-      color: white;
-      padding: 40px;
-      max-width: 90%;
+    .scan-box svg {
+      display: block;
+      width: 100%;
+      max-width: 100%;
+      height: auto;
     }
-    .fullscreen-card h2 {
-      margin: 0 0 20px 0;
-      font-size: 28px;
-    }
-    .fullscreen-number {
-      font-size: 32px;
-      font-weight: 700;
-      letter-spacing: 3px;
-      margin-bottom: 40px;
-    }
-    .fullscreen-barcode {
-      margin: 40px auto;
-      background: white;
-      padding: 30px;
-      border-radius: 12px;
-      max-width: 400px;
-    }
-    .barcode-display { margin-bottom: 20px; }
     #qrcode-canvas {
       display: block;
       width: 260px !important;
       height: 260px !important;
+      max-width: 100%;
       border-radius: 8px;
     }
-    .tap-hint {
-      margin-top: 40px;
-      opacity: 0.7;
-      font-size: 14px;
+    .scan-number {
+      font-size: 18px;
+      font-weight: 600;
+      letter-spacing: 0.14em;
+      font-variant-numeric: tabular-nums;
+      color: #000000;
+    }
+    .scan-tip {
+      margin: 12px 0 0;
+      text-align: center;
+      font-size: 13px;
+      color: var(--slm-text-secondary);
+    }
+    .card-top {
+      display: none;
     }
 
     /* ---------- Fresh + Compact ---------- */
+    :host([ui-style="fresh"]) .cards-grid,
+    :host([ui-style="compact"]) .cards-grid {
+      grid-template-columns: 1fr;
+      gap: 12px;
+    }
+    :host([ui-style="fresh"]) .loyalty-card,
+    :host([ui-style="compact"]) .loyalty-card {
+      min-height: 128px;
+      padding: 16px;
+      justify-content: space-between;
+      box-shadow: none;
+      color: #ffffff;
+    }
+    :host([ui-style="fresh"]) .card-top,
+    :host([ui-style="compact"]) .card-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      padding-right: 44px;
+    }
+    .card-top ha-icon {
+      --mdc-icon-size: 24px;
+      color: inherit;
+    }
+    .scan-hint {
+      font-size: 13px;
+      font-weight: 600;
+      opacity: 0.9;
+    }
+    :host([ui-style="fresh"]) .loyalty-card h3,
+    :host([ui-style="compact"]) .loyalty-card h3 {
+      margin: 0;
+      font-size: 20px;
+      font-weight: 800;
+    }
+    :host([ui-style="fresh"]) .card-body,
+    :host([ui-style="compact"]) .card-body {
+      flex: none;
+      justify-content: flex-start;
+    }
+    :host([ui-style="fresh"]) .card-number,
+    :host([ui-style="compact"]) .card-number {
+      margin: 2px 0 0;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      font-variant-numeric: tabular-nums;
+      opacity: 0.92;
+    }
+    :host([ui-style="fresh"]) .card-menu-btn,
+    :host([ui-style="compact"]) .card-menu-btn {
+      width: 44px;
+      height: 44px;
+      top: 4px;
+      right: 4px;
+      background: transparent;
+      color: inherit;
+    }
+    :host([ui-style="fresh"]) .private-badge ha-icon,
+    :host([ui-style="compact"]) .private-badge ha-icon {
+      color: inherit;
+    }
     :host([ui-style="fresh"]) .loyalty-card {
       border-radius: 22px;
-      box-shadow: var(--slm-shadow-soft);
     }
     :host([ui-style="fresh"]) .loyalty-tile {
       border-radius: 20px;
@@ -1248,7 +1312,7 @@ class SLMLoyaltyCardsView extends LitElement {
       border-radius: 14px;
       box-shadow: none;
     }
-  `, viewHeaderStyles, fontInherit];
+  `, viewHeaderStyles, bottomSheetStyles, fontInherit];
 }
 
 customElements.define('slm-loyalty-cards-view', SLMLoyaltyCardsView);

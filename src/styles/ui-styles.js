@@ -256,6 +256,210 @@ export const viewHeaderStyles = css`
   }
 `;
 
+/**
+ * Bottom sheet (same look as the list options sheet). Markup:
+ *   <div class="sheet-layer"><div class="scrim"></div>
+ *     <div class="sheet" role="dialog"><div class="grab"></div>
+ *       <div class="sheet-head"><h2>Title</h2><button class="done">Done</button></div> ... </div></div>
+ * The layer covers the card (it is positioned against the card container, not the screen).
+ */
+export const bottomSheetStyles = css`
+  .sheet-layer {
+    position: absolute;
+    inset: 0;
+    z-index: 300;
+  }
+  .sheet-layer .scrim {
+    position: absolute;
+    inset: 0;
+    background: rgba(10, 16, 13, 0.5);
+    animation: slm-fade 0.2s;
+  }
+  .sheet-layer .sheet {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    max-height: 90%;
+    overflow-y: auto;
+    box-sizing: border-box;
+    padding: 10px 20px 28px;
+    border-radius: 32px 32px 0 0;
+    background: var(--slm-bg-main);
+    color: var(--slm-text-primary);
+    box-shadow: 0 -10px 40px rgba(0, 0, 0, 0.22);
+    animation: slm-up 0.25s ease-out;
+  }
+  .sheet-layer .grab {
+    width: 40px;
+    height: 5px;
+    border-radius: 99px;
+    margin: 0 auto 8px;
+    background: var(--slm-border-subtle);
+  }
+  .sheet-layer .sheet-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 0 4px 6px;
+  }
+  .sheet-layer .sheet-head h2 {
+    margin: 0;
+    min-width: 0;
+    font-size: 22px;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    color: var(--slm-text-primary);
+  }
+  .sheet-layer .done {
+    flex: none;
+    min-height: 44px;
+    padding: 0 20px;
+    border: none;
+    border-radius: 999px;
+    background: var(--slm-accent-primary);
+    color: var(--slm-accent-ink, #fff);
+    font-weight: 700;
+    font-size: 14px;
+    cursor: pointer;
+  }
+  .sheet-layer .done:disabled {
+    opacity: 0.45;
+    cursor: default;
+  }
+  .sheet-layer .done.ghost {
+    background: var(--slm-bg-surface);
+    color: var(--slm-text-primary);
+    border: 1px solid var(--slm-border-subtle);
+  }
+  .sheet-layer .label {
+    padding: 12px 4px 6px;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    color: var(--slm-text-secondary);
+  }
+  .sheet-layer .field {
+    width: 100%;
+    min-height: 48px;
+    box-sizing: border-box;
+    padding: 0 14px;
+    border-radius: 14px;
+    border: 1px solid var(--slm-border-subtle);
+    background: var(--slm-bg-surface);
+    color: var(--slm-text-primary);
+    font: inherit;
+    font-size: 15px;
+  }
+  .sheet-layer .field::placeholder {
+    color: var(--slm-text-secondary);
+  }
+  .sheet-layer .field:focus {
+    outline: 2px solid var(--slm-accent-primary);
+    outline-offset: -1px;
+  }
+  .sheet-layer .choices {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .sheet-layer .choice {
+    width: 48px;
+    height: 48px;
+    border-radius: 14px;
+    border: 2px solid var(--slm-border-subtle);
+    background: var(--slm-bg-surface);
+    font-size: 22px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+  }
+  .sheet-layer .choice.selected {
+    border-color: var(--slm-accent-primary);
+    background: var(--slm-accent-soft, var(--slm-bg-elevated));
+  }
+  .sheet-layer .card-block {
+    margin-top: 12px;
+    padding: 2px 14px;
+    border-radius: 22px;
+    border: 1px solid var(--slm-border-subtle);
+    background: var(--slm-bg-surface);
+  }
+  .sheet-layer .toggle-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    width: 100%;
+    min-height: 56px;
+    padding: 6px 0;
+    border: none;
+    background: transparent;
+    color: var(--slm-text-primary);
+    text-align: left;
+    font: inherit;
+    cursor: pointer;
+  }
+  .sheet-layer .toggle-row .tr-text {
+    flex: 1;
+    min-width: 0;
+  }
+  .sheet-layer .toggle-row .tr-title {
+    display: block;
+    font-size: 15px;
+    font-weight: 700;
+  }
+  .sheet-layer .toggle-row .tr-sub {
+    display: block;
+    font-size: 12.5px;
+    font-weight: 500;
+    color: var(--slm-text-secondary);
+  }
+  .sheet-layer .tg {
+    position: relative;
+    flex: none;
+    width: 48px;
+    height: 28px;
+    border-radius: 99px;
+    background: var(--slm-border-subtle);
+    transition: background 0.2s;
+  }
+  .sheet-layer .tg::after {
+    content: "";
+    position: absolute;
+    top: 3px;
+    left: 3px;
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    background: #fff;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.25);
+    transition: transform 0.2s;
+  }
+  .sheet-layer .tg.on {
+    background: var(--slm-accent-primary);
+  }
+  .sheet-layer .tg.on::after {
+    transform: translateX(20px);
+  }
+  @keyframes slm-up {
+    from { transform: translateY(24px); opacity: 0; }
+    to { transform: none; opacity: 1; }
+  }
+  @keyframes slm-fade {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .sheet-layer .scrim, .sheet-layer .sheet { animation: none; }
+  }
+`;
+
 /** Buttons and inputs do not inherit the font by default; this makes them follow the card font. */
 export const fontInherit = css`
   button, input, select, textarea {

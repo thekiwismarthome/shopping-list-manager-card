@@ -2,7 +2,7 @@ import { LitElement, html, css } from 'lit';
 import { fontInherit } from '../styles/ui-styles.js';
 import { t, I18nController } from '../services/translator.js';
 import { settingsGroupStyles } from '../styles/ui-styles.js';
-import { ACCENTS, accentEntry } from '../styles/accents.js';
+import { THEMES, themeEntry } from '../styles/accents.js';
 import './slm-font-settings.js';
 
 // Interface styles the user can pick between (see styles in each component)
@@ -69,41 +69,30 @@ class SLMAppearanceSettings extends LitElement {
             </div>
           </div>
 
-          <div class="section-header">${this._style() === 'fresh' ? t('Theme') : t('Accent')}</div>
+          <div class="section-header">${t('Theme')}</div>
           <div class="group">
             <div class="settings-item">
               <div class="item-content full-width">
-                ${this._style() === 'fresh' ? html`
-                  <div class="theme-cards" role="radiogroup" aria-label=${t('Theme')}>
-                    ${ACCENTS.fresh.map(a => html`
+                <div class="theme-cards" role="radiogroup" aria-label=${t('Theme')}>
+                  ${THEMES.map(th => {
+                    const pv = this._isDarkNow() ? th.preview.dark : th.preview.light;
+                    const sel = this._themeId() === th.id;
+                    return html`
                       <button
-                        class="theme-card ${this._accentId() === a.id ? 'selected' : ''}"
+                        class="theme-card ${sel ? 'selected' : ''}"
                         role="radio"
-                        aria-checked=${this._accentId() === a.id ? 'true' : 'false'}
-                        @click=${() => this.handleSettingChange('accent', a.id)}
+                        aria-checked=${sel ? 'true' : 'false'}
+                        @click=${() => this.handleSettingChange('designTheme', th.id)}
                       >
-                        <span class="theme-sw" style="background: ${a.preview.bg}">
-                          <i style="background: ${a.preview.a}; height: 14px"></i>
-                          <i style="background: ${a.preview.s}; height: 22px"></i>
+                        <span class="theme-sw" style="background: ${pv.bg}">
+                          <i style="background: ${pv.a}; height: 14px"></i>
+                          <i style="background: ${pv.s}; height: 22px"></i>
                         </span>
-                        <span class="theme-name">${t(a.name)}${this._accentId() === a.id ? html`<ha-icon icon="mdi:check"></ha-icon>` : ''}</span>
+                        <span class="theme-name">${t(th.name)}${sel ? html`<ha-icon icon="mdi:check"></ha-icon>` : ''}</span>
                       </button>
-                    `)}
-                  </div>
-                ` : html`
-                  <div class="accent-row" role="radiogroup" aria-label=${t('Accent')}>
-                    ${ACCENTS.compact.map(a => html`
-                      <button
-                        class="accent-dot ${this._accentId() === a.id ? 'selected' : ''}"
-                        role="radio"
-                        aria-checked=${this._accentId() === a.id ? 'true' : 'false'}
-                        aria-label=${t(a.name)}
-                        title=${t(a.name)}
-                        @click=${() => this.handleSettingChange('accent', a.id)}
-                      ><span style="background: ${a.swatch}"></span></button>
-                    `)}
-                  </div>
-                `}
+                    `;
+                  })}
+                </div>
               </div>
             </div>
           </div>
@@ -283,8 +272,14 @@ class SLMAppearanceSettings extends LitElement {
     return this._style() === 'compact' ? 'dark' : 'light';
   }
 
-  _accentId() {
-    return accentEntry(this._style(), this.settings.accent)?.id;
+  _themeId() {
+    return themeEntry(this._style(), this.settings.designTheme)?.id;
+  }
+
+  _isDarkNow() {
+    const m = this._modeValue();
+    if (m === 'device') return typeof matchMedia === 'function' && matchMedia('(prefers-color-scheme: dark)').matches;
+    return m === 'dark';
   }
 
   _style() {
@@ -366,33 +361,7 @@ class SLMAppearanceSettings extends LitElement {
       --mdc-icon-size: 16px;
       color: var(--slm-accent-primary);
     }
-    .accent-row {
-      display: flex;
-      align-items: center;
-      justify-content: flex-start;
-      gap: 10px;
-      flex-wrap: wrap;
-    }
-    .accent-dot {
-      width: 44px;
-      height: 44px;
-      padding: 4px;
-      border-radius: 50%;
-      border: 2px solid transparent;
-      background: transparent;
-      cursor: pointer;
-      box-sizing: border-box;
-    }
-    .accent-dot span {
-      display: block;
-      width: 100%;
-      height: 100%;
-      border-radius: 50%;
-    }
-    .accent-dot.selected {
-      border-color: var(--slm-text-primary);
-    }
-    .accent-dot:focus-visible, .theme-card:focus-visible {
+    .theme-card:focus-visible {
       outline: 2px solid var(--slm-accent-primary);
       outline-offset: 2px;
     }

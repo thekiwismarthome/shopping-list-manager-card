@@ -2,7 +2,7 @@ import { LitElement, html, css } from 'lit';
 import { fontInherit } from '../../styles/ui-styles.js';
 import { t, I18nController } from '../../services/translator.js';
 import './slm-list-card.js';
-import { viewHeaderStyles } from '../../styles/ui-styles.js';
+import { viewHeaderStyles, bottomSheetStyles } from '../../styles/ui-styles.js';
 
 class SLMListsView extends LitElement {
   _i18n = new I18nController(this);
@@ -199,6 +199,9 @@ class SLMListsView extends LitElement {
     if (changedProps.has('lists')) {
       this.loadTotals();
     }
+    if (changedProps.has('showCreateDialog') && this.showCreateDialog) {
+      this.renderRoot.querySelector('#new-list-name')?.focus();
+    }
   }
 
   render() {
@@ -286,49 +289,50 @@ class SLMListsView extends LitElement {
         ` : ''}
 
         ${this.showCreateDialog ? html`
-          <div class="overlay" @click=${() => this.showCreateDialog = false}>
-            <div class="dialog" @click=${(e) => e.stopPropagation()}>
-              <div class="dialog-header">
-                <h3>${t('Create New List')}</h3>
-                <button @click=${() => this.showCreateDialog = false}>
-                  <span class="emoji">✖️</span>
+          <div class="sheet-layer">
+            <div class="scrim" @click=${() => this.showCreateDialog = false}></div>
+            <div class="sheet" role="dialog" aria-modal="true" aria-label=${t('Create New List')}>
+              <div class="grab"></div>
+              <div class="sheet-head">
+                <h2>${t('New list')}</h2>
+                <button class="done" ?disabled=${!this.newListName.trim()} @click=${this.handleSaveNewList}>${t('Create')}</button>
+              </div>
+
+              <label class="label" for="new-list-name">${t('List Name')}</label>
+              <input
+                id="new-list-name"
+                class="field"
+                type="text"
+                placeholder="e.g., Weekly Shopping"
+                maxlength="40"
+                autocomplete="off"
+                .value=${this.newListName}
+                @input=${(e) => this.newListName = e.target.value}
+                @keydown=${(e) => { if (e.key === 'Enter') this.handleSaveNewList(); }}
+              />
+
+              <div class="label">${t('Icon')}</div>
+              <div class="choices" role="radiogroup" aria-label=${t('Icon')}>
+                ${['mdi:cart', 'mdi:home', 'mdi:food', 'mdi:shopping', 'mdi:store'].map(icon => html`
+                  <button
+                    class="choice ${this.newListIcon === icon ? 'selected' : ''}"
+                    role="radio"
+                    aria-checked=${this.newListIcon === icon ? 'true' : 'false'}
+                    aria-label=${icon.replace('mdi:', '')}
+                    @click=${() => this.newListIcon = icon}
+                  >${this.getListEmoji(icon)}</button>
+                `)}
+              </div>
+
+              <div class="card-block">
+                <button class="toggle-row" role="switch" aria-checked=${this._newListPrivate ? 'true' : 'false'}
+                        @click=${() => this._newListPrivate = !this._newListPrivate}>
+                  <span class="tr-text">
+                    <span class="tr-title">${t('Private')}</span>
+                    <span class="tr-sub">${t('Only visible to me (and members I add)')}</span>
+                  </span>
+                  <span class="tg ${this._newListPrivate ? 'on' : ''}"></span>
                 </button>
-              </div>
-              <div class="dialog-content">
-                <label>${t('List Name')}</label>
-                <input
-                  type="text"
-                  placeholder="e.g., Weekly Shopping"
-                  .value=${this.newListName}
-                  @input=${(e) => this.newListName = e.target.value}
-                  autofocus
-                />
-
-                <label>${t('Icon')}</label>
-                <div class="icon-picker">
-                  ${['mdi:cart', 'mdi:home', 'mdi:food', 'mdi:shopping', 'mdi:store'].map(icon => html`
-                    <button
-                      class="icon-option ${this.newListIcon === icon ? 'selected' : ''}"
-                      @click=${() => this.newListIcon = icon}
-                    >
-                      <span class="emoji">${this.getListEmoji(icon)}</span>
-                    </button>
-                  `)}
-                </div>
-
-                <label class="privacy-label">
-                  <input
-                    type="checkbox"
-                    .checked=${this._newListPrivate}
-                    @change=${(e) => this._newListPrivate = e.target.checked}
-                  />
-                  <ha-icon icon="mdi:lock"></ha-icon>
-                  Private — only visible to me (and members I add)
-                </label>
-              </div>
-              <div class="dialog-footer">
-                <button class="cancel-btn" @click=${() => this.showCreateDialog = false}>${t('Cancel')}</button>
-                <button class="save-btn" @click=${this.handleSaveNewList}>${t('Create')}</button>
               </div>
             </div>
           </div>
@@ -576,7 +580,7 @@ class SLMListsView extends LitElement {
       --mdc-icon-size: 20px;
       color: var(--secondary-text-color);
     }
-  `, viewHeaderStyles, fontInherit];
+  `, viewHeaderStyles, bottomSheetStyles, fontInherit];
 }
 
 customElements.define('slm-lists-view', SLMListsView);
