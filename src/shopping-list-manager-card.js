@@ -51,6 +51,8 @@ class ShoppingListManagerCard extends LitElement {
     // Set by a host card (Recipe Manager Card) so the embedded list follows its style and palette
     hostUi: { type: String },
     hostDark: { type: Boolean },
+    // Accent override {a,i,s,t} from the host's theme (Meadow / Slate / Sunset), or null for the style's own
+    hostAccent: { type: Object },
     currentView: { type: String },
     lists: { type: Array },
     activeList: { type: Object },
@@ -436,7 +438,7 @@ class ShoppingListManagerCard extends LitElement {
     }
 
     // Theme (Meadow / Slate / Sunset): override the accent tokens, or fall back to the design's palette
-    const ov = (ui === 'classic' || this.isEmbedded) ? null : themeOverrides(ui, this.settings.designTheme, this._isDark);
+    const ov = ui === 'classic' ? null : this.isEmbedded ? (this.hostAccent || null) : themeOverrides(ui, this.settings.designTheme, this._isDark);
     const accentTokens = { '--slm-accent-primary': 'a', '--slm-accent-ink': 'i', '--slm-accent-soft': 's', '--slm-accent-text': 't', '--slm-total-bar-bg': 'a' };
     for (const [prop, key] of Object.entries(accentTokens)) {
       if (ov) this.style.setProperty(prop, ov[key]);
