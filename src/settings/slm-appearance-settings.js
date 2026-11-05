@@ -47,6 +47,7 @@ class SLMAppearanceSettings extends LitElement {
         </div>
 
         <div class="settings-list">
+          ${this.isEmbedded ? '' : html`
           <div class="section-header">${t('Interface style')}</div>
           <div class="group">
             <div class="settings-item">
@@ -114,6 +115,7 @@ class SLMAppearanceSettings extends LitElement {
               </div>
             </div>
           </div>
+          `}
 
           <div class="section-header">${t('Display')}</div>
           <div class="group">

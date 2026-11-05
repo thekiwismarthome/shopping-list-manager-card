@@ -48,6 +48,9 @@ class ShoppingListManagerCard extends LitElement {
     hass: { type: Object },
     config: { type: Object },
     isEmbedded: { type: Boolean },
+    // Set by a host card (Recipe Manager Card) so the embedded list follows its style and palette
+    hostUi: { type: String },
+    hostDark: { type: Boolean },
     currentView: { type: String },
     lists: { type: Array },
     activeList: { type: Object },
@@ -378,13 +381,20 @@ class ShoppingListManagerCard extends LitElement {
   // Two designs: 'fresh' (A: light, card based) and 'compact' (B: dark, dense list).
   // Embedded in Recipe Manager Card keeps the plain classic layout.
   get _ui() {
-    if (this.isEmbedded) return 'classic';
+    // Embedded: follow the host card's style when it passes one (hostUi), else stay classic
+    if (this.isEmbedded) return (this.hostUi === 'fresh' || this.hostUi === 'compact') ? this.hostUi : 'classic';
     return this.settings?.uiStyle === 'compact' ? 'compact' : 'fresh';
+  }
+
+  // Embedded with a host style: the full classic embedded toolbar is replaced by the normal header
+  get _classicEmbedded() {
+    return this.isEmbedded && this._ui === 'classic';
   }
 
   // Is the dark palette in use? 'on' / 'off' are explicit, 'device' follows Home Assistant
   // (or the OS), anything else uses the design's own default: A is light, B is dark.
   get _isDark() {
+    if (this.isEmbedded && typeof this.hostDark === 'boolean') return this.hostDark;
     const m = this.settings?.darkMode;
     if (m === 'on') return true;
     if (m === 'off') return false;
@@ -399,6 +409,8 @@ class ShoppingListManagerCard extends LitElement {
   willUpdate() {
     // Keep the design attributes in sync (e.g. if isEmbedded changes after settings load)
     const ui = this._ui;
+    if (this.isEmbedded) { if (!this.hasAttribute('data-embedded')) this.setAttribute('data-embedded', ''); }
+    else if (this.hasAttribute('data-embedded')) this.removeAttribute('data-embedded');
     if (ui === 'classic') {
       if (this.hasAttribute('data-ui')) this.removeAttribute('data-ui');
       if (this.hasAttribute('data-mode')) this.removeAttribute('data-mode');
@@ -424,7 +436,7 @@ class ShoppingListManagerCard extends LitElement {
     }
 
     // Theme (Meadow / Slate / Sunset): override the accent tokens, or fall back to the design's palette
-    const ov = ui === 'classic' ? null : themeOverrides(ui, this.settings.designTheme, this._isDark);
+    const ov = (ui === 'classic' || this.isEmbedded) ? null : themeOverrides(ui, this.settings.designTheme, this._isDark);
     const accentTokens = { '--slm-accent-primary': 'a', '--slm-accent-ink': 'i', '--slm-accent-soft': 's', '--slm-accent-text': 't', '--slm-total-bar-bg': 'a' };
     for (const [prop, key] of Object.entries(accentTokens)) {
       if (ov) this.style.setProperty(prop, ov[key]);
@@ -1205,7 +1217,7 @@ class ShoppingListManagerCard extends LitElement {
             .currencySymbol=${this._currencySymbol}
             .totalAmount=${this.total.total}
             .uiStyle=${ui}
-            ?compact=${this.isEmbedded}
+            ?compact=${this._classicEmbedded}
             @back=${this.handleBackToLists}
             @share=${this.handleShareList}
             @search-toggle=${this._toggleSearch}
@@ -1225,17 +1237,18 @@ class ShoppingListManagerCard extends LitElement {
             @create-and-add-product=${this.handleCreateAndAddProduct}
           ></slm-search-bar>
         `;
-        const showSearch = this.isEmbedded || ui === 'compact' || this._searchOpen;
+        const classicEmbedded = this._classicEmbedded;
+        const showSearch = classicEmbedded || ui === 'compact' || this._searchOpen;
         // When embedded (e.g. in Recipe Manager Card) the host already shows a
         // heading, so drop our own header row and put Share + menu beside search.
         return html`
-          ${this.isEmbedded ? '' : header}
+          ${classicEmbedded ? '' : header}
 
           <div class="content-area">
             ${this.renderSummary()}
             ${this.renderChips()}
 
-            ${this.isEmbedded
+            ${classicEmbedded
               ? html`<div class="embedded-toolbar">${searchBar}${header}</div>`
               : showSearch ? searchBar : ''}
 
@@ -1371,7 +1384,7 @@ class ShoppingListManagerCard extends LitElement {
 
         <slm-bottom-nav
           .currentView=${this.currentView}
-          .uiStyle=${this._ui}
+          .uiStyle=${this.isEmbedded && this._ui !== 'classic' ? 'compact' : this._ui}
           @nav-changed=${this.handleNavChange}
         ></slm-bottom-nav>
 
@@ -1429,6 +1442,10 @@ class ShoppingListManagerCard extends LitElement {
       overflow: hidden;
       position: relative;
     }
+    /* Embedded in a host card that already has its own bottom navigation */
+    :host([data-embedded][data-ui="fresh"]) .fab { bottom: 76px; }
+    :host([data-embedded][data-ui="fresh"]) .content-area { padding-bottom: 96px; }
+    :host([data-embedded][data-ui="compact"]) .content-area { padding-bottom: 8px; }
     .embedded-toolbar {
       display: flex;
       align-items: center;
