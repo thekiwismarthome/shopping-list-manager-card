@@ -10,12 +10,20 @@ class SLMListHeader extends LitElement {
     // Embedded in another card (e.g. Recipe Manager Card) that already shows the
     // back button, title and wake-lock toggle: render only Share + the menu.
     compact: { type: Boolean, reflect: true },
+    // 'classic' | 'fresh' | 'compact' (see Appearance settings)
+    uiStyle: { type: String, attribute: 'ui-style', reflect: true },
+    // Estimated total of the list, shown in the "compact" style subtitle
+    totalAmount: { type: Number },
+    currencySymbol: { type: String },
     _menuOpen: { type: Boolean, state: true },
     _wakeLockActive: { type: Boolean, state: true },
   };
 
   constructor() {
     super();
+    this.uiStyle = 'classic';
+    this.totalAmount = 0;
+    this.currencySymbol = '$';
     this._menuOpen = false;
     this._wakeLockActive = false;
     this._wakeLock = null;
@@ -100,7 +108,14 @@ class SLMListHeader extends LitElement {
             <ha-icon icon="mdi:arrow-left"></ha-icon>
           </button>
 
-          <h2>${this.activeList?.name || t('Shopping List')}</h2>
+          <div class="title-wrap">
+            <h2>${this.activeList?.name || t('Shopping List')}</h2>
+            ${this.uiStyle === 'compact' ? html`
+              <div class="subtitle">
+                ${this.itemCount} ${t('left')} · ${this.currencySymbol}${Number(this.totalAmount || 0).toFixed(2)}
+              </div>
+            ` : ''}
+          </div>
         `}
 
         <div class="header-actions">
@@ -226,10 +241,101 @@ class SLMListHeader extends LitElement {
       text-overflow: ellipsis;
       padding: 0 8px;
     }
+    .title-wrap {
+      display: contents;
+    }
+    .subtitle {
+      display: none;
+    }
     .header-actions {
       display: flex;
       gap: 4px;
       position: relative;
+    }
+
+    /* ---------- Fresh: pill title, round buttons ---------- */
+    :host([ui-style="fresh"]) .header {
+      min-height: 0;
+      max-height: none;
+      padding: 16px 16px 4px;
+      gap: 10px;
+      background: transparent;
+      border-bottom: none;
+    }
+    :host([ui-style="fresh"]) .back-btn,
+    :host([ui-style="fresh"]) .action-btn {
+      width: 44px;
+      height: 44px;
+      padding: 0;
+      border-radius: 50%;
+      border: 1px solid var(--slm-border-subtle);
+      background: var(--slm-bg-surface);
+    }
+    :host([ui-style="fresh"]) .title-wrap {
+      display: block;
+      flex: 1;
+      min-width: 0;
+    }
+    :host([ui-style="fresh"]) h2 {
+      display: flex;
+      align-items: center;
+      height: 44px;
+      padding: 0 18px;
+      border-radius: 999px;
+      border: 1px solid var(--slm-border-subtle);
+      background: var(--slm-bg-surface);
+      font-size: 16px;
+      font-weight: 700;
+      text-align: left;
+      box-sizing: border-box;
+    }
+    :host([ui-style="fresh"]) .menu-dropdown {
+      border-radius: 20px;
+    }
+
+    /* ---------- Compact: bold title + summary line ---------- */
+    :host([ui-style="compact"]) .header {
+      min-height: 0;
+      max-height: none;
+      padding: 16px 16px 6px;
+      gap: 8px;
+      background: transparent;
+      border-bottom: none;
+    }
+    :host([ui-style="compact"]) .back-btn,
+    :host([ui-style="compact"]) .action-btn {
+      width: 44px;
+      height: 44px;
+      padding: 0;
+      border-radius: 14px;
+      background: var(--slm-bg-elevated);
+    }
+    :host([ui-style="compact"]) .back-btn {
+      margin-left: -6px;
+    }
+    :host([ui-style="compact"]) .title-wrap {
+      display: block;
+      flex: 1;
+      min-width: 0;
+    }
+    :host([ui-style="compact"]) h2 {
+      text-align: left;
+      padding: 0;
+      font-size: 22px;
+      font-weight: 700;
+      letter-spacing: -0.01em;
+    }
+    :host([ui-style="compact"]) .subtitle {
+      display: block;
+      font-size: 13px;
+      color: var(--slm-text-secondary);
+      font-variant-numeric: tabular-nums;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    :host([ui-style="compact"]) .menu-dropdown {
+      border-radius: 16px;
     }
     .menu-wrap {
       position: relative;

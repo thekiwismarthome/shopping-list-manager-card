@@ -1,9 +1,12 @@
 import { t, I18nController } from '../services/translator.js';
 import { LitElement, html, css } from 'lit';
+import { subPageStyles } from '../styles/ui-styles.js';
 
 class SLMHaSyncSettings extends LitElement {
   _i18n = new I18nController(this);
   static properties = {
+    // 'classic' | 'fresh' | 'compact' (set by the settings view)
+    uiStyle: { type: String, attribute: 'ui-style', reflect: true },
     hass: { type: Object },
     api: { type: Object },
     lists: { type: Array },
@@ -142,7 +145,7 @@ class SLMHaSyncSettings extends LitElement {
     `;
   }
 
-  static styles = css`
+  static styles = [css`
     :host { display: block; }
     .ha-sync-settings { padding-bottom: 20px; }
     .header {
@@ -203,7 +206,7 @@ class SLMHaSyncSettings extends LitElement {
     }
     .entity-select:disabled { opacity: 0.5; cursor: default; }
     .saving { font-size: 12px; color: var(--slm-text-secondary); flex-shrink: 0; }
-  `;
+  `, subPageStyles];
 }
 
 customElements.define('slm-ha-sync-settings', SLMHaSyncSettings);

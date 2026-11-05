@@ -3,10 +3,13 @@ import { LitElement, html, css } from 'lit';
 import JsBarcode from 'jsbarcode';
 import { Html5Qrcode } from 'html5-qrcode';
 import qrcode from 'qrcode-generator';
+import { viewHeaderStyles } from '../../styles/ui-styles.js';
 
 class SLMLoyaltyCardsView extends LitElement {
   _i18n = new I18nController(this);
   static properties = {
+    // 'classic' | 'fresh' | 'compact' (see Appearance settings)
+    uiStyle: { type: String, attribute: 'ui-style', reflect: true },
     api: { type: Object },
     userId: { type: String },
     isAdmin: { type: Boolean },
@@ -712,7 +715,7 @@ class SLMLoyaltyCardsView extends LitElement {
     `;
   }
 
-  static styles = css`
+  static styles = [css`
     :host {
       display: block;
     }
@@ -1230,7 +1233,21 @@ class SLMLoyaltyCardsView extends LitElement {
       opacity: 0.7;
       font-size: 14px;
     }
-  `;
+
+    /* ---------- Fresh + Compact ---------- */
+    :host([ui-style="fresh"]) .loyalty-card {
+      border-radius: 22px;
+      box-shadow: var(--slm-shadow-soft);
+    }
+    :host([ui-style="fresh"]) .loyalty-tile {
+      border-radius: 20px;
+    }
+    :host([ui-style="compact"]) .loyalty-card,
+    :host([ui-style="compact"]) .loyalty-tile {
+      border-radius: 14px;
+      box-shadow: none;
+    }
+  `, viewHeaderStyles];
 }
 
 customElements.define('slm-loyalty-cards-view', SLMLoyaltyCardsView);

@@ -7,6 +7,7 @@ class SLMItemGrid extends LitElement {
 
   constructor() {
     super();
+    this.uiStyle = 'classic';
     this._recentItems = [];
   }
 
@@ -15,6 +16,10 @@ class SLMItemGrid extends LitElement {
     categories: { type: Array },
     settings: { type: Object },
     api: { type: Object },
+    // 'classic' | 'fresh' | 'compact' (see Appearance settings)
+    uiStyle: { type: String, attribute: 'ui-style', reflect: true },
+    // Wall panel product picker: show only the add-item tiles (not the current list's items)
+    pickerOnly: { type: Boolean },
     _recentItems: { type: Array, state: true }
   };
 
@@ -106,12 +111,14 @@ class SLMItemGrid extends LitElement {
   }
 
   getCategoryHeaderStyle(color) {
+    // Fresh / Compact draw their own plain section labels (see styles below)
+    if (this.uiStyle === 'fresh' || this.uiStyle === 'compact') return '';
     const { r, g, b } = this.hexToRgb(color);
     return `border-left: 4px solid ${color}; background: linear-gradient(to right, rgba(${r},${g},${b},0.22), rgba(${r},${g},${b},0.066)); border-radius: 0 8px 8px 0;`;
   }
 
   render() {
-    const groupedItems = this.groupItemsByCategory();
+    const groupedItems = this.pickerOnly ? [] : this.groupItemsByCategory();
     const tilesPerRow = this.settings?.tilesPerRow || 3;
     return html`
       <style>
@@ -121,7 +128,7 @@ class SLMItemGrid extends LitElement {
       </style>
 
       <div class="grid-container">
-        ${groupedItems.length === 0 && this._recentItems.length === 0 ? html`
+        ${!this.pickerOnly && groupedItems.length === 0 && this._recentItems.length === 0 ? html`
           <div class="empty">
             <div class="empty-emoji">🛒</div>
             <p>${t('Your shopping list is empty')}</p>
@@ -135,8 +142,10 @@ class SLMItemGrid extends LitElement {
             <div class="category-section">
               ${group.category.id !== '_alpha' ? html`
                 <div class="category-header" style="${this.getCategoryHeaderStyle(color)}">
+                  <span class="hdr-dot" style="background: ${color}"></span>
                   <span class="emoji">${this.getCategoryEmoji(group.category.id)}</span>
                   <span class="category-name" style="color: ${color}">${group.category.name}</span>
+                  <span class="cat-count">${group.items.length}</span>
                 </div>
               ` : ''}
               <div class="items-grid">
@@ -145,6 +154,7 @@ class SLMItemGrid extends LitElement {
                     .item=${item}
                     .categoryColor=${color}
                     .settings=${this.settings}
+                    .uiStyle=${this.uiStyle}
                     @item-click=${this.handleItemClick}
                     @item-decrease=${this.handleItemDecrease}
                     @item-check=${this.handleItemCheck}
@@ -161,8 +171,10 @@ class SLMItemGrid extends LitElement {
           <div class="category-section">
             ${(() => { const rc = this.getRecentColor(); return html`
               <div class="category-header" style="${this.getCategoryHeaderStyle(rc)}">
+                <span class="hdr-dot" style="background: ${rc}"></span>
                 <span class="emoji">⏱️</span>
                 <span class="category-name" style="color: ${rc}">${t('Recently Used')}</span>
+                <span class="cat-count">${this._recentItems.length}</span>
               </div>
               <div class="items-grid">
                 ${this._recentItems.map(product => html`
@@ -171,6 +183,7 @@ class SLMItemGrid extends LitElement {
                     .categoryColor=${rc}
                     .isRecentlyUsed=${true}
                     .settings=${this.settings}
+                    .uiStyle=${this.uiStyle}
                     @add-item=${this.handleAddItem}
                   ></slm-item-tile>
                 `)}
@@ -281,6 +294,57 @@ class SLMItemGrid extends LitElement {
     .items-grid {
       display: grid;
       gap: 4px;
+    }
+    .hdr-dot,
+    .cat-count {
+      display: none;
+    }
+
+    /* ---------- Fresh + Compact: plain section labels ---------- */
+    :host([ui-style="fresh"]) .grid-container,
+    :host([ui-style="compact"]) .grid-container {
+      padding: 4px 16px;
+    }
+    :host([ui-style="fresh"]) .items-grid {
+      gap: 10px;
+    }
+    :host([ui-style="compact"]) .items-grid {
+      gap: 8px;
+    }
+    :host([ui-style="fresh"]) .category-section,
+    :host([ui-style="compact"]) .category-section {
+      margin-bottom: 8px;
+    }
+    :host([ui-style="fresh"]) .category-header,
+    :host([ui-style="compact"]) .category-header {
+      padding: 14px 2px 8px;
+      margin: 0;
+      gap: 8px;
+      font-size: 12px;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+    }
+    :host([ui-style="fresh"]) .emoji,
+    :host([ui-style="compact"]) .emoji {
+      display: none;
+    }
+    :host([ui-style="fresh"]) .hdr-dot,
+    :host([ui-style="compact"]) .hdr-dot {
+      display: block;
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      flex: none;
+    }
+    :host([ui-style="fresh"]) .category-name,
+    :host([ui-style="compact"]) .category-name {
+      flex: none;
+    }
+    :host([ui-style="fresh"]) .cat-count,
+    :host([ui-style="compact"]) .cat-count {
+      display: inline;
+      color: var(--slm-text-secondary);
+      font-weight: 600;
     }
     .empty {
       text-align: center;

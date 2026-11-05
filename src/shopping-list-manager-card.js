@@ -38,7 +38,9 @@ class ShoppingListManagerCard extends LitElement {
     editingItem: { type: Object },
     settings: { type: Object },
     isEmbedded: { type: Boolean },
-    _loadError: { type: String, state: true }
+    _loadError: { type: String, state: true },
+    _wide: { type: Boolean, state: true },
+    _instoreSearch: { type: Boolean, state: true }
   };
   set hass(hass) {
     const prevHass = this._hass;
@@ -100,6 +102,8 @@ class ShoppingListManagerCard extends LitElement {
     this._integrationSettings = null;
     this._loadError = '';
     this._hassWaiter = null;
+    this._wide = false;
+    this._instoreSearch = false;
   }
 
   _retryLoad() {
@@ -109,6 +113,7 @@ class ShoppingListManagerCard extends LitElement {
 
   connectedCallback() {
     super.connectedCallback();
+    this._observeSize();
     if (!this._assignedCardId && this._baseCardId) {
       // First connection: assign a position-based ID among cards with the same config hash
       const count = _slmInstanceCounters.get(this._baseCardId) ?? 0;
@@ -154,6 +159,7 @@ class ShoppingListManagerCard extends LitElement {
   loadSettings() {
     const defaults = {
       theme: 'auto',
+      uiStyle: 'classic',   // 'classic' | 'fresh' | 'compact'
       darkMode: 'system',
       fontSize: 16,
       fontFamily: 'system',
@@ -312,6 +318,8 @@ class ShoppingListManagerCard extends LitElement {
     clearTimeout(this._settingsPushTimer);
     this.releaseWakeLock();
     document.removeEventListener('visibilitychange', this._visibilityHandler);
+    this._ro?.disconnect();
+    this._ro = null;
 
     for (const t of Object.values(this._haTodoSyncTimers)) clearTimeout(t);
     this._haTodoSyncTimers = {};
@@ -338,23 +346,102 @@ class ShoppingListManagerCard extends LitElement {
     this._wakeLock = null;
   }
 
+  // Interface style in use. The embedded view (inside Recipe Manager Card) always
+  // keeps the classic layout because it has no header or bottom-nav space to restyle.
+  //
+  // Styles: classic | fresh | compact | instore | panel | native
+  //   panel   = list + product picker side by side; needs a wide card, otherwise it shows Fresh
+  //   instore = big tick-off rows in aisle order, for use while shopping
+  //   native  = flat, uses the Home Assistant theme colours only
+  get _ui() {
+    if (this.isEmbedded) return 'classic';
+    const s = this.settings?.uiStyle;
+    if (!['fresh', 'compact', 'instore', 'panel', 'native'].includes(s)) return 'classic';
+    if (s === 'panel' && !this._wide) return 'fresh';
+    return s;
+  }
+
+  // The style the user picked (before any wide/narrow fallback)
+  get _styleId() {
+    const s = this.settings?.uiStyle;
+    return ['fresh', 'compact', 'instore', 'panel', 'native'].includes(s) ? s : 'classic';
+  }
+
+  // Style "family" for shared chrome (settings pages, lists, loyalty, search): classic | fresh | compact
+  get _fam() {
+    return { fresh: 'fresh', panel: 'fresh', compact: 'compact', instore: 'compact', native: 'compact' }[this._ui] || 'classic';
+  }
+
+  // Style for the header and bottom nav (the wall panel uses the flat tab bar)
+  get _hs() {
+    return this._ui === 'panel' ? 'compact' : this._fam;
+  }
+
+  // Same settings object every render unless this.settings changes, so child components
+  // don't treat a fresh copy as a settings change (which would reload recent items).
+  _derivedSettings(key, overrides) {
+    this._dcache = this._dcache || {};
+    const hit = this._dcache[key];
+    if (hit && hit.base === this.settings) return hit.val;
+    const val = { ...this.settings, ...overrides };
+    this._dcache[key] = { base: this.settings, val };
+    return val;
+  }
+
+  _syncUiAttrs() {
+    const ui = this._ui, fam = this._fam;
+    if (ui === 'classic') {
+      if (this.hasAttribute('data-ui')) this.removeAttribute('data-ui');
+      if (this.hasAttribute('data-fam')) this.removeAttribute('data-fam');
+      return;
+    }
+    if (this.getAttribute('data-ui') !== ui) this.setAttribute('data-ui', ui);
+    if (this.getAttribute('data-fam') !== fam) this.setAttribute('data-fam', fam);
+  }
+
+  willUpdate() {
+    // Keep the interface-style attributes in sync (e.g. if isEmbedded or the card width changes)
+    this._syncUiAttrs();
+  }
+
+  _observeSize() {
+    if (this._ro || typeof ResizeObserver === 'undefined') return;
+    this._ro = new ResizeObserver(entries => {
+      const wide = (entries[0]?.contentRect?.width || 0) >= 720;
+      if (wide !== this._wide) {
+        this._wide = wide;
+        this.applyColorScheme();
+      }
+    });
+    this._ro.observe(this);
+  }
+
   applyColorScheme() {
     const mode = this.settings.darkMode;
 
-    if (mode === 'on') {
-      this.setAttribute('data-theme', 'dark');
-    } else if (mode === 'off') {
-      this.setAttribute('data-theme', 'light');
-    } else {
-      this.removeAttribute('data-theme');
-    }
+    // Interface style hooks for the card-level CSS below
+    this._syncUiAttrs();
 
-    // Apply named theme (layered on top of dark/light)
-    const themeName = this.settings.theme;
-    if (themeName && themeName !== 'soft') {
-      this.setAttribute('data-theme-name', themeName);
-    } else {
+    if (this._ui === 'native') {
+      // Native style: follow the Home Assistant theme only (no pastel/dark overrides)
+      this.removeAttribute('data-theme');
       this.removeAttribute('data-theme-name');
+    } else {
+      if (mode === 'on') {
+        this.setAttribute('data-theme', 'dark');
+      } else if (mode === 'off') {
+        this.setAttribute('data-theme', 'light');
+      } else {
+        this.removeAttribute('data-theme');
+      }
+
+      // Apply named theme (layered on top of dark/light)
+      const themeName = this.settings.theme;
+      if (themeName && themeName !== 'soft') {
+        this.setAttribute('data-theme-name', themeName);
+      } else {
+        this.removeAttribute('data-theme-name');
+      }
     }
 
     // Apply font size as a CSS custom property (cascades through shadow DOM)
@@ -992,6 +1079,76 @@ class ShoppingListManagerCard extends LitElement {
     }
   }
 
+  // Basket summary shown above the list in the Fresh / Compact styles.
+  renderSummary() {
+    const ui = this._ui;
+    if (ui === 'classic') return '';
+    const total = this.items.length;
+    const done = this.items.filter(i => i.checked).length;
+    const pct = total ? Math.round((done / total) * 100) : 0;
+    const bar = html`
+      <div class="progress" role="progressbar" aria-label=${t('In your basket')}
+           aria-valuemin="0" aria-valuemax="100" aria-valuenow=${pct}>
+        <i style="width: ${pct}%"></i>
+      </div>
+    `;
+    if (ui === 'compact') return bar;
+    if (ui === 'native') return '';
+    if (ui === 'instore') {
+      // Big "n left" counter + progress, and a button that reveals the search box
+      return html`
+        <div class="instore-bar">
+          <div class="in-count"><b>${total - done}</b> <span>${t('left')}</span></div>
+          ${bar}
+          <button
+            class="in-add"
+            aria-label=${t('Add item')}
+            aria-expanded=${this._instoreSearch ? 'true' : 'false'}
+            @click=${() => { this._instoreSearch = !this._instoreSearch; }}
+          >
+            <ha-icon icon=${this._instoreSearch ? 'mdi:close' : 'mdi:plus'}></ha-icon>
+          </button>
+        </div>
+      `;
+    }
+    return html`
+      <div class="hero">
+        <div class="hero-row">
+          <div>
+            <div class="hero-label">${t('In your basket')}</div>
+            <div class="hero-big">${done} <span>${t('of')} ${total} ${t('items')}</span></div>
+          </div>
+          <div class="hero-est">
+            <div class="hero-label">${t('Estimated')}</div>
+            <div class="hero-amt">${this._currencySymbol}${this.total.total.toFixed(2)}</div>
+          </div>
+        </div>
+        ${bar}
+      </div>
+    `;
+  }
+
+  // The list view, shared by the normal, in-store and wall-panel layouts.
+  renderItemList(settings) {
+    return html`
+      <slm-item-list
+        .items=${this.items}
+        .categories=${this.categories}
+        .settings=${settings}
+        .api=${this.api}
+        .currencySymbol=${this._currencySymbol}
+        .uiStyle=${this._fam}
+        ?instore=${this._ui === 'instore'}
+        @add-item=${this.handleAddItem}
+        @item-click=${this.handleItemClick}
+        @item-decrease=${this.handleItemDecrease}
+        @item-check=${this.handleItemCheck}
+        @item-long-press=${this.handleItemLongPress}
+        @item-swipe-delete=${this.handleItemSwipeDelete}
+      ></slm-item-list>
+    `;
+  }
+
   renderCurrentView() {
     switch (this.currentView) {
       case 'shopping': {
@@ -1001,6 +1158,8 @@ class ShoppingListManagerCard extends LitElement {
             .itemCount=${this.items.filter(i => !i.checked).length}
             .settings=${this.settings}
             .currencySymbol=${this._currencySymbol}
+            .totalAmount=${this.total.total}
+            .uiStyle=${this._hs}
             ?compact=${this.isEmbedded}
             @back=${this.handleBackToLists}
             @share=${this.handleShareList}
@@ -1014,40 +1173,62 @@ class ShoppingListManagerCard extends LitElement {
             .categories=${this.categories}
             .activeListId=${this.activeList?.id}
             .currencySymbol=${this._currencySymbol}
+            .uiStyle=${this._fam}
             @add-item=${this.handleAddItem}
             @create-and-add-product=${this.handleCreateAndAddProduct}
           ></slm-search-bar>
         `;
+        const ui = this._ui;
+
+        // Wall panel (wide cards): the list on the left, a product picker on the right
+        if (ui === 'panel') {
+          return html`
+            ${header}
+            <div class="panel-body">
+              <div class="panel-pane panel-list">
+                ${this.renderSummary()}
+                ${this.renderItemList(this._derivedSettings('list', { viewMode: 'list' }))}
+              </div>
+              <div class="panel-pane panel-picker">
+                <div class="panel-title">${t('Add items')}</div>
+                ${searchBar}
+                <slm-item-grid
+                  .items=${this.items}
+                  .categories=${this.categories}
+                  .settings=${this._derivedSettings('picker', { showRecentlyUsed: true, recentProductsCount: 24, tilesPerRow: 4 })}
+                  .api=${this.api}
+                  .uiStyle=${this._fam}
+                  .pickerOnly=${true}
+                  @add-item=${this.handleAddItem}
+                ></slm-item-grid>
+              </div>
+            </div>
+          `;
+        }
+
         // When embedded (e.g. in Recipe Manager Card) the host already shows a
         // heading, so drop our own header row and put Share + menu beside search.
         return html`
           ${this.isEmbedded ? '' : header}
 
           <div class="content-area">
+            ${this.renderSummary()}
+
             ${this.isEmbedded
               ? html`<div class="embedded-toolbar">${searchBar}${header}</div>`
-              : searchBar}
+              : ui === 'instore'
+                ? (this._instoreSearch ? searchBar : '')
+                : searchBar}
 
-            ${this.settings.viewMode === 'list' ? html`
-              <slm-item-list
-                .items=${this.items}
-                .categories=${this.categories}
-                .settings=${this.settings}
-                .api=${this.api}
-                .currencySymbol=${this._currencySymbol}
-                @add-item=${this.handleAddItem}
-                @item-click=${this.handleItemClick}
-                @item-decrease=${this.handleItemDecrease}
-                @item-check=${this.handleItemCheck}
-                @item-long-press=${this.handleItemLongPress}
-                @item-swipe-delete=${this.handleItemSwipeDelete}
-              ></slm-item-list>
-            ` : html`
+            ${ui === 'instore'
+              ? this.renderItemList(this._derivedSettings('instore', { viewMode: 'list', sortMode: 'category', showRecentlyUsed: false }))
+              : this.settings.viewMode === 'list' ? this.renderItemList(this.settings) : html`
               <slm-item-grid
                 .items=${this.items}
                 .categories=${this.categories}
                 .settings=${this.settings}
                 .api=${this.api}
+                .uiStyle=${this._fam}
                 @add-item=${this.handleAddItem}
                 @item-click=${this.handleItemClick}
                 @item-decrease=${this.handleItemDecrease}
@@ -1059,6 +1240,7 @@ class ShoppingListManagerCard extends LitElement {
           </div>
 
           <div class="total-bar">
+            <div class="total-label">${t('Estimated total')}</div>
             <div class="total-amount">
               ${this._currencySymbol}${this.total.total.toFixed(2)}
             </div>
@@ -1077,6 +1259,7 @@ class ShoppingListManagerCard extends LitElement {
             .total=${this.total}
             .currentUserId=${this._hass?.user?.id || ''}
             .isAdmin=${this._hass?.user?.is_admin || false}
+            .uiStyle=${this._fam}
             @list-selected=${this.handleListChange}
             @lists-updated=${() => this.loadData()}
           ></slm-lists-view>
@@ -1089,6 +1272,7 @@ class ShoppingListManagerCard extends LitElement {
               .api=${this.api}
               .userId=${this._hass?.user?.id || null}
               .isAdmin=${this._hass?.user?.is_admin || false}
+              .uiStyle=${this._fam}
             ></slm-loyalty-cards-view>
           </div>
         `;
@@ -1103,6 +1287,7 @@ class ShoppingListManagerCard extends LitElement {
               .lists=${this.lists}
               .isEmbedded=${this.isEmbedded}
               .categories=${this.categories}
+              .uiStyle=${this._fam}
               @settings-changed=${this.handleSettingsChange}
               @lists-updated=${async () => { await this.loadData(); await this._loadIntegrationSettings(); }}
               @region-changed=${() => this._loadIntegrationSettings()}
@@ -1147,6 +1332,7 @@ class ShoppingListManagerCard extends LitElement {
 
         <slm-bottom-nav
           .currentView=${this.currentView}
+          .uiStyle=${this._hs}
           @nav-changed=${this.handleNavChange}
         ></slm-bottom-nav>
 
@@ -1262,6 +1448,233 @@ class ShoppingListManagerCard extends LitElement {
     .total-count {
       font-size: 12px;
       opacity: 0.9;
+    }
+    .total-label {
+      display: none;
+    }
+
+    /* ===============================
+      INTERFACE STYLES (Appearance > Interface style)
+      Classic is the original look and needs no overrides.
+    ================================ */
+    .hero,
+    .progress {
+      display: none;
+    }
+    :host([data-fam="fresh"]) ha-card,
+    :host([data-fam="compact"]) ha-card {
+      background: var(--slm-bg-main);
+    }
+
+    /* ----- Fresh: summary card + floating nav ----- */
+    :host([data-fam="fresh"]) .content-area {
+      padding-bottom: 120px;
+    }
+    :host([data-fam="fresh"]) .total-bar {
+      display: none;
+    }
+    :host([data-fam="fresh"]) .hero {
+      display: grid;
+      gap: 12px;
+      margin: 12px 16px 0;
+      padding: 18px 20px;
+      border-radius: 24px;
+      background: var(--slm-total-bar-bg, var(--slm-accent-primary));
+      color: white;
+      box-shadow: var(--slm-shadow-soft);
+    }
+    .hero-row {
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+      gap: 12px;
+    }
+    .hero-label {
+      font-size: 13px;
+      font-weight: 600;
+      opacity: 0.92;
+    }
+    .hero-big {
+      font-size: 30px;
+      font-weight: 800;
+      line-height: 1.1;
+      letter-spacing: -0.02em;
+      font-variant-numeric: tabular-nums;
+    }
+    .hero-big span {
+      font-size: 17px;
+      font-weight: 600;
+      letter-spacing: 0;
+      opacity: 0.92;
+    }
+    .hero-est {
+      text-align: right;
+    }
+    .hero-amt {
+      font-size: 20px;
+      font-weight: 800;
+      font-variant-numeric: tabular-nums;
+    }
+    .hero .progress {
+      display: block;
+      background: rgba(255,255,255,0.28);
+    }
+    .hero .progress i {
+      background: #fff;
+    }
+    .progress {
+      height: 8px;
+      border-radius: 99px;
+      overflow: hidden;
+      background: var(--slm-border-subtle);
+    }
+    .progress i {
+      display: block;
+      height: 100%;
+      border-radius: 99px;
+      background: var(--slm-accent-primary);
+      transition: width 0.35s;
+    }
+
+    /* ----- Compact: thin progress line + flat total bar ----- */
+    :host([data-fam="compact"]) .progress {
+      display: block;
+      height: 4px;
+      margin: 8px 16px 0;
+    }
+    :host([data-fam="compact"]) .content-area {
+      padding-bottom: 8px;
+    }
+    :host([data-fam="compact"]) .total-bar {
+      position: static;
+      margin: 0;
+      padding: 12px 20px;
+      border-radius: 0;
+      border-top: 1px solid var(--slm-border-subtle);
+      background: var(--slm-bg-surface);
+      color: var(--slm-text-primary);
+      box-shadow: none;
+      gap: 12px;
+    }
+    :host([data-fam="compact"]) .total-label {
+      display: block;
+      flex: 1;
+      font-size: 13px;
+      color: var(--slm-text-secondary);
+    }
+    :host([data-fam="compact"]) .total-amount {
+      font-size: 20px;
+      font-weight: 700;
+      font-variant-numeric: tabular-nums;
+    }
+    :host([data-fam="compact"]) .total-count {
+      color: var(--slm-text-secondary);
+      opacity: 1;
+    }
+
+    /* ----- Native: flat, Home Assistant colours only ----- */
+    :host([data-ui="native"]) .progress {
+      display: none;
+    }
+    :host([data-ui="native"]) ha-card {
+      background: var(--slm-bg-surface);
+    }
+
+    /* ----- In-store: big counter bar, tick-off rows ----- */
+    .instore-bar {
+      display: none;
+    }
+    :host([data-ui="instore"]) .instore-bar {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      margin: 8px 16px 4px;
+      padding: 10px 12px 10px 18px;
+      border-radius: 20px;
+      background: var(--slm-bg-surface);
+      border: 1px solid var(--slm-border-subtle);
+    }
+    .in-count {
+      display: flex;
+      align-items: baseline;
+      gap: 6px;
+      color: var(--slm-text-secondary);
+      font-size: 14px;
+      font-weight: 600;
+    }
+    .in-count b {
+      font-size: 34px;
+      line-height: 1;
+      font-weight: 800;
+      color: var(--slm-text-primary);
+      font-variant-numeric: tabular-nums;
+    }
+    .instore-bar .progress {
+      display: block;
+      flex: 1;
+      height: 10px;
+      margin: 0;
+    }
+    .in-add {
+      width: 52px;
+      height: 52px;
+      border-radius: 50%;
+      border: none;
+      background: var(--slm-accent-primary);
+      color: white;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .in-add ha-icon {
+      --mdc-icon-size: 28px;
+      color: white;
+      --icon-primary-color: white;
+    }
+
+    /* ----- Wall panel: list on the left, product picker on the right ----- */
+    .panel-body {
+      display: none;
+    }
+    :host([data-ui="panel"]) .panel-body {
+      flex: 1;
+      min-height: 0;
+      display: flex;
+      gap: 16px;
+      padding: 4px 16px 8px;
+    }
+    :host([data-ui="panel"]) .panel-pane {
+      min-width: 0;
+      overflow-y: auto;
+      overflow-x: hidden;
+      -webkit-overflow-scrolling: touch;
+    }
+    :host([data-ui="panel"]) .panel-list {
+      flex: 0 0 42%;
+    }
+    :host([data-ui="panel"]) .panel-list .hero {
+      margin: 4px 16px 0;
+    }
+    :host([data-ui="panel"]) .panel-picker {
+      flex: 1;
+      background: var(--slm-bg-surface);
+      border: 1px solid var(--slm-border-subtle);
+      border-radius: 22px;
+      padding: 4px 0 8px;
+    }
+    .panel-title {
+      padding: 14px 16px 0;
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: var(--slm-text-secondary);
+    }
+    :host([data-ui="panel"]) .total-bar {
+      display: none;
     }
 
     /* ===============================

@@ -17,6 +17,8 @@ class SLMSearchBar extends LitElement {
     searchResults: { type: Array },
     recentProducts: { type: Array },
     showResults: { type: Boolean },
+    // 'classic' | 'fresh' | 'compact' (see Appearance settings)
+    uiStyle: { type: String, attribute: 'ui-style', reflect: true },
     _showCreateForm: { type: Boolean, state: true },
     _createName: { type: String, state: true },
     _createCategory: { type: String, state: true },
@@ -30,6 +32,7 @@ class SLMSearchBar extends LitElement {
 
   constructor() {
     super();
+    this.uiStyle = 'classic';
     this.searchQuery = '';
     this.searchResults = [];
     this.recentProducts = [];
@@ -634,6 +637,31 @@ class SLMSearchBar extends LitElement {
     .search-icon {
       font-size: 16px;
       opacity: 0.6;
+    }
+
+    /* ---------- Fresh + Compact ---------- */
+    :host([ui-style="fresh"]) .search-container,
+    :host([ui-style="compact"]) .search-container {
+      padding: 12px 16px 4px;
+      background: transparent;
+    }
+    :host([ui-style="fresh"]) .search-box,
+    :host([ui-style="compact"]) .search-box {
+      min-height: 28px;
+      padding: 10px 14px;
+      background: var(--slm-bg-surface);
+    }
+    :host([ui-style="fresh"]) .search-box {
+      border-radius: 18px;
+    }
+    :host([ui-style="compact"]) .search-box {
+      border-radius: 14px;
+    }
+    :host([ui-style="fresh"]) .results-dropdown,
+    :host([ui-style="compact"]) .results-dropdown {
+      left: 16px;
+      right: 16px;
+      border-radius: 0 0 18px 18px;
     }
     input {
       flex: 1;

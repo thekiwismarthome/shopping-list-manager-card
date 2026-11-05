@@ -1,11 +1,14 @@
 import { t, I18nController } from '../services/translator.js';
 import { LitElement, html, css } from 'lit';
+import { subPageStyles } from '../styles/ui-styles.js';
 
 const BUILT_IN_COUNTRIES = ['NZ', 'AU', 'US', 'GB', 'CA', 'BE'];
 
 class SLMDataSettings extends LitElement {
   _i18n = new I18nController(this);
   static properties = {
+    // 'classic' | 'fresh' | 'compact' (set by the settings view)
+    uiStyle: { type: String, attribute: 'ui-style', reflect: true },
     api: { type: Object },
     _currentCountry: { type: String, state: true },
     _availableCountries: { type: Object, state: true },
@@ -444,7 +447,7 @@ class SLMDataSettings extends LitElement {
     `;
   }
 
-  static styles = css`
+  static styles = [css`
     :host { display: block; }
     .data-settings { padding-bottom: 20px; }
     .header {
@@ -614,7 +617,7 @@ class SLMDataSettings extends LitElement {
       margin-right: 4px;
       color: var(--slm-accent-primary);
     }
-  `;
+  `, subPageStyles];
 }
 
 customElements.define('slm-data-settings', SLMDataSettings);

@@ -80,6 +80,12 @@ export const UI_STRINGS = [
   'Notifications', 'List sharing, emails',
   'Preferences', 'Open last used list at launch', 'Keep screen turned on',
   'Sync settings across devices', 'Keep your theme and list options the same on all your devices',
+  // Interface styles + tidied settings
+  'Interface style', 'Classic', 'Fresh', 'Compact',
+  'The original look', 'Soft cards, floating menu', 'Dense list, flat tab bar',
+  'Personalise', 'Behaviour', 'Connections', 'Search settings', 'No settings match',
+  'In your basket', 'Estimated', 'Estimated total', 'of', 'left', 'Main',
+  'In-store', 'Wall panel', 'HA native', 'Big rows, tap to tick off', 'List and product picker side by side', 'Flat, uses your Home Assistant theme', 'The HA native style follows your Home Assistant theme, so dark mode and colour theme are set there.', 'The Wall panel style needs a wide card (tablet or wall display). On narrow screens it shows Fresh.', 'Add items', 'Add item',
   'Region & Catalog', 'Country-specific products and pricing',
   'Manage Categories', 'categories',
   'HA Todo Sync', 'Link lists to Home Assistant todo',

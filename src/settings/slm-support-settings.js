@@ -1,9 +1,12 @@
 import { t, I18nController } from '../services/translator.js';
 import { LitElement, html, css } from 'lit';
+import { subPageStyles } from '../styles/ui-styles.js';
 
 class SupportSettings extends LitElement {
   _i18n = new I18nController(this);
   static properties = {
+    // 'classic' | 'fresh' | 'compact' (set by the settings view)
+    uiStyle: { type: String, attribute: 'ui-style', reflect: true },
     slmVersion:  { type: String },
     slmcVersion: { type: String },
   };
@@ -94,7 +97,7 @@ class SupportSettings extends LitElement {
     `;
   }
 
-  static styles = css`
+  static styles = [css`
     :host {
       display: block;
     }
@@ -169,7 +172,7 @@ class SupportSettings extends LitElement {
       font-size: 14px;
       color: var(--secondary-text-color);
     }
-  `;
+  `, subPageStyles];
 }
 
 customElements.define('slm-support-settings', SupportSettings);

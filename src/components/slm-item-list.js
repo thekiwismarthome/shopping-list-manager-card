@@ -12,6 +12,10 @@ class SLMItemList extends LitElement {
     settings: { type: Object },
     api: { type: Object },
     currencySymbol: { type: String },
+    // 'classic' | 'fresh' | 'compact' (see Appearance settings)
+    uiStyle: { type: String, attribute: 'ui-style', reflect: true },
+    // In-store mode: big tick-off rows, checked items stay visible (struck through)
+    instore: { type: Boolean, reflect: true },
     _recentItems: { type: Array, state: true },
     _longPressTimer: { state: true },
     _longPressTriggered: { state: true }
@@ -19,6 +23,8 @@ class SLMItemList extends LitElement {
 
   constructor() {
     super();
+    this.uiStyle = 'classic';
+    this.instore = false;
     this._recentItems = [];
     this._longPressTimer = null;
     this._longPressTriggered = false;
@@ -84,6 +90,8 @@ class SLMItemList extends LitElement {
   }
 
   getCategoryHeaderStyle(color) {
+    // Fresh / Compact draw their own plain section labels (see styles below)
+    if (this.uiStyle === 'fresh' || this.uiStyle === 'compact') return '';
     const { r, g, b } = this.hexToRgb(color);
     return `border-left: 4px solid ${color}; background: linear-gradient(to right, rgba(${r},${g},${b},0.22), rgba(${r},${g},${b},0.066)); border-radius: 0 8px 8px 0;`;
   }
@@ -175,11 +183,13 @@ class SLMItemList extends LitElement {
 
   groupItems() {
     const sortMode = this.settings?.sortMode || 'category';
-    // Only show unchecked items (same behaviour as tile view)
-    const unchecked = (this.items || []).filter(i => !i.checked);
+    // Only show unchecked items (same behaviour as tile view). In-store mode keeps
+    // ticked items visible, after the unchecked ones, so a mis-tap is easy to undo.
+    const unchecked = (this.items || []).filter(i => this.instore || !i.checked);
+    if (this.instore) unchecked.sort((a, b) => Number(!!a.checked) - Number(!!b.checked));
 
     if (sortMode === 'alphabetical') {
-      unchecked.sort((a, b) => a.name.localeCompare(b.name));
+      unchecked.sort((a, b) => (this.instore ? Number(!!a.checked) - Number(!!b.checked) : 0) || a.name.localeCompare(b.name));
       return { mode: 'alpha', sections: [{ id: '_alpha', items: unchecked }] };
     }
 
@@ -309,7 +319,8 @@ class SLMItemList extends LitElement {
 
     return html`
       <div
-        class="list-row ${item._pending ? 'pending-row' : ''}"
+        class="list-row ${item._pending ? 'pending-row' : ''} ${item.checked ? 'checked-row' : ''}"
+        style="--rc: ${color}"
         @click=${(e) => this.handleRowClick(e, item)}
         @mousedown=${() => this.handleMouseDown(item)}
         @mouseup=${this.handleMouseUp}
@@ -360,6 +371,7 @@ class SLMItemList extends LitElement {
     return html`
       <div
         class="list-row recent-row"
+        style="--rc: ${recentColor}"
         @click=${() => this.handleRecentClick(product)}
       >
         <div class="row-left">
@@ -408,8 +420,10 @@ class SLMItemList extends LitElement {
           <div class="list-section">
             ${mode === 'category' ? html`
               <div class="category-header" style="${this.getCategoryHeaderStyle(catColor)}">
+                <span class="hdr-dot" style="background: ${catColor}"></span>
                 <span class="cat-emoji">${this.getCategoryEmoji(section.category.id)}</span>
                 <span class="cat-name" style="color: ${catColor}">${section.category.name}</span>
+                <span class="cat-count">${section.items.length}</span>
               </div>
             ` : ''}
             ${section.items.map(item => this.renderRow(item))}
@@ -420,8 +434,10 @@ class SLMItemList extends LitElement {
         ${showRecent && this._recentItems.length > 0 ? html`
           <div class="list-section">
             <div class="category-header" style="${this.getCategoryHeaderStyle(recentColor)}">
+              <span class="hdr-dot" style="background: ${recentColor}"></span>
               <span class="cat-emoji">⏱️</span>
-              <span class="cat-name" style="color: ${recentColor}">Recently Used</span>
+              <span class="cat-name" style="color: ${recentColor}">${t('Recently Used')}</span>
+              <span class="cat-count">${this._recentItems.length}</span>
             </div>
             ${this._recentItems.map(product => this.renderRecentRow(product))}
           </div>
@@ -576,6 +592,186 @@ class SLMItemList extends LitElement {
       font-size: 20px;
       cursor: default;
     }
+    .hdr-dot,
+    .cat-count {
+      display: none;
+    }
+
+    /* ---------- Fresh + Compact: plain section labels ---------- */
+    :host([ui-style="fresh"]) .list-container,
+    :host([ui-style="compact"]) .list-container {
+      padding: 4px 16px;
+    }
+    :host([ui-style="fresh"]) .category-header,
+    :host([ui-style="compact"]) .category-header {
+      padding: 14px 2px 6px;
+      margin: 0;
+      gap: 8px;
+      font-size: 12px;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+    }
+    :host([ui-style="fresh"]) .cat-emoji,
+    :host([ui-style="compact"]) .cat-emoji {
+      display: none;
+    }
+    :host([ui-style="fresh"]) .hdr-dot,
+    :host([ui-style="compact"]) .hdr-dot {
+      display: block;
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      flex: none;
+    }
+    :host([ui-style="fresh"]) .cat-name,
+    :host([ui-style="compact"]) .cat-name {
+      flex: none;
+    }
+    :host([ui-style="fresh"]) .cat-count,
+    :host([ui-style="compact"]) .cat-count {
+      display: inline;
+      color: var(--slm-text-secondary);
+      font-weight: 600;
+    }
+    :host([ui-style="fresh"]) .row-left .cat-dot,
+    :host([ui-style="compact"]) .row-left .cat-dot {
+      display: none;
+    }
+    :host([ui-style="fresh"]) .list-row,
+    :host([ui-style="compact"]) .list-row {
+      border-radius: 0;
+      border-bottom: 1px solid var(--slm-border-subtle);
+    }
+    :host([ui-style="fresh"]) .list-row:last-child,
+    :host([ui-style="compact"]) .list-row:last-child {
+      border-bottom: none;
+    }
+
+    /* ---------- Fresh: each category is a rounded card ---------- */
+    :host([ui-style="fresh"]) .list-section {
+      background: var(--slm-bg-surface);
+      border: 1px solid var(--slm-border-subtle);
+      border-radius: 22px;
+      padding: 0 14px 4px;
+      margin-bottom: 14px;
+    }
+    :host([ui-style="fresh"]) .list-row {
+      padding: 10px 0;
+      gap: 12px;
+      min-height: 52px;
+    }
+    :host([ui-style="fresh"]) .row-icon {
+      width: 44px;
+      height: 44px;
+      border-radius: 14px;
+      background: color-mix(in srgb, var(--rc, var(--slm-accent-primary)) 16%, var(--slm-bg-surface));
+    }
+    :host([ui-style="fresh"]) .row-img {
+      width: 34px;
+      height: 34px;
+    }
+    :host([ui-style="fresh"]) .row-emoji {
+      font-size: 26px;
+    }
+    :host([ui-style="fresh"]) .row-name {
+      font-size: 0.95em;
+      font-weight: 700;
+    }
+    :host([ui-style="fresh"]) .list-decrease-btn {
+      width: 36px;
+      height: 36px;
+    }
+    :host([ui-style="fresh"]) .list-qty-badge {
+      min-width: 36px;
+      height: 36px;
+      border-radius: 999px;
+    }
+
+    /* ---------- Compact: flat hairline list ---------- */
+    :host([ui-style="compact"]) .list-section {
+      margin-bottom: 6px;
+    }
+    :host([ui-style="compact"]) .list-row {
+      padding: 8px 2px;
+      gap: 12px;
+      min-height: 48px;
+    }
+    :host([ui-style="compact"]) .row-icon {
+      width: 32px;
+      height: 32px;
+      border-radius: 8px;
+    }
+    :host([ui-style="compact"]) .row-img {
+      width: 30px;
+      height: 30px;
+    }
+    :host([ui-style="compact"]) .row-emoji {
+      font-size: 22px;
+    }
+    :host([ui-style="compact"]) .row-name {
+      font-size: 0.95em;
+      font-weight: 600;
+    }
+    :host([ui-style="compact"]) .list-decrease-btn {
+      width: 30px;
+      height: 30px;
+    }
+    :host([ui-style="compact"]) .list-qty-badge {
+      min-width: 30px;
+      height: 30px;
+      border-radius: 8px;
+    }
+
+    /* ---------- In-store: big rows, tap anywhere to tick off ---------- */
+    :host([instore]) .list-container {
+      padding: 4px 16px 24px;
+    }
+    :host([instore]) .list-row {
+      min-height: 68px;
+      padding: 10px 4px;
+      gap: 14px;
+    }
+    :host([instore]) .row-icon {
+      width: 48px;
+      height: 48px;
+      border-radius: 14px;
+      background: color-mix(in srgb, var(--rc, var(--slm-accent-primary)) 16%, var(--slm-bg-surface));
+    }
+    :host([instore]) .row-img {
+      width: 38px;
+      height: 38px;
+    }
+    :host([instore]) .row-emoji {
+      font-size: 30px;
+    }
+    :host([instore]) .row-name {
+      font-size: 1.15em;
+      font-weight: 700;
+      white-space: normal;
+    }
+    :host([instore]) .row-price {
+      font-size: 0.85em;
+    }
+    :host([instore]) .list-decrease-btn {
+      display: none;
+    }
+    :host([instore]) .list-qty-badge {
+      min-width: 40px;
+      height: 40px;
+      border-radius: 12px;
+      font-size: 17px;
+    }
+    :host([instore]) .list-row:active {
+      background: color-mix(in srgb, var(--slm-accent-primary) 12%, transparent);
+    }
+    .list-row.checked-row .row-name,
+    .list-row.checked-row .row-price {
+      text-decoration: line-through;
+    }
+    .list-row.checked-row {
+      opacity: 0.45;
+    }
+
     .empty {
       text-align: center;
       padding: 80px 32px;

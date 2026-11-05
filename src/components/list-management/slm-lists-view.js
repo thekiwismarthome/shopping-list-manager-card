@@ -1,10 +1,13 @@
 import { LitElement, html, css } from 'lit';
 import { t, I18nController } from '../../services/translator.js';
 import './slm-list-card.js';
+import { viewHeaderStyles } from '../../styles/ui-styles.js';
 
 class SLMListsView extends LitElement {
   _i18n = new I18nController(this);
   static properties = {
+    // 'classic' | 'fresh' | 'compact' (see Appearance settings)
+    uiStyle: { type: String, attribute: 'ui-style', reflect: true },
     api: { type: Object },
     lists: { type: Array },
     activeList: { type: Object },
@@ -223,6 +226,7 @@ class SLMListsView extends LitElement {
             ${this.lists.map(list => html`
               <slm-list-card
                 .list=${list}
+                .uiStyle=${this.uiStyle}
                 .isActive=${list.id === this.activeList?.id}
                 .itemCount=${list.id === this.activeList?.id
                   ? this.items.filter(i => !i.checked).length
@@ -332,7 +336,7 @@ class SLMListsView extends LitElement {
     `;
   }
 
-  static styles = css`
+  static styles = [css`
     .lists-view {
       padding: 16px 8px;
       min-height: 100%;
@@ -571,7 +575,7 @@ class SLMListsView extends LitElement {
       --mdc-icon-size: 20px;
       color: var(--secondary-text-color);
     }
-  `;
+  `, viewHeaderStyles];
 }
 
 customElements.define('slm-lists-view', SLMListsView);

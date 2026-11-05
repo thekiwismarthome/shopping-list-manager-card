@@ -1,19 +1,33 @@
 import { LitElement, html, css } from 'lit';
 import { t, I18nController } from '../services/translator.js';
+import { settingsGroupStyles } from '../styles/ui-styles.js';
 import './slm-dark-mode-popup.js';
 import './slm-font-settings.js';
+
+// Interface styles the user can pick between (see styles in each component)
+const UI_STYLES = [
+  { id: 'classic', label: 'Classic', hint: 'The original look' },
+  { id: 'fresh',   label: 'Fresh',   hint: 'Soft cards, floating menu' },
+  { id: 'compact', label: 'Compact', hint: 'Dense list, flat tab bar' },
+  { id: 'instore', label: 'In-store', hint: 'Big rows, tap to tick off' },
+  { id: 'panel',   label: 'Wall panel', hint: 'List and product picker side by side' },
+  { id: 'native',  label: 'HA native', hint: 'Flat, uses your Home Assistant theme' },
+];
 
 class SLMAppearanceSettings extends LitElement {
   _i18n = new I18nController(this);
   static properties = {
     settings: { type: Object },
     isEmbedded: { type: Boolean },
+    // 'classic' | 'fresh' | 'compact' (current interface style)
+    uiStyle: { type: String, attribute: 'ui-style', reflect: true },
     showDarkModePopup: { type: Boolean },
     showFontSettings: { type: Boolean }
   };
 
   constructor() {
     super();
+    this.uiStyle = 'classic';
     this.isEmbedded = false;
     this.showDarkModePopup = false;
     this.showFontSettings = false;
@@ -47,6 +61,36 @@ class SLMAppearanceSettings extends LitElement {
         </div>
 
         <div class="settings-list">
+          <div class="section-header">${t('Interface style')}</div>
+          <div class="group">
+            <div class="settings-item">
+              <div class="item-content full-width">
+                <div class="style-options" role="radiogroup" aria-label=${t('Interface style')}>
+                  ${UI_STYLES.map(s => html`
+                    <button
+                      class="style-option ${(this.settings.uiStyle || 'classic') === s.id ? 'selected' : ''}"
+                      role="radio"
+                      aria-checked=${(this.settings.uiStyle || 'classic') === s.id ? 'true' : 'false'}
+                      @click=${() => this.handleSettingChange('uiStyle', s.id)}
+                    >
+                      <span class="sp sp-${s.id}" aria-hidden="true"></span>
+                      <span class="so-label">${t(s.label)}</span>
+                      <span class="so-hint">${t(s.hint)}</span>
+                    </button>
+                  `)}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="section-header">${t('Theme')}</div>
+          ${(this.settings.uiStyle === 'native') ? html`
+            <div class="style-note">${t('The HA native style follows your Home Assistant theme, so dark mode and colour theme are set there.')}</div>
+          ` : ''}
+          ${(this.settings.uiStyle === 'panel') ? html`
+            <div class="style-note">${t('The Wall panel style needs a wide card (tablet or wall display). On narrow screens it shows Fresh.')}</div>
+          ` : ''}
+          <div class="group ${this.settings.uiStyle === 'native' ? 'is-disabled' : ''}">
           <button class="settings-item" @click=${() => this.showDarkModePopup = true}>
             <div class="item-content">
               <div class="item-title">${t('Dark Mode')}</div>
@@ -101,7 +145,10 @@ class SLMAppearanceSettings extends LitElement {
             </select>
           </div>
 
+          </div>
+
           <div class="section-header">${t('Display')}</div>
+          <div class="group">
 
           <div class="settings-item">
             <div class="item-content">
@@ -133,7 +180,10 @@ class SLMAppearanceSettings extends LitElement {
             </div>
           </div>
 
+          </div>
+
           <div class="section-header">${t('Recently Used')}</div>
+          <div class="group">
 
           <div class="settings-item">
             <div class="item-content full-width">
@@ -151,7 +201,10 @@ class SLMAppearanceSettings extends LitElement {
             </div>
           </div>
 
+          </div>
+
           <div class="section-header">${t('Product Images')}</div>
+          <div class="group">
 
           <div class="settings-item">
             <div class="item-content full-width">
@@ -167,7 +220,10 @@ class SLMAppearanceSettings extends LitElement {
             </div>
           </div>
 
+          </div>
+
           <div class="section-header">${t('Font')}</div>
+          <div class="group">
 
           <div class="settings-item">
             <div class="item-content">
@@ -222,6 +278,7 @@ class SLMAppearanceSettings extends LitElement {
             </div>
             <ha-icon icon="mdi:chevron-right"></ha-icon>
           </button>
+          </div>
         </div>
 
         ${this.showDarkModePopup ? html`
@@ -258,7 +315,160 @@ class SLMAppearanceSettings extends LitElement {
     }
   }
 
-  static styles = css`
+  static styles = [css`
+    .style-options {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 8px;
+    }
+    .style-option {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      padding: 8px;
+      border: 2px solid var(--slm-border-subtle);
+      border-radius: 14px;
+      background: transparent;
+      color: var(--slm-text-primary);
+      text-align: left;
+      cursor: pointer;
+      font: inherit;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .style-option.selected {
+      border-color: var(--slm-accent-primary);
+      background: color-mix(in srgb, var(--slm-accent-primary) 10%, transparent);
+    }
+    .style-option:focus-visible {
+      outline: 2px solid var(--slm-accent-primary);
+      outline-offset: 2px;
+    }
+    .style-note {
+      margin: 0 16px 8px;
+      font-size: 12px;
+      line-height: 1.35;
+      color: var(--slm-text-secondary);
+    }
+    .is-disabled {
+      opacity: 0.45;
+      pointer-events: none;
+    }
+    .so-label {
+      font-size: 13px;
+      font-weight: 700;
+    }
+    .so-hint {
+      font-size: 11px;
+      line-height: 1.25;
+      color: var(--slm-text-secondary);
+    }
+    /* tiny drawings of each style */
+    .sp {
+      position: relative;
+      display: block;
+      height: 58px;
+      border-radius: 8px;
+      background: var(--slm-bg-main);
+      border: 1px solid var(--slm-border-subtle);
+      overflow: hidden;
+    }
+    .sp::before {
+      content: "";
+      position: absolute;
+      left: 6px;
+      right: 6px;
+      top: 6px;
+      height: 8px;
+      border-radius: 3px;
+      background: var(--slm-border-subtle);
+    }
+    .sp::after {
+      content: "";
+      position: absolute;
+      left: 6px;
+      right: 6px;
+      top: 20px;
+      height: 14px;
+      border-radius: 3px;
+      background: var(--slm-bg-surface);
+      box-shadow: 0 16px 0 -2px var(--slm-bg-surface);
+    }
+    .sp-fresh::after {
+      border-radius: 7px;
+      border: 1px solid var(--slm-border-subtle);
+      box-sizing: border-box;
+      height: 16px;
+    }
+    .sp-fresh {
+      background-image: linear-gradient(var(--slm-accent-primary), var(--slm-accent-primary));
+      background-repeat: no-repeat;
+      background-size: 60% 7px;
+      background-position: center bottom 5px;
+    }
+    .sp-instore {
+      background-image: linear-gradient(var(--slm-accent-primary), var(--slm-accent-primary));
+      background-repeat: no-repeat;
+      background-size: 22% 6px;
+      background-position: 8px 8px;
+    }
+    .sp-instore::before {
+      top: 5px;
+      left: auto;
+      right: 6px;
+      width: 38%;
+    }
+    .sp-instore::after {
+      top: 20px;
+      height: 14px;
+      border-radius: 5px;
+      box-shadow: 0 17px 0 -1px var(--slm-bg-surface);
+    }
+    .sp-panel {
+      background-image:
+        linear-gradient(var(--slm-border-subtle), var(--slm-border-subtle)),
+        linear-gradient(var(--slm-border-subtle), var(--slm-border-subtle));
+      background-repeat: no-repeat;
+      background-size: 1px 38px, 100% 0;
+      background-position: 42% 14px, 0 0;
+    }
+    .sp-panel::before {
+      right: auto;
+      width: 36%;
+    }
+    .sp-panel::after {
+      right: auto;
+      width: 36%;
+    }
+    .sp-native {
+      border-radius: 4px;
+    }
+    .sp-native::before {
+      border-radius: 0;
+      height: 6px;
+    }
+    .sp-native::after {
+      border-radius: 0;
+      box-shadow: none;
+      background: transparent;
+      border-bottom: 1px solid var(--slm-border-subtle);
+      border-top: 1px solid var(--slm-border-subtle);
+      height: 14px;
+    }
+    .sp-compact {
+      background-image: linear-gradient(var(--slm-accent-primary), var(--slm-accent-primary));
+      background-repeat: no-repeat;
+      background-size: 26% 3px;
+      background-position: 50% bottom 0;
+    }
+    .sp-compact::after {
+      border-radius: 0;
+      box-shadow: none;
+      border-bottom: 1px solid var(--slm-border-subtle);
+      background: transparent;
+      height: 8px;
+      top: 22px;
+    }
+
     .theme-select {
       background: var(--slm-bg-elevated);
       color: var(--slm-text-primary);
@@ -423,7 +633,7 @@ class SLMAppearanceSettings extends LitElement {
       outline: none;
       border-color: var(--slm-accent-primary);
     }
-  `;
+  `, settingsGroupStyles];
 }
 
 customElements.define('slm-appearance-settings', SLMAppearanceSettings);
