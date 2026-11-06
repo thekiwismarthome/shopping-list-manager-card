@@ -1,0 +1,7 @@
+node_modules
+.vitepress/cache
+.vitepress/dist
+# copied in by scripts/prepare-demo.mjs at build time
+public/sandbox/shopping-list-manager-card.js
+public/sandbox/mdi/
+public/version.json

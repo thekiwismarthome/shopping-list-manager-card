@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Shopping List Manager demo</title>
+<link rel="icon" href="data:,">
+<style>
+@font-face { font-family: "Material Design Icons"; src: url(mdi/mdi.woff2) format("woff2"); font-display: block; }
+html, body { margin: 0; height: 100%; overflow: hidden; background: transparent; }
+body {
+  --primary-background-color: #fafafa; --card-background-color: #ffffff; --primary-text-color: #212121;
+  --secondary-text-color: #727272; --divider-color: #e0e0e0; --primary-color: #03a9f4;
+  font-family: Roboto, system-ui, sans-serif;
+}
+shopping-list-manager-card { display: block; width: 100%; height: 100%; opacity: 0; transition: opacity .25s; }
+shopping-list-manager-card.ready { opacity: 1; }
+</style>
+</head>
+<body>
+<script src="ha-shims.js"></script>
+<script src="demo-backend.js"></script>
+<script>
+(function () {
+  // Remove anything the card saved here on a previous visit so every demo starts the same way
+  try { Object.keys(localStorage).filter(function (k) { return k.indexOf('slm_') === 0; }).forEach(function (k) { localStorage.removeItem(k); }); } catch (e) {}
+
+  var q = new URLSearchParams(location.search);
+  var pref = { ui: q.get('ui') || 'fresh', theme: q.get('theme') || '', mode: q.get('mode') || 'light', tab: q.get('tab') || 'shopping', view: q.get('view') || 'list' };
+  var card;
+
+  function desired() {
+    var s = { uiStyle: pref.ui, darkMode: pref.mode === 'dark' ? 'on' : 'off', viewMode: pref.view, tilesPerRow: 3, localImagePath: '' };
+    if (pref.theme) s.designTheme = pref.theme;
+    return s;
+  }
+  function apply() {
+    if (!card) return;
+    var s = desired();
+    card.settings = Object.assign({}, card.settings, s);
+    card.applyColorScheme();
+    card.requestUpdate();
+  }
+
+  Promise.all([
+    fetch('data/catalog.json').then(function (r) { return r.json(); }),
+    fetch('data/categories.json').then(function (r) { return r.json(); }),
+    fetch('../version.json').then(function (r) { return r.json(); }).catch(function () { return { version: '' }; })
+  ]).then(function (res) {
+    var backend = createDemoBackend({ catalog: res[0], categories: res[1] }, { user: { id: 'demo', name: 'You', is_admin: true }, integrationVersion: res[2].version });
+    window.__backend = backend;
+    var script = document.createElement('script');
+    script.src = 'shopping-list-manager-card.js';
+    script.onload = function () {
+      customElements.whenDefined('shopping-list-manager-card').then(function () {
+        card = document.createElement('shopping-list-manager-card');
+        document.body.appendChild(card);
+        card.setConfig({ type: 'custom:shopping-list-manager-card' });
+        card.currentView = pref.tab;
+        // Start with the chosen look already in place, so nothing flashes or loads the wrong images
+        card._settingsUserId = 'demo';
+        card.settings = Object.assign({}, card.loadSettings(), desired());
+        card.hass = backend.hass();
+        setTimeout(function () { apply(); card.classList.add('ready'); parent.postMessage({ slmDemo: 'ready' }, '*'); }, 500);
+      });
+    };
+    document.head.appendChild(script);
+  });
+
+  // The page around this demo can change the design, theme and colour mode
+  window.addEventListener('message', function (e) {
+    var d = e.data; if (!d || !d.slmDemo) return;
+    ['ui', 'theme', 'mode', 'view'].forEach(function (k) { if (d[k]) pref[k] = d[k]; });
+    if (d.reset && window.__backend) window.__backend.reset();
+    if (d.tab && card) { pref.tab = d.tab; card.currentView = d.tab; }
+    apply();
+  });
+})();
+</script>
+</body>
+</html>

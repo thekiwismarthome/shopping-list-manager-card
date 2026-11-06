@@ -1,0 +1,151 @@
+// A small in-memory stand-in for the Shopping List Manager integration.
+// It answers the same websocket commands, so the real card runs unchanged.
+// Everything lives in this page; nothing is saved or sent anywhere.
+(function () {
+  var NS = 'shopping_list_manager/';
+  var uid = 0;
+  var newId = function (p) { uid += 1; return p + '_' + Date.now().toString(36) + uid; };
+  var now = function () { return new Date().toISOString(); };
+
+  function createBackend(data, opts) {
+    var listeners = [];
+    var currency = data.catalog.currency || 'NZD';
+    var products = data.catalog.products.map(function (p) {
+      return Object.assign({ aliases: [], default_unit: 'units', default_quantity: 1, brands: [], user_frequency: 0, custom: false }, p);
+    });
+    var byId = {}; products.forEach(function (p) { byId[p.id] = p; });
+    var categories = data.categories.categories;
+
+    var state;
+    function seed() {
+      var P = function (id) { return byId[id]; };
+      state = { lists: [], items: {}, cards: [], settings: null };
+      var weekly = mkList('Weekly shop', 'mdi:cart', true);
+      var bbq = mkList('BBQ Saturday', 'mdi:grill', false);
+      var work = mkList('Hardware run', 'mdi:hammer-wrench', false);
+      state.lists = [weekly, bbq, work];
+      state.items[weekly.id] = []; state.items[bbq.id] = []; state.items[work.id] = [];
+      [['bananas', 1], ['avocados', 3], ['spinach', 1], ['milk - whole', 2], ['yogurt - greek', 1], ['bread - vogels', 1], ['pasta - penne', 2], ['eggs - free', 1], ['chicken thighs', 1], ['cheese - tasty', 1]].forEach(function (pair, i) {
+        var p = find(pair[0]); if (p) addItem(weekly.id, { name: p.name, quantity: pair[1], product_id: p.id, category_id: p.category_id, unit: p.default_unit, price: p.price }, i === 5 || i === 7);
+      });
+      [['sausages', 2], ['bread rolls', 1], ['lemonade', 2], ['onions - red', 1]].forEach(function (pair) {
+        var p = find(pair[0]); if (p) addItem(bbq.id, { name: p.name, quantity: pair[1], product_id: p.id, category_id: p.category_id, unit: p.default_unit, price: p.price });
+      });
+      state.cards = [
+        card('Countdown Onecard', '9400000481926', '#0F7B5A'),
+        card('Flybuys', '6008940012345678', '#3B4BA8'),
+        card('Mitre 10 Trade', '2210304455', '#B8481F')
+      ];
+    }
+    function card(name, number, color) {
+      return { id: newId('card'), name: name, number: number, barcode: number, barcode_type: 'barcode', logo: '', notes: '', color: color, created_at: now(), updated_at: now(), owner_id: null, allowed_users: [] };
+    }
+    function find(q) {
+      q = q.toLowerCase();
+      return products.filter(function (p) { return p.name.toLowerCase().indexOf(q) > -1 || (p.aliases || []).some(function (a) { return a.toLowerCase().indexOf(q) > -1; }); })[0];
+    }
+    function mkList(name, icon, active) {
+      return { id: newId('list'), name: name, icon: icon, created_at: now(), updated_at: now(), item_order: [], category_order: [], active: !!active, owner_id: null, allowed_users: [], ha_todo_entity_id: null };
+    }
+    function mkItem(listId, d) {
+      var it = { id: newId('item'), list_id: listId, name: d.name, category_id: d.category_id || 'other', product_id: d.product_id || null,
+        quantity: d.quantity != null ? d.quantity : 1, unit: d.unit || 'units', note: d.note || null, checked: false, checked_at: null,
+        created_at: now(), updated_at: now(), image_url: d.image_url || null, order_index: 0, price: d.price != null ? d.price : null, estimated_total: null, barcode: d.barcode || null };
+      if (it.price != null) it.estimated_total = it.quantity * it.price;
+      return it;
+    }
+    function addItem(listId, d, checked) {
+      var it = mkItem(listId, d); if (checked) { it.checked = true; it.checked_at = now(); }
+      state.items[listId].push(it); return it;
+    }
+    function findItem(id) {
+      for (var l in state.items) { var it = state.items[l].filter(function (i) { return i.id === id; })[0]; if (it) return it; }
+      return null;
+    }
+    function emit(event_type, d) { setTimeout(function () { listeners.forEach(function (cb) { cb({ event_type: 'shopping_list_manager_' + event_type, data: d }); }); }, 0); }
+    function recalc(it) { it.estimated_total = it.price != null ? it.quantity * it.price : null; it.updated_at = now(); }
+
+    function search(q, limit) {
+      q = (q || '').toLowerCase().trim(); if (!q) return [];
+      var scored = [];
+      products.forEach(function (p) {
+        var n = p.name.toLowerCase(), s = 0;
+        if (n === q) s = 100; else if (n.indexOf(q) === 0) s = 80; else if (n.indexOf(q) > -1) s = 60;
+        else if ((p.aliases || []).some(function (a) { return a.toLowerCase().indexOf(q) > -1; })) s = 40;
+        if (s) scored.push([s + (p.priority_level || 0), p]);
+      });
+      scored.sort(function (a, b) { return b[0] - a[0]; });
+      return scored.slice(0, limit || 20).map(function (x) { return x[1]; });
+    }
+
+    var handlers = {
+      'lists/get_all': function () { return { lists: state.lists }; },
+      'lists/create': function (m) { var l = mkList(m.name, m.icon || 'mdi:cart', false); if (m.private) l.owner_id = opts.user.id; state.lists.push(l); state.items[l.id] = []; emit('list_updated', { list_id: l.id, action: 'created' }); return { list: l }; },
+      'lists/update': function (m) { var l = state.lists.filter(function (x) { return x.id === m.list_id; })[0]; ['name', 'icon', 'category_order', 'item_order'].forEach(function (k) { if (k in m) l[k] = m[k]; }); l.updated_at = now(); emit('list_updated', { list_id: l.id, action: 'updated' }); return { list: l }; },
+      'lists/delete': function (m) { state.lists = state.lists.filter(function (x) { return x.id !== m.list_id; }); delete state.items[m.list_id]; emit('list_updated', { list_id: m.list_id, action: 'deleted' }); return { success: true }; },
+      'lists/set_active': function (m) { state.lists.forEach(function (l) { l.active = l.id === m.list_id; }); emit('list_updated', { list_id: m.list_id, action: 'activated' }); return { success: true }; },
+      'lists/update_members': function (m) { var l = state.lists.filter(function (x) { return x.id === m.list_id; })[0]; l.allowed_users = m.allowed_users || []; return { list: l }; },
+      'items/get': function (m) { return { items: state.items[m.list_id] || [] }; },
+      'items/add': function (m) { var d = Object.assign({}, m); var it = addItem(m.list_id, d); emit('item_added', { list_id: m.list_id, item_id: it.id, item: it }); return { item: it }; },
+      'items/update': function (m) { var it = findItem(m.item_id); ['name', 'category_id', 'quantity', 'unit', 'note', 'price', 'image_url', 'barcode'].forEach(function (k) { if (k in m) it[k] = m[k]; }); recalc(it); emit('item_updated', { list_id: it.list_id, item_id: it.id, item: it }); return { item: it }; },
+      'items/check': function (m) { var it = findItem(m.item_id); it.checked = !!m.checked; it.checked_at = m.checked ? now() : null; emit('item_checked', { list_id: it.list_id, item_id: it.id, checked: it.checked }); return { item: it }; },
+      'items/bulk_check': function (m) { m.item_ids.forEach(function (id) { var it = findItem(id); if (it) { it.checked = !!m.checked; } }); emit('item_checked', { item_ids: m.item_ids, checked: !!m.checked, count: m.item_ids.length }); return { success: true, count: m.item_ids.length }; },
+      'items/delete': function (m) { var it = findItem(m.item_id); if (it) { state.items[it.list_id] = state.items[it.list_id].filter(function (i) { return i.id !== m.item_id; }); emit('item_deleted', { list_id: it.list_id, item_id: m.item_id }); } return { success: true }; },
+      'items/increment': function (m) { var it = findItem(m.item_id); it.quantity = Math.max(1, it.quantity + m.amount); recalc(it); emit('item_updated', { list_id: it.list_id, item_id: it.id, item: it }); return { item: it }; },
+      'items/clear_checked': function (m) { var n = state.items[m.list_id].filter(function (i) { return i.checked; }).length; state.items[m.list_id] = state.items[m.list_id].filter(function (i) { return !i.checked; }); emit('item_deleted', { list_id: m.list_id, count: n, action: 'cleared_checked' }); return { success: true, count: n }; },
+      'items/get_total': function (m) { var its = state.items[m.list_id] || []; return { total: its.reduce(function (s, i) { return s + (i.estimated_total || 0); }, 0), currency: currency, item_count: its.length, checked_count: its.filter(function (i) { return i.checked; }).length }; },
+      'categories/get_all': function () { return { categories: categories }; },
+      'products/suggestions': function (m) { return { products: products.slice().sort(function (a, b) { return (b.priority_level || 0) - (a.priority_level || 0); }).slice(0, m.limit || 20) }; },
+      'products/search': function (m) { return { products: search(m.query, m.limit) }; },
+      'products/get_by_ids': function (m) { return { products: (m.product_ids || []).map(function (id) { return byId[id]; }).filter(Boolean) }; },
+      'products/search_by_barcode': function (m) { return { product: products.filter(function (p) { return p.barcode === m.barcode; })[0] || null }; },
+      'products/substitutes': function (m) { var p = byId[m.product_id]; return { products: p && p.substitution_group ? products.filter(function (x) { return x.id !== p.id && x.substitution_group === p.substitution_group; }).slice(0, m.limit || 5) : [] }; },
+      'products/add': function (m) { var p = Object.assign({ id: newId('prod'), aliases: [], brands: [], custom: true, default_unit: 'units', default_quantity: 1 }, m); delete p.type; products.push(p); byId[p.id] = p; return { product: p }; },
+      'products/update': function (m) { var p = byId[m.product_id]; Object.keys(m).forEach(function (k) { if (k !== 'type' && k !== 'product_id') p[k] = m[k]; }); return { product: p }; },
+      'products/download_image': function (m) { return { local_url: m.image_url }; },
+      'openfoodfacts/fetch': function () { return { products: [] }; },
+      'user_settings/get': function () { return { settings: state.settings, updated_at: state.settings ? now() : null }; },
+      'user_settings/set': function (m) { state.settings = m.settings; return { updated_at: now() }; },
+      'get_integration_settings': function () { return { version: opts.integrationVersion, country: 'NZ', currency_symbol: '$', metric_units_only: true, enable_price_tracking: true, regions: [] }; },
+      'set_country': function (m) { return { success: true, country: m.country, products_loaded: products.length }; },
+      'regions/create': function () { return { success: true }; },
+      'regions/delete': function () { return { success: true }; },
+      'users/get_all': function () { return { users: [{ id: opts.user.id, name: opts.user.name }, { id: 'u2', name: 'Sam' }, { id: 'u3', name: 'Alex' }] }; },
+      'loyalty/get_all': function () { return { cards: state.cards }; },
+      'loyalty/add': function (m) { var c = card(m.name, m.number, m.color || '#9fa8da'); ['barcode', 'barcode_type', 'notes', 'logo'].forEach(function (k) { if (k in m) c[k] = m[k]; }); if (!m.barcode) c.barcode = m.number; state.cards.push(c); return { card: c }; },
+      'loyalty/update': function (m) { var c = state.cards.filter(function (x) { return x.id === m.card_id; })[0]; Object.keys(m).forEach(function (k) { if (['type', 'card_id'].indexOf(k) < 0) c[k] = m[k]; }); c.updated_at = now(); return { card: c }; },
+      'loyalty/delete': function (m) { state.cards = state.cards.filter(function (x) { return x.id !== m.card_id; }); return { success: true }; },
+      'loyalty/update_members': function (m) { var c = state.cards.filter(function (x) { return x.id === m.card_id; })[0]; c.allowed_users = m.allowed_users || []; return { card: c }; },
+      'export_data': function () { return JSON.parse(JSON.stringify({ version: opts.integrationVersion, exported_at: now(), lists: state.lists, items: state.items, loyalty_cards: state.cards })); },
+      'import_data': function () { return { success: true, imported: {} }; }
+    };
+
+    seed();
+
+    return {
+      reset: function () { seed(); emit('list_updated', { action: 'reset' }); },
+      hass: function (extra) {
+        return Object.assign({
+          user: opts.user,
+          language: 'en',
+          config: { currency: currency, unit_system: { length: 'km' } },
+          themes: { darkMode: false },
+          states: {},
+          callService: function () { return Promise.resolve(); },
+          connection: {
+            subscribeMessage: function (cb) { listeners.push(cb); return Promise.resolve(function () { listeners = listeners.filter(function (x) { return x !== cb; }); }); },
+            subscribeEvents: function () { return Promise.resolve(function () {}); }
+          },
+          callWS: function (m) {
+            var h = handlers[m.type.replace(NS, '')];
+            if (!h) return Promise.resolve({});
+            return new Promise(function (resolve, reject) {
+              setTimeout(function () { try { resolve(JSON.parse(JSON.stringify(h(m)))); } catch (e) { reject({ code: 'demo_error', message: String(e) }); } }, 30);
+            });
+          }
+        }, extra || {});
+      }
+    };
+  }
+  window.createDemoBackend = createBackend;
+})();
