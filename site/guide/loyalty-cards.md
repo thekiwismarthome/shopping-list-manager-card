@@ -27,7 +27,7 @@ Press the three dots on a card to change its name, colour or notes, or to delete
 
 ## Private and shared cards
 
-A card can be visible to everyone in the household or kept private to you. Private cards can be shared with chosen people.
+A card can be visible to everyone in the household or kept private to you. Private cards can be shared with chosen people. Once [groups](groups) are set up, a new card starts in your household, and you can choose **Only me** instead. A card's menu has **Manage members** to share it with other households or people.
 
 ::: tip Phone brightness
 Turn your screen brightness up before holding a barcode to a scanner. Some scanners struggle with dim screens.

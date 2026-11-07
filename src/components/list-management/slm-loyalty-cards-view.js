@@ -5,6 +5,8 @@ import JsBarcode from 'jsbarcode';
 import { Html5Qrcode } from 'html5-qrcode';
 import qrcode from 'qrcode-generator';
 import { viewHeaderStyles, bottomSheetStyles } from '../../styles/ui-styles.js';
+import './slm-visibility-picker.js';
+import { visibilityToApi, defaultVisibility } from './slm-visibility-picker.js';
 
 class SLMLoyaltyCardsView extends LitElement {
   _i18n = new I18nController(this);
@@ -25,6 +27,10 @@ class SLMLoyaltyCardsView extends LitElement {
     membersCard: { type: Object },
     newCard: { type: Object },
     allUsers: { type: Array },
+    // Households: every group, the groups the current user is in, and the choice in the add form
+    _groups: { type: Array, state: true },
+    _myGroupIds: { type: Array, state: true },
+    _visibility: { type: String, state: true },
     _viewMode: { type: String },
     _viewMenuX: { type: Number },
     _viewMenuY: { type: Number },
@@ -45,6 +51,9 @@ class SLMLoyaltyCardsView extends LitElement {
     this.fullscreenCard = null;
     this.membersCard = null;
     this.allUsers = [];
+    this._groups = [];
+    this._myGroupIds = [];
+    this._visibility = 'private';
     this._loading = false;
     this._viewMode = localStorage.getItem('slm_loyalty_view_mode') || 'card';
     this._viewMenuX = 0;
@@ -69,6 +78,7 @@ class SLMLoyaltyCardsView extends LitElement {
       if (this.userId !== this._loadedForUserId) {
         this._loadedForUserId = this.userId;
         this.loadCards();
+        this._loadGroups();
       }
     }
     if (this.showFullscreenCard && this.fullscreenCard?.barcode) {
@@ -273,7 +283,22 @@ class SLMLoyaltyCardsView extends LitElement {
 
   // ── CRUD ─────────────────────────────────────────────────────────────────────
 
+  async _loadGroups() {
+    if (!this.api) return;
+    try {
+      const res = await this.api.getGroups();
+      this._groups = res.groups || [];
+      this._myGroupIds = res.mine || [];
+    } catch (err) {
+      // An older integration has no groups: keep the original Private switch
+      this._groups = [];
+      this._myGroupIds = [];
+    }
+    this._visibility = defaultVisibility(this._groups, this._myGroupIds);
+  }
+
   handleAddCard() {
+    this._visibility = defaultVisibility(this._groups, this._myGroupIds);
     this.newCard = {
       name: '',
       number: '',
@@ -300,6 +325,11 @@ class SLMLoyaltyCardsView extends LitElement {
       color: formData.get('color') || '#9fa8da',
       private: this.newCard.private
     };
+    if (this._groups.length) {
+      const { isPrivate, groupId } = visibilityToApi(this._visibility);
+      cardData.private = isPrivate;
+      if (groupId) cardData.group_id = groupId;
+    }
     try {
       const result = await this.api.addLoyaltyCard(cardData);
       this.cards = [...this.cards, result.card];
@@ -381,8 +411,11 @@ class SLMLoyaltyCardsView extends LitElement {
     e.preventDefault();
     const checkboxes = this.shadowRoot.querySelectorAll('.member-checkbox:checked');
     const allowedUsers = Array.from(checkboxes).map(cb => cb.value);
+    // Households the card is also shared with (only sent when there are any to choose from)
+    const groupBoxes = this.shadowRoot.querySelectorAll('.group-checkbox:checked');
+    const allowedGroups = this._groups.length ? Array.from(groupBoxes).map(cb => cb.value) : undefined;
     try {
-      const result = await this.api.updateLoyaltyCardMembers(this.membersCard.id, allowedUsers);
+      const result = await this.api.updateLoyaltyCardMembers(this.membersCard.id, allowedUsers, allowedGroups);
       this.cards = this.cards.map(c => c.id === this.membersCard.id ? result.card : c);
       this.showMembersDialog = false;
       this.membersCard = null;
@@ -572,10 +605,20 @@ class SLMLoyaltyCardsView extends LitElement {
               Card Color
               <input type="color" name="color" .value=${card.color} />
             </label>
-            <label class="toggle-label">
-              <span>${t('Private (only visible to you)')}</span>
-              <input type="checkbox" .checked=${card.private} @change=${(e) => this.newCard = { ...this.newCard, private: e.target.checked }} />
-            </label>
+            ${this._groups.length ? html`
+              <slm-visibility-picker
+                .groups=${this._groups}
+                .myGroupIds=${this._myGroupIds}
+                .isAdmin=${this.isAdmin}
+                .value=${this._visibility}
+                @visibility-change=${(e) => { this._visibility = e.detail.value; }}
+              ></slm-visibility-picker>
+            ` : html`
+              <label class="toggle-label">
+                <span>${t('Private (only visible to you)')}</span>
+                <input type="checkbox" .checked=${card.private} @change=${(e) => this.newCard = { ...this.newCard, private: e.target.checked }} />
+              </label>
+            `}
           </div>
           <div class="dialog-footer">
             <button type="submit" class="action-btn primary">${t('Add')}</button>
@@ -662,6 +705,26 @@ class SLMLoyaltyCardsView extends LitElement {
     `;
   }
 
+  // Households the card can also be shared with (its own household already sees it)
+  _renderCardGroupShares(card) {
+    const own = this._groups.find(g => g.id === card.group_id);
+    const others = this._groups.filter(g => g.id !== card.group_id);
+    if (!own && !others.length) return '';
+    const shared = new Set(card.allowed_groups || []);
+    return html`
+      ${own ? html`<p class="members-hint">${t('Everyone in {name} can already see this card.').replace('{name}', own.name)}</p>` : ''}
+      ${others.length ? html`
+        <p class="members-hint"><b>${t('Households')}</b></p>
+        ${others.map(g => html`
+          <label class="user-row">
+            <input type="checkbox" class="group-checkbox" .value=${g.id} .checked=${shared.has(g.id)} />
+            <span>${g.name}</span>
+          </label>
+        `)}
+      ` : ''}
+    `;
+  }
+
   renderMembersDialog() {
     const card = this.membersCard;
     const otherUsers = this.allUsers.filter(u => u.id !== this.userId);
@@ -675,6 +738,8 @@ class SLMLoyaltyCardsView extends LitElement {
           </div>
           <div class="dialog-content">
             <p class="members-hint">Select which users can see "${card.name}"</p>
+            ${this._renderCardGroupShares(card)}
+            ${this._groups.length ? html`<p class="members-hint"><b>${t('People')}</b></p>` : ''}
             ${otherUsers.length === 0 ? html`
               <p class="no-users">${t('No other users found.')}</p>
             ` : otherUsers.map(user => html`

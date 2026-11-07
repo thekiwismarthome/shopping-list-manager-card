@@ -11,6 +11,7 @@ import './slm-support-settings.js';
 import './slm-data-settings.js';
 import './slm-ha-sync-settings.js';
 import './slm-backup-settings.js';
+import './slm-groups-settings.js';
 
 class SLMSettingsView extends LitElement {
   _i18n = new I18nController(this);
@@ -101,6 +102,9 @@ class SLMSettingsView extends LitElement {
         rows: [
           nav('ha-sync', '🔗', 'mdi:link-variant', '--slm-cat-produce', t('HA Todo Sync'), t('Link lists to Home Assistant todo')),
           nav('notifications', '🔔', 'mdi:bell-outline', '--slm-cat-meat', t('Notifications'), t('List sharing, emails')),
+          ...(this.hass?.user?.is_admin
+            ? [nav('groups', '🏠', 'mdi:account-group-outline', '--slm-cat-frozen', t('Groups'), t('Households and who can see what'))]
+            : []),
         ]
       },
       {
@@ -289,6 +293,16 @@ class SLMSettingsView extends LitElement {
             .api=${this.api}
             @back=${() => this.currentSection = 'main'}
           ></slm-backup-settings>
+        `;
+
+      case 'groups':
+        return html`
+          <slm-groups-settings
+            .uiStyle=${this.uiStyle}
+            .api=${this.api}
+            .isAdmin=${this.hass?.user?.is_admin || false}
+            @back=${() => this.currentSection = 'main'}
+          ></slm-groups-settings>
         `;
 
       case 'ha-sync':

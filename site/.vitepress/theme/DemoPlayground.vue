@@ -67,6 +67,7 @@ function reset() { send({ reset: true }); }
         <li>Press + to add an item. Search for "yoghurt" and see the catalogue.</li>
         <li>Open <b>Lists</b> and make a new list from the bottom sheet.</li>
         <li>Open <b>Loyalty</b> and tap a card to show its barcode.</li>
+        <li>Open <b>Settings → Groups</b> to see two households, then share a list with the other one from <b>Lists → Manage members</b>.</li>
         <li>Open <b>Settings</b> to see every page, including Backup &amp; Restore under Support.</li>
       </ul>
       <p class="note">This is the real card running on sample data in your browser. Nothing is saved, and it resets when you reload.</p>

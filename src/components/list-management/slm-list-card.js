@@ -15,6 +15,7 @@ class SLMListCard extends LitElement {
     emoji: { type: String },
     currentUserId: { type: String },
     isAdmin: { type: Boolean },
+    groups: { type: Array },
     showMenu: { type: Boolean },
     menuX: { type: Number },
     menuY: { type: Number }
@@ -28,12 +29,21 @@ class SLMListCard extends LitElement {
     this.currency = 'NZD';
     this.currentUserId = '';
     this.isAdmin = false;
+    this.groups = [];
     this.menuX = 0;
     this.menuY = 0;
   }
 
   get _isPrivate() {
     return !!this.list?.owner_id;
+  }
+
+  // The household this list belongs to, and any others it is shared with, for the badge tooltip
+  get _groupLabel() {
+    const names = (this.groups || [])
+      .filter(g => g.id === this.list?.group_id || (this.list?.allowed_groups || []).includes(g.id))
+      .map(g => g.name);
+    return names.join(', ');
   }
 
   get _isOwner() {
@@ -100,8 +110,8 @@ class SLMListCard extends LitElement {
         ` : ''}
 
         ${this._isPrivate ? html`
-          <div class="private-badge">
-            <ha-icon icon="mdi:lock"></ha-icon>
+          <div class="private-badge" title=${this._groupLabel}>
+            <ha-icon icon=${this.list?.group_id || (this.list?.allowed_groups || []).length ? 'mdi:account-group' : 'mdi:lock'}></ha-icon>
           </div>
         ` : ''}
 

@@ -502,7 +502,9 @@ class ShoppingListManagerCard extends LitElement {
 
   async loadData() {
     try {
-      this.loading = true;
+      // Only show the full-screen spinner the first time. A refresh after a change (sharing a list,
+      // editing a group) happens in place, so open dialogs and settings pages are not thrown away.
+      if (!this.activeList && !(this.lists && this.lists.length)) this.loading = true;
 
       const [listsResult, categoriesResult] = await Promise.all([
         this.api.getLists(),
@@ -1086,7 +1088,8 @@ class ShoppingListManagerCard extends LitElement {
 
     } else if (
       eventType === 'shopping_list_manager_list_updated' ||
-      eventType === 'shopping_list_manager_list_deleted'
+      eventType === 'shopping_list_manager_list_deleted' ||
+      eventType === 'shopping_list_manager_groups_updated'
     ) {
       this.loadData();
     }
@@ -1116,8 +1119,8 @@ class ShoppingListManagerCard extends LitElement {
       <div class="hero">
         <div class="hero-row">
           <div>
-            <div class="hero-label">${t('In your basket')}</div>
-            <div class="hero-big">${done} <span>${t('of')} ${total} ${t('items')}</span></div>
+            <div class="hero-label">${t('Left to buy')}</div>
+            <div class="hero-big">${total - done} <span>${total - done === 1 ? t('item') : t('items')}</span></div>
           </div>
           <div class="hero-est">
             <div class="hero-label">${t('Estimated')}</div>

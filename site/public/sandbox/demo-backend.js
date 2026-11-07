@@ -19,7 +19,7 @@
     var state;
     function seed() {
       var P = function (id) { return byId[id]; };
-      state = { lists: [], items: {}, cards: [], settings: null };
+      state = { lists: [], items: {}, cards: [], settings: null, groups: [] };
       var weekly = mkList('Weekly shop', 'mdi:cart', true);
       var bbq = mkList('BBQ Saturday', 'mdi:grill', false);
       var work = mkList('Hardware run', 'mdi:hammer-wrench', false);
@@ -36,16 +36,23 @@
         card('Flybuys', '6008940012345678', '#3B4BA8'),
         card('Mitre 10 Trade', '2210304455', '#B8481F')
       ];
+      // Two households on one Home Assistant. Everything starts in "Our house".
+      state.groups = [
+        { id: 'g-home', name: 'Our house', members: [opts.user.id, 'u2'] },
+        { id: 'g-mum', name: 'Mum\u2019s house', members: ['u3'] }
+      ];
+      state.lists.forEach(function (l) { l.owner_id = opts.user.id; l.group_id = 'g-home'; });
+      state.cards.forEach(function (c) { c.owner_id = opts.user.id; c.group_id = 'g-home'; });
     }
     function card(name, number, color) {
-      return { id: newId('card'), name: name, number: number, barcode: number, barcode_type: 'barcode', logo: '', notes: '', color: color, created_at: now(), updated_at: now(), owner_id: null, allowed_users: [] };
+      return { id: newId('card'), name: name, number: number, barcode: number, barcode_type: 'barcode', logo: '', notes: '', color: color, created_at: now(), updated_at: now(), owner_id: null, group_id: null, allowed_users: [], allowed_groups: [] };
     }
     function find(q) {
       q = q.toLowerCase();
       return products.filter(function (p) { return p.name.toLowerCase().indexOf(q) > -1 || (p.aliases || []).some(function (a) { return a.toLowerCase().indexOf(q) > -1; }); })[0];
     }
     function mkList(name, icon, active) {
-      return { id: newId('list'), name: name, icon: icon, created_at: now(), updated_at: now(), item_order: [], category_order: [], active: !!active, owner_id: null, allowed_users: [], ha_todo_entity_id: null };
+      return { id: newId('list'), name: name, icon: icon, created_at: now(), updated_at: now(), item_order: [], category_order: [], active: !!active, owner_id: null, group_id: null, allowed_users: [], allowed_groups: [], ha_todo_entity_id: null };
     }
     function mkItem(listId, d) {
       var it = { id: newId('item'), list_id: listId, name: d.name, category_id: d.category_id || 'other', product_id: d.product_id || null,
@@ -80,11 +87,11 @@
 
     var handlers = {
       'lists/get_all': function () { return { lists: state.lists }; },
-      'lists/create': function (m) { var l = mkList(m.name, m.icon || 'mdi:cart', false); if (m.private) l.owner_id = opts.user.id; state.lists.push(l); state.items[l.id] = []; emit('list_updated', { list_id: l.id, action: 'created' }); return { list: l }; },
+      'lists/create': function (m) { var l = mkList(m.name, m.icon || 'mdi:cart', false); if (m.private || m.group_id) l.owner_id = opts.user.id; if (m.group_id) l.group_id = m.group_id; state.lists.push(l); state.items[l.id] = []; emit('list_updated', { list_id: l.id, action: 'created' }); return { list: l }; },
       'lists/update': function (m) { var l = state.lists.filter(function (x) { return x.id === m.list_id; })[0]; ['name', 'icon', 'category_order', 'item_order'].forEach(function (k) { if (k in m) l[k] = m[k]; }); l.updated_at = now(); emit('list_updated', { list_id: l.id, action: 'updated' }); return { list: l }; },
       'lists/delete': function (m) { state.lists = state.lists.filter(function (x) { return x.id !== m.list_id; }); delete state.items[m.list_id]; emit('list_updated', { list_id: m.list_id, action: 'deleted' }); return { success: true }; },
       'lists/set_active': function (m) { state.lists.forEach(function (l) { l.active = l.id === m.list_id; }); emit('list_updated', { list_id: m.list_id, action: 'activated' }); return { success: true }; },
-      'lists/update_members': function (m) { var l = state.lists.filter(function (x) { return x.id === m.list_id; })[0]; l.allowed_users = m.allowed_users || []; return { list: l }; },
+      'lists/update_members': function (m) { var l = state.lists.filter(function (x) { return x.id === m.list_id; })[0]; l.allowed_users = m.allowed_users || []; if (m.allowed_groups) l.allowed_groups = m.allowed_groups; emit('list_updated', { list_id: l.id, action: 'members_updated' }); return { list: l }; },
       'items/get': function (m) { return { items: state.items[m.list_id] || [] }; },
       'items/add': function (m) { var d = Object.assign({}, m); var it = addItem(m.list_id, d); emit('item_added', { list_id: m.list_id, item_id: it.id, item: it }); return { item: it }; },
       'items/update': function (m) { var it = findItem(m.item_id); ['name', 'category_id', 'quantity', 'unit', 'note', 'price', 'image_url', 'barcode'].forEach(function (k) { if (k in m) it[k] = m[k]; }); recalc(it); emit('item_updated', { list_id: it.list_id, item_id: it.id, item: it }); return { item: it }; },
@@ -110,12 +117,33 @@
       'set_country': function (m) { return { success: true, country: m.country, products_loaded: products.length }; },
       'regions/create': function () { return { success: true }; },
       'regions/delete': function () { return { success: true }; },
-      'users/get_all': function () { return { users: [{ id: opts.user.id, name: opts.user.name }, { id: 'u2', name: 'Sam' }, { id: 'u3', name: 'Alex' }] }; },
+      'users/get_all': function () { return { users: [{ id: opts.user.id, name: opts.user.name }, { id: 'u2', name: 'Sam' }, { id: 'u3', name: 'Mum' }, { id: 'u4', name: 'Alex' }] }; },
+      'groups/get_all': function () {
+        var mine = state.groups.filter(function (g) { return g.members.indexOf(opts.user.id) > -1; }).map(function (g) { return g.id; });
+        return { groups: JSON.parse(JSON.stringify(state.groups)), mine: mine,
+          shared_with_everyone: { lists: state.lists.filter(function (l) { return !l.owner_id; }).length, cards: state.cards.filter(function (c) { return !c.owner_id; }).length } };
+      },
+      'groups/create': function (m) { var g = { id: newId('group'), name: String(m.name || '').trim(), members: m.members || [] }; if (!g.name) throw new Error('A group needs a name'); state.groups.push(g); emit('groups_updated', { action: 'created' }); return { group: g }; },
+      'groups/update': function (m) { var g = state.groups.filter(function (x) { return x.id === m.group_id; })[0]; if (!g) throw new Error('Group not found'); if (m.name != null) g.name = String(m.name).trim(); if (m.members) g.members = m.members; emit('groups_updated', { action: 'updated' }); return { group: g }; },
+      'groups/delete': function (m) {
+        var owned = state.lists.filter(function (l) { return l.group_id === m.group_id; }).length + state.cards.filter(function (c) { return c.group_id === m.group_id; }).length;
+        if (owned) throw new Error('This group still has ' + owned + ' list(s) or card(s). Move or delete them first.');
+        state.groups = state.groups.filter(function (g) { return g.id !== m.group_id; });
+        state.lists.forEach(function (l) { l.allowed_groups = (l.allowed_groups || []).filter(function (g) { return g !== m.group_id; }); });
+        state.cards.forEach(function (c) { c.allowed_groups = (c.allowed_groups || []).filter(function (g) { return g !== m.group_id; }); });
+        emit('groups_updated', { action: 'deleted' }); return { success: true };
+      },
+      'groups/adopt_shared': function (m) {
+        var moved = { lists: 0, cards: 0 };
+        state.lists.forEach(function (l) { if (!l.owner_id) { l.owner_id = opts.user.id; l.group_id = m.group_id; moved.lists++; } });
+        state.cards.forEach(function (c) { if (!c.owner_id) { c.owner_id = opts.user.id; c.group_id = m.group_id; moved.cards++; } });
+        emit('list_updated', { action: 'adopted' }); return { moved: moved };
+      },
       'loyalty/get_all': function () { return { cards: state.cards }; },
-      'loyalty/add': function (m) { var c = card(m.name, m.number, m.color || '#9fa8da'); ['barcode', 'barcode_type', 'notes', 'logo'].forEach(function (k) { if (k in m) c[k] = m[k]; }); if (!m.barcode) c.barcode = m.number; state.cards.push(c); return { card: c }; },
+      'loyalty/add': function (m) { var c = card(m.name, m.number, m.color || '#9fa8da'); if (m.private || m.group_id) c.owner_id = opts.user.id; if (m.group_id) c.group_id = m.group_id; ['barcode', 'barcode_type', 'notes', 'logo'].forEach(function (k) { if (k in m) c[k] = m[k]; }); if (!m.barcode) c.barcode = m.number; state.cards.push(c); return { card: c }; },
       'loyalty/update': function (m) { var c = state.cards.filter(function (x) { return x.id === m.card_id; })[0]; Object.keys(m).forEach(function (k) { if (['type', 'card_id'].indexOf(k) < 0) c[k] = m[k]; }); c.updated_at = now(); return { card: c }; },
       'loyalty/delete': function (m) { state.cards = state.cards.filter(function (x) { return x.id !== m.card_id; }); return { success: true }; },
-      'loyalty/update_members': function (m) { var c = state.cards.filter(function (x) { return x.id === m.card_id; })[0]; c.allowed_users = m.allowed_users || []; return { card: c }; },
+      'loyalty/update_members': function (m) { var c = state.cards.filter(function (x) { return x.id === m.card_id; })[0]; c.allowed_users = m.allowed_users || []; if (m.allowed_groups) c.allowed_groups = m.allowed_groups; return { card: c }; },
       'export_data': function () { return JSON.parse(JSON.stringify({ version: opts.integrationVersion, exported_at: now(), lists: state.lists, items: state.items, loyalty_cards: state.cards })); },
       'import_data': function () { return { success: true, imported: {} }; }
     };
@@ -140,7 +168,7 @@
             var h = handlers[m.type.replace(NS, '')];
             if (!h) return Promise.resolve({});
             return new Promise(function (resolve, reject) {
-              setTimeout(function () { try { resolve(JSON.parse(JSON.stringify(h(m)))); } catch (e) { reject({ code: 'demo_error', message: String(e) }); } }, 30);
+              setTimeout(function () { try { resolve(JSON.parse(JSON.stringify(h(m)))); } catch (e) { reject({ code: 'demo_error', message: (e && e.message) ? e.message : String(e) }); } }, 30);
             });
           }
         }, extra || {});

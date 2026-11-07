@@ -46,6 +46,7 @@ export default defineConfig({
           { text: 'Items and quantities', link: '/guide/items' },
           { text: 'Categories', link: '/guide/categories' },
           { text: 'Loyalty cards', link: '/guide/loyalty-cards' },
+          { text: 'Households and groups', link: '/guide/groups' },
         ] },
         { text: 'Settings', items: [
           { text: 'Appearance', link: '/guide/appearance' },

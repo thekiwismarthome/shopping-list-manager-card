@@ -15,11 +15,13 @@ The list name at the top of the Shop tab opens a switcher. Pick another list to 
 1. Open the **Lists** tab.
 2. Choose the new list button.
 3. A sheet slides up from the bottom. Give the list a name and pick an icon.
-4. Turn **Private** on if only you should see it, then choose **Create**.
+4. Choose **Who can see it**, then choose **Create**. If groups are set up you pick your household, **Only me** or **Everyone**. Without groups there is a **Private** switch instead.
 
 ## Private and shared lists
 
-A list is shared with the whole household unless you mark it **Private**. A private list belongs to the person who made it. The owner, and Home Assistant administrators, can choose who else may see it.
+Without groups, a list is visible to every user unless you mark it **Private**. A private list belongs to the person who made it. The owner, and Home Assistant administrators, can choose who else may see it.
+
+With [groups](groups) set up, a list belongs to a household and everyone in it can see it, and you can share it with other households or people. Lists you make for yourself stay private.
 
 ## Change a list
 
@@ -28,7 +30,7 @@ Each list has a three-dot menu:
 | Action | What it does |
 |---|---|
 | Rename | Change the name. |
-| Manage members | Choose who can see a private list. Only appears for private lists you own, or if you are an administrator. |
+| Manage members | Choose which other households and people can see the list. Only appears for lists you own, or if you are an administrator. |
 | Copy | Make a copy of the list. |
 | Delete | Remove the list and its items. |
 

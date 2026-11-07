@@ -22,7 +22,15 @@ Yes. Live updates work for every Home Assistant user.
 
 ## Can I keep a list private?
 
-Yes. Turn on **Private** when you create the list. See [Lists](/guide/lists).
+Yes. Choose **Only me** (or turn on **Private**, if you have no groups) when you create the list. See [Lists](/guide/lists).
+
+## Can my mum and brother use it without seeing my lists?
+
+Yes, if each of them has a Home Assistant user on your server. Make a group for each household and keep them as normal users. See [Households and groups](/guide/groups).
+
+## Can an administrator see other households' lists?
+
+Yes. The data is on your Home Assistant, so an administrator can always read it. Only make people administrators if you are happy with that.
 
 ## Why are there no products for my country?
 
