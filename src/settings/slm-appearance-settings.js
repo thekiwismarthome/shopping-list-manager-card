@@ -138,14 +138,16 @@ class SLMAppearanceSettings extends LitElement {
             <div class="item-content full-width">
               <div class="item-title">${t('Tiles Per Row')}</div>
               <div class="tile-options">
-                ${[2, 3, 4, 5, 8, 10].map(num => html`
+                ${['auto', 2, 3, 4, 5, 6, 8, 10].map(num => html`
                   <button
-                    class="tile-option ${this.settings.tilesPerRow === num ? 'selected' : ''}"
+                    class="tile-option ${(this.settings.tilesPerRow ?? 'auto') === num ? 'selected' : ''}"
                     @click=${() => this.handleSettingChange('tilesPerRow', num)}
                   >
-                    ${num}
+                    ${num === 'auto' ? t('Auto') : num}
                   </button>
                 `)}
+              </div>
+              <div class="item-subtitle">${t('Auto uses 3 on a phone, 4 on a folding phone and 5 on a tablet.')}
               </div>
             </div>
           </div>

@@ -37,7 +37,7 @@ Fresh starts in light and Compact starts in dark until you choose.
 ## Display
 
 - **Use emojis instead of icons** for categories and items.
-- **Tiles per row** in tile view.
+- **Tiles per row** in tile view. **Auto** is the default: 3 on a phone, 4 on a folding phone that is opened out, and 5 on a tablet, following the width of the card. Pick a number from 2 upwards instead if you prefer. You can also change it from the **List options** when you are in tile view.
 - **Recently used** on or off, and how many products to show.
 - **Product images**, including a local folder in Home Assistant to match images by product name.
 

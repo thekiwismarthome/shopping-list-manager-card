@@ -1,5 +1,6 @@
 import { LitElement, html, css } from 'lit';
 import { t, I18nController } from '../services/translator.js';
+import { SheetSwipe } from '../services/sheet-swipe.js';
 import { Html5Qrcode } from 'html5-qrcode';
 
 const UNITS_METRIC   = ['units', 'kg', 'g', 'L', 'mL', 'pack', 'bunch', 'dozen', 'bottle', 'can', 'bag', 'box', 'loaf', 'slice'];
@@ -7,6 +8,7 @@ const UNITS_IMPERIAL = ['oz', 'lb', 'fl oz', 'pt', 'qt', 'gal'];
 
 class SLMEditItemDialog extends LitElement {
   _i18n = new I18nController(this);
+  _swipe = new SheetSwipe(this); // swipe a popup down to close it
   static properties = {
     api: { type: Object },
     item: { type: Object },

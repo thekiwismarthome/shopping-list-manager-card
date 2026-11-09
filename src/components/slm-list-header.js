@@ -1,5 +1,6 @@
 import { LitElement, html, css } from 'lit';
 import { t, I18nController } from '../services/translator.js';
+import { TILE_CHOICES } from '../services/tiles.js';
 import { fontInherit } from '../styles/ui-styles.js';
 
 class SLMListHeader extends LitElement {
@@ -132,6 +133,8 @@ class SLMListHeader extends LitElement {
     const showRecent = s.showRecentlyUsed !== false;
     const showPrice = s.showPriceOnTile !== false;
     const wake = 'wakeLock' in navigator;
+    const tiles = s.tilesPerRow == null ? 'auto' : s.tilesPerRow;
+    const tileChoices = TILE_CHOICES.includes(tiles) ? TILE_CHOICES : [...TILE_CHOICES, tiles];
     const sw = (on) => html`<span class="sw ${on ? 'on' : ''}" aria-hidden="true"></span>`;
     return html`
       <div class="header">
@@ -153,6 +156,15 @@ class SLMListHeader extends LitElement {
                 <button aria-pressed=${viewMode === 'list' ? 'true' : 'false'} @click=${() => { this._dispatchSetting('viewMode', 'list'); this._menuOpen = false; }}><ha-icon icon="mdi:format-list-bulleted"></ha-icon>${t('List')}</button>
                 <button aria-pressed=${viewMode === 'tile' ? 'true' : 'false'} @click=${() => { this._dispatchSetting('viewMode', 'tile'); this._menuOpen = false; }}><ha-icon icon="mdi:view-grid-outline"></ha-icon>${t('Tiles')}</button>
               </div>
+              ${viewMode === 'tile' ? html`
+                <div class="menu-section-label">${t('Tiles per row')}</div>
+                <div class="seg" role="radiogroup" aria-label=${t('Tiles per row')}>
+                  ${tileChoices.map(c => html`
+                    <button role="radio" aria-checked=${tiles === c ? 'true' : 'false'} aria-pressed=${tiles === c ? 'true' : 'false'}
+                            @click=${() => this._dispatchSetting('tilesPerRow', c)}>${c === 'auto' ? t('Auto') : c}</button>
+                  `)}
+                </div>
+              ` : ''}
               <div class="menu-divider"></div>
               <div class="menu-section-label">${t('Sort')}</div>
               <button role="menuitemradio" aria-checked=${sortMode === 'category' ? 'true' : 'false'} class="item ${sortMode === 'category' ? 'sel' : ''}" @click=${() => { this._dispatchSetting('sortMode', 'category'); this._menuOpen = false; }}>

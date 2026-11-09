@@ -2,6 +2,7 @@ import { t, I18nController } from '../services/translator.js';
 import { LitElement, html, css } from 'lit';
 import { fontInherit } from '../styles/ui-styles.js';
 import './slm-item-tile.js';
+import { effectiveTiles } from '../services/tiles.js';
 
 class SLMItemGrid extends LitElement {
   _i18n = new I18nController(this);
@@ -10,6 +11,22 @@ class SLMItemGrid extends LitElement {
     super();
     this.uiStyle = 'classic';
     this._recentItems = [];
+    this._width = 0;
+  }
+
+  connectedCallback() {
+    super.connectedCallback();
+    // Auto tiles follow the width of the card, so keep watching it
+    this._ro = new ResizeObserver(entries => {
+      const w = Math.round(entries[0]?.contentRect?.width || 0);
+      if (w && w !== this._width) this._width = w;
+    });
+    this._ro.observe(this);
+  }
+
+  disconnectedCallback() {
+    super.disconnectedCallback();
+    this._ro?.disconnect();
   }
 
   static properties = {
@@ -21,7 +38,8 @@ class SLMItemGrid extends LitElement {
     uiStyle: { type: String, attribute: 'ui-style', reflect: true },
     // Wall panel product picker: show only the add-item tiles (not the current list's items)
     pickerOnly: { type: Boolean },
-    _recentItems: { type: Array, state: true }
+    _recentItems: { type: Array, state: true },
+    _width: { type: Number, state: true }
   };
 
   updated(changedProperties) {
@@ -120,7 +138,7 @@ class SLMItemGrid extends LitElement {
 
   render() {
     const groupedItems = this.pickerOnly ? [] : this.groupItemsByCategory();
-    const tilesPerRow = this.settings?.tilesPerRow || 3;
+    const tilesPerRow = effectiveTiles(this.settings?.tilesPerRow, this._width || this.clientWidth);
     return html`
       <style>
         .items-grid {
@@ -270,6 +288,7 @@ class SLMItemGrid extends LitElement {
   }
 
   static styles = [css`
+    :host { display: block; }
     .grid-container {
       padding: 4px;
     }

@@ -1,6 +1,8 @@
 import { LitElement, html, css } from 'lit';
 import { t, I18nController } from '../services/translator.js';
+import { SheetSwipe } from '../services/sheet-swipe.js';
 import { fontInherit } from '../styles/ui-styles.js';
+import { TILE_CHOICES } from '../services/tiles.js';
 
 /**
  * Bottom sheet with the list options (design A). Design B uses the dropdown menu in the header.
@@ -8,6 +10,7 @@ import { fontInherit } from '../styles/ui-styles.js';
  */
 class SLMOptionsSheet extends LitElement {
   _i18n = new I18nController(this);
+  _swipe = new SheetSwipe(this); // swipe a popup down to close it
 
   static properties = {
     settings: { type: Object },
@@ -35,6 +38,21 @@ class SLMOptionsSheet extends LitElement {
     `;
   }
 
+  // How many tiles in a row: Auto follows the screen, or pick a number
+  _tileChoices(s) {
+    const current = s.tilesPerRow == null ? 'auto' : s.tilesPerRow;
+    const choices = TILE_CHOICES.includes(current) ? TILE_CHOICES : [...TILE_CHOICES, current];
+    return html`
+      <div class="label" id="tiles-label">${t('Tiles per row')}</div>
+      <div class="chips" role="radiogroup" aria-labelledby="tiles-label">
+        ${choices.map(c => html`
+          <button class="chip ${current === c ? 'on' : ''}" role="radio" aria-checked=${current === c ? 'true' : 'false'}
+                  @click=${() => this._set('tilesPerRow', c)}>${c === 'auto' ? t('Auto') : c}</button>
+        `)}
+      </div>
+    `;
+  }
+
   render() {
     const s = this.settings || {};
     const viewMode = s.viewMode || 'tile';
@@ -57,6 +75,8 @@ class SLMOptionsSheet extends LitElement {
             <ha-icon icon="mdi:view-grid-outline"></ha-icon>${t('Tiles')}
           </button>
         </div>
+
+        ${viewMode === 'tile' ? this._tileChoices(s) : ''}
 
         <div class="label">${t('Sort')}</div>
         <div class="chips">

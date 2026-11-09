@@ -303,6 +303,27 @@ export class ShoppingListAPI {
     return await this._ws(msg);
   }
 
+  // Supermarkets
+  async getSupermarketChains() {
+    return await this._ws({ type: 'shopping_list_manager/supermarkets/get_chains' });
+  }
+
+  async getSupermarkets() {
+    return await this._ws({ type: 'shopping_list_manager/supermarkets/get_all' });
+  }
+
+  async addSupermarket(data) {
+    return await this._ws({ type: 'shopping_list_manager/supermarkets/add', ...data });
+  }
+
+  async updateSupermarket(supermarketId, data) {
+    return await this._ws({ type: 'shopping_list_manager/supermarkets/update', supermarket_id: supermarketId, ...data });
+  }
+
+  async deleteSupermarket(supermarketId) {
+    return await this._ws({ type: 'shopping_list_manager/supermarkets/delete', supermarket_id: supermarketId });
+  }
+
   // Groups (households)
   async getGroups() {
     return await this._ws({ type: 'shopping_list_manager/groups/get_all' });

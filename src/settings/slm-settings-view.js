@@ -12,6 +12,7 @@ import './slm-data-settings.js';
 import './slm-ha-sync-settings.js';
 import './slm-backup-settings.js';
 import './slm-groups-settings.js';
+import './slm-supermarkets-settings.js';
 
 class SLMSettingsView extends LitElement {
   _i18n = new I18nController(this);
@@ -85,6 +86,7 @@ class SLMSettingsView extends LitElement {
           nav('appearance', '🎨', 'mdi:palette-outline', '--slm-cat-beverages', t('Appearance'), t('Style, colour mode, tiles, fonts')),
           nav('data', '🌏', 'mdi:earth', '--slm-cat-dairy', t('Region & Catalog'), t('Country-specific products and pricing')),
           nav('categories', '📦', 'mdi:shape-outline', '--slm-cat-bakery', t('Manage Categories'), `${(this.categories || []).length} ${t('categories')}`),
+          nav('supermarkets', '🏪', 'mdi:storefront-outline', '--slm-cat-snacks', t('Supermarkets'), t('The shops you use, with addresses')),
         ]
       },
       {
@@ -293,6 +295,16 @@ class SLMSettingsView extends LitElement {
             .api=${this.api}
             @back=${() => this.currentSection = 'main'}
           ></slm-backup-settings>
+        `;
+
+      case 'supermarkets':
+        return html`
+          <slm-supermarkets-settings
+            .uiStyle=${this.uiStyle}
+            .api=${this.api}
+            .isAdmin=${this.hass?.user?.is_admin || false}
+            @back=${() => this.currentSection = 'main'}
+          ></slm-supermarkets-settings>
         `;
 
       case 'groups':

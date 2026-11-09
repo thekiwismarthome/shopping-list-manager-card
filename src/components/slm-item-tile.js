@@ -509,11 +509,11 @@ class SLMItemTile extends LitElement {
       justify-content: center;
       overflow: hidden;
     }
+    /* The picture fills the card. Whichever side is longer reaches the edge and the other side
+       keeps its proportion, so nothing is cropped or stretched. */
     .product-icon {
-      width: 80cqw;
-      height: 80cqw;
-      max-width: 80%;
-      max-height: 100%;
+      width: 100%;
+      height: 100%;
       object-fit: contain;
     }
     .emoji {

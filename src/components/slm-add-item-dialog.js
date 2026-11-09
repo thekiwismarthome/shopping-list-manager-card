@@ -1,8 +1,10 @@
 import { LitElement, html, css } from 'lit';
 import { t, I18nController } from '../services/translator.js';
+import { SheetSwipe } from '../services/sheet-swipe.js';
 
 class AddItemDialog extends LitElement {
   _i18n = new I18nController(this);
+  _swipe = new SheetSwipe(this); // swipe a popup down to close it
   static properties = {
     api: { type: Object },
     categories: { type: Array },

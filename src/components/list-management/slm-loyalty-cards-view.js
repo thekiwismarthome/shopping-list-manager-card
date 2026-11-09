@@ -1,4 +1,5 @@
 import { t, I18nController } from '../../services/translator.js';
+import { SheetSwipe } from '../../services/sheet-swipe.js';
 import { LitElement, html, css } from 'lit';
 import { fontInherit } from '../../styles/ui-styles.js';
 import JsBarcode from 'jsbarcode';
@@ -10,6 +11,7 @@ import { visibilityToApi, defaultVisibility } from './slm-visibility-picker.js';
 
 class SLMLoyaltyCardsView extends LitElement {
   _i18n = new I18nController(this);
+  _swipe = new SheetSwipe(this); // swipe a popup down to close it
   static properties = {
     // 'classic' | 'fresh' | 'compact' (see Appearance settings)
     uiStyle: { type: String, attribute: 'ui-style', reflect: true },
@@ -31,6 +33,10 @@ class SLMLoyaltyCardsView extends LitElement {
     _groups: { type: Array, state: true },
     _myGroupIds: { type: Array, state: true },
     _visibility: { type: String, state: true },
+    // The picture being chosen for the card in the add/edit form, and store names to suggest
+    _logoDraft: { type: String, state: true },
+    _logoBusy: { type: Boolean, state: true },
+    _storeNames: { type: Array, state: true },
     _viewMode: { type: String },
     _viewMenuX: { type: Number },
     _viewMenuY: { type: Number },
@@ -54,6 +60,9 @@ class SLMLoyaltyCardsView extends LitElement {
     this._groups = [];
     this._myGroupIds = [];
     this._visibility = 'private';
+    this._logoDraft = '';
+    this._logoBusy = false;
+    this._storeNames = [];
     this._loading = false;
     this._viewMode = localStorage.getItem('slm_loyalty_view_mode') || 'card';
     this._viewMenuX = 0;
@@ -79,6 +88,7 @@ class SLMLoyaltyCardsView extends LitElement {
         this._loadedForUserId = this.userId;
         this.loadCards();
         this._loadGroups();
+        this._loadStoreNames();
       }
     }
     if (this.showFullscreenCard && this.fullscreenCard?.barcode) {
@@ -283,6 +293,90 @@ class SLMLoyaltyCardsView extends LitElement {
 
   // ── CRUD ─────────────────────────────────────────────────────────────────────
 
+  // Names to suggest for "Store Name": this region's main chains and the user's own supermarkets
+  async _loadStoreNames() {
+    if (!this.api) return;
+    try {
+      const [chains, mine] = await Promise.all([
+        this.api.getSupermarketChains().catch(() => ({ chains: [] })),
+        this.api.getSupermarkets().catch(() => ({ supermarkets: [] })),
+      ]);
+      const names = [...(mine.supermarkets || []).map(s => s.name), ...(chains.chains || []).map(c => c.name)];
+      this._storeNames = [...new Set(names)];
+    } catch (err) {
+      this._storeNames = [];
+    }
+  }
+
+  // Shrink a chosen picture in the browser before it is sent: a long edge of 512px is plenty for a
+  // logo, and it keeps the message small. Transparent areas become white.
+  _shrinkImage(file, maxEdge = 512) {
+    return new Promise((resolve, reject) => {
+      const url = URL.createObjectURL(file);
+      const img = new Image();
+      img.onload = () => {
+        URL.revokeObjectURL(url);
+        const scale = Math.min(1, maxEdge / Math.max(img.naturalWidth, img.naturalHeight));
+        const w = Math.max(1, Math.round(img.naturalWidth * scale));
+        const h = Math.max(1, Math.round(img.naturalHeight * scale));
+        const canvas = document.createElement('canvas');
+        canvas.width = w; canvas.height = h;
+        const ctx = canvas.getContext('2d');
+        ctx.fillStyle = '#ffffff';
+        ctx.fillRect(0, 0, w, h);
+        ctx.drawImage(img, 0, 0, w, h);
+        resolve(canvas.toDataURL('image/jpeg', 0.88));
+      };
+      img.onerror = () => { URL.revokeObjectURL(url); reject(new Error('Could not read that image')); };
+      img.src = url;
+    });
+  }
+
+  async _pickLogo(e) {
+    const file = e.target.files && e.target.files[0];
+    e.target.value = '';
+    if (!file) return;
+    this._logoBusy = true;
+    try {
+      this._logoDraft = await this._shrinkImage(file);
+    } catch (err) {
+      console.error('[SLM] Logo:', err);
+    } finally {
+      this._logoBusy = false;
+    }
+  }
+
+  // The "picture for this store" field in the add and edit forms
+  _renderLogoField() {
+    const logo = this._logoDraft;
+    const isUrl = logo && !logo.startsWith('data:');
+    return html`
+      <div class="logo-field">
+        <span class="logo-title">${t('Store picture')}</span>
+        <div class="logo-row">
+          <div class="logo-preview ${logo ? '' : 'empty'}">
+            ${logo ? html`<img src=${logo} alt="">` : html`<ha-icon icon="mdi:storefront-outline"></ha-icon>`}
+          </div>
+          <div class="logo-actions">
+            <button type="button" class="logo-btn ${this._logoBusy ? 'disabled' : ''}"
+                    @click=${(e) => e.currentTarget.parentElement.querySelector('.logo-file').click()}>
+              <ha-icon icon="mdi:image-plus"></ha-icon>
+              ${logo ? t('Change picture') : t('Choose picture')}
+            </button>
+            <input type="file" class="logo-file" accept="image/*" style="display:none" aria-label=${t('Store picture')}
+                   ?disabled=${this._logoBusy} @change=${this._pickLogo} />
+            ${logo ? html`
+              <button type="button" class="logo-btn ghost" @click=${() => { this._logoDraft = ''; }}>
+                <ha-icon icon="mdi:close"></ha-icon>${t('Remove')}
+              </button>` : ''}
+          </div>
+        </div>
+        <input type="url" class="logo-url" placeholder=${t('or paste an image address')} aria-label=${t('Image address')}
+               .value=${isUrl ? logo : ''} @change=${(e) => { this._logoDraft = e.target.value.trim(); }} />
+      </div>
+    `;
+  }
+
   async _loadGroups() {
     if (!this.api) return;
     try {
@@ -299,6 +393,7 @@ class SLMLoyaltyCardsView extends LitElement {
 
   handleAddCard() {
     this._visibility = defaultVisibility(this._groups, this._myGroupIds);
+    this._logoDraft = '';
     this.newCard = {
       name: '',
       number: '',
@@ -320,7 +415,7 @@ class SLMLoyaltyCardsView extends LitElement {
       number: formData.get('number'),
       barcode: formData.get('barcode') || formData.get('number').replace(/\D/g, ''),
       barcode_type: this.newCard.barcode_type,
-      logo: formData.get('logo') || '',
+      logo: this._logoDraft || '',
       notes: formData.get('notes') || '',
       color: formData.get('color') || '#9fa8da',
       private: this.newCard.private
@@ -340,6 +435,7 @@ class SLMLoyaltyCardsView extends LitElement {
   }
 
   handleEditCard(card) {
+    this._logoDraft = card.logo || '';
     this.editingCard = { ...card };
     this.showEditDialog = true;
   }
@@ -352,7 +448,7 @@ class SLMLoyaltyCardsView extends LitElement {
       number: formData.get('number'),
       barcode: formData.get('barcode') || formData.get('number').replace(/\D/g, ''),
       barcode_type: this.editingCard.barcode_type,
-      logo: formData.get('logo') || '',
+      logo: this._logoDraft || '',
       notes: formData.get('notes') || '',
       color: formData.get('color')
     };
@@ -561,7 +657,8 @@ class SLMLoyaltyCardsView extends LitElement {
           <div class="dialog-content">
             <label>
               Store Name
-              <input type="text" name="name" placeholder="e.g., Countdown" .value=${card.name} required />
+              <input type="text" name="name" list="slm-store-names" placeholder="e.g., Woolworths" .value=${card.name} required />
+              <datalist id="slm-store-names">${this._storeNames.map(n => html`<option value=${n}></option>`)}</datalist>
             </label>
             <label>
               Card Number
@@ -593,10 +690,7 @@ class SLMLoyaltyCardsView extends LitElement {
                 </label>
               </div>
             </label>
-            <label>
-              Shop Logo URL (optional)
-              <input type="url" name="logo" placeholder="https://..." .value=${card.logo || ''} />
-            </label>
+            ${this._renderLogoField()}
             <label>
               Notes
               <textarea name="notes" placeholder="${t('Additional notes...')}" rows="3" .value=${card.notes || ''}></textarea>
@@ -672,10 +766,7 @@ class SLMLoyaltyCardsView extends LitElement {
                 </label>
               </div>
             </label>
-            <label>
-              Shop Logo URL (optional)
-              <input type="url" name="logo" placeholder="https://..." .value=${card.logo || ''} />
-            </label>
+            ${this._renderLogoField()}
             <label>
               Notes
               <textarea name="notes" placeholder="${t('Additional notes...')}" rows="3" .value=${card.notes || ''}></textarea>
@@ -1014,8 +1105,11 @@ class SLMLoyaltyCardsView extends LitElement {
     .tile-img {
       width: 100%;
       height: 100%;
-      object-fit: cover;
+      object-fit: contain;
       display: block;
+      padding: 8px;
+      box-sizing: border-box;
+      background: #fff;
     }
     .tile-overlay {
       position: absolute;
@@ -1377,6 +1471,31 @@ class SLMLoyaltyCardsView extends LitElement {
       border-radius: 14px;
       box-shadow: none;
     }
+    .logo-field { display: flex; flex-direction: column; gap: 8px; }
+    .logo-title { font-size: 13px; font-weight: 600; }
+    .logo-row { display: flex; align-items: center; gap: 14px; }
+    .logo-preview {
+      width: 72px; height: 72px; flex-shrink: 0; border-radius: 16px; overflow: hidden;
+      display: flex; align-items: center; justify-content: center; background: #fff;
+      border: 1px solid var(--slm-border-subtle, var(--divider-color));
+    }
+    .logo-preview img { width: 100%; height: 100%; object-fit: contain; }
+    .logo-preview.empty { background: var(--slm-bg-elevated, transparent); color: var(--slm-text-secondary, var(--secondary-text-color)); }
+    .logo-preview ha-icon { --mdc-icon-size: 30px; }
+    .logo-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+    .logo-btn {
+      display: inline-flex; align-items: center; gap: 6px; min-height: 44px; padding: 0 14px; box-sizing: border-box;
+      border-radius: 999px; cursor: pointer; font-size: 14px; font-weight: 600;
+      border: 1px solid var(--slm-accent-primary, var(--primary-color));
+      background: var(--slm-accent-primary, var(--primary-color)); color: var(--slm-accent-ink, #fff);
+    }
+    .logo-btn.ghost {
+      background: transparent; color: var(--slm-text-primary, var(--primary-text-color));
+      border-color: var(--slm-border-subtle, var(--divider-color));
+    }
+    .logo-btn.disabled { opacity: 0.5; pointer-events: none; }
+    .logo-btn ha-icon { --mdc-icon-size: 18px; color: inherit; }
+    .logo-url { font-size: 13px; }
   `, viewHeaderStyles, bottomSheetStyles, fontInherit];
 }
 

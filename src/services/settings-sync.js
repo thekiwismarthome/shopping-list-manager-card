@@ -5,6 +5,7 @@
 
 export const DEVICE_ONLY_KEYS = [
   'tilesPerRow',        // depends on screen size / embedded vs standalone
+  'tilesMigrated',      // marks that this device's old fixed 3 was changed to Auto
   'fontSize',           // depends on screen size
   'useSystemTextSize',  // depends on the device's text size
   'keepScreenOn',       // depends on the device (tablet on a wall vs phone)

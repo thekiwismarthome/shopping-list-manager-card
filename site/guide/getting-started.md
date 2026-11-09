@@ -46,6 +46,10 @@ type: custom:shopping-list-manager-card
 The [live demo](/demo) runs the same card on sample data.
 :::
 
+## Closing popups
+
+Every popup that slides up from the bottom (list options, new list, loyalty card forms, supermarkets and more) can be closed by **swiping it down**, as well as by tapping outside it or pressing its button. Drag from the handle at the top or from the heading. You can also drag from further down once the content is scrolled to the top.
+
 ## Trying a beta
 
 Beta versions are published as GitHub pre-releases. In HACS, open the card, choose **Redownload**, switch on **Show beta versions** and pick the beta you want. The version number appears under **Settings → FAQ & Support**.

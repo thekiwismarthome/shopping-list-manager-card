@@ -1,6 +1,7 @@
 import { LitElement, html, css } from 'lit';
 import { fontInherit } from '../../styles/ui-styles.js';
 import { t, I18nController } from '../../services/translator.js';
+import { SheetSwipe } from '../../services/sheet-swipe.js';
 import './slm-list-card.js';
 import './slm-visibility-picker.js';
 import { visibilityToApi, defaultVisibility } from './slm-visibility-picker.js';
@@ -8,6 +9,7 @@ import { viewHeaderStyles, bottomSheetStyles } from '../../styles/ui-styles.js';
 
 class SLMListsView extends LitElement {
   _i18n = new I18nController(this);
+  _swipe = new SheetSwipe(this); // swipe a popup down to close it
   static properties = {
     // 'classic' | 'fresh' | 'compact' (see Appearance settings)
     uiStyle: { type: String, attribute: 'ui-style', reflect: true },

@@ -47,6 +47,7 @@ export default defineConfig({
           { text: 'Categories', link: '/guide/categories' },
           { text: 'Loyalty cards', link: '/guide/loyalty-cards' },
           { text: 'Households and groups', link: '/guide/groups' },
+          { text: 'Supermarkets', link: '/guide/supermarkets' },
         ] },
         { text: 'Settings', items: [
           { text: 'Appearance', link: '/guide/appearance' },

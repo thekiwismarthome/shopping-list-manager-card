@@ -19,7 +19,7 @@
     var state;
     function seed() {
       var P = function (id) { return byId[id]; };
-      state = { lists: [], items: {}, cards: [], settings: null, groups: [] };
+      state = { lists: [], items: {}, cards: [], settings: null, groups: [], stores: [] };
       var weekly = mkList('Weekly shop', 'mdi:cart', true);
       var bbq = mkList('BBQ Saturday', 'mdi:grill', false);
       var work = mkList('Hardware run', 'mdi:hammer-wrench', false);
@@ -35,6 +35,10 @@
         card('Countdown Onecard', '9400000481926', '#0F7B5A'),
         card('Flybuys', '6008940012345678', '#3B4BA8'),
         card('Mitre 10 Trade', '2210304455', '#B8481F')
+      ];
+      state.stores = [
+        { id: 'sm-1', name: "PAK'nSAVE Albany", chain_id: 'pak-nsave', address: '219 Don McKinnon Drive, Albany, Auckland', latitude: -36.7279, longitude: 174.7035, created_at: now(), updated_at: now(), owner_id: opts.user.id, group_id: 'g-home', allowed_users: [], allowed_groups: [] },
+        { id: 'sm-2', name: 'New World Milford', chain_id: 'new-world', address: 'Milford Road, Milford, Auckland', latitude: null, longitude: null, created_at: now(), updated_at: now(), owner_id: opts.user.id, group_id: 'g-home', allowed_users: [], allowed_groups: [] }
       ];
       // Two households on one Home Assistant. Everything starts in "Our house".
       state.groups = [
@@ -118,6 +122,25 @@
       'regions/create': function () { return { success: true }; },
       'regions/delete': function () { return { success: true }; },
       'users/get_all': function () { return { users: [{ id: opts.user.id, name: opts.user.name }, { id: 'u2', name: 'Sam' }, { id: 'u3', name: 'Mum' }, { id: 'u4', name: 'Alex' }] }; },
+      'supermarkets/get_chains': function () {
+        var names = ["PAK'nSAVE", 'Woolworths', 'New World', 'Four Square', 'SuperValue', 'Fresh Choice', 'Farro Fresh', 'Costco', 'Gilmours', 'Bin Inn', "Moore Wilson's", "Night 'n Day"];
+        return { country: 'NZ', chains: names.map(function (n) { return { id: n.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, ''), name: n }; }) };
+      },
+      'supermarkets/get_all': function () { return { supermarkets: JSON.parse(JSON.stringify(state.stores)) }; },
+      'supermarkets/add': function (m) {
+        var lat = m.latitude == null ? null : m.latitude, lng = m.longitude == null ? null : m.longitude;
+        if ((lat == null) !== (lng == null)) throw new Error('Give both latitude and longitude, or neither');
+        var st = { id: newId('sm'), name: String(m.name || '').trim(), chain_id: m.chain_id || null, address: m.address || '', latitude: lat, longitude: lng, created_at: now(), updated_at: now(), owner_id: opts.user.id, group_id: m.group_id || null, allowed_users: [], allowed_groups: [] };
+        if (!st.name) throw new Error('A supermarket needs a name');
+        state.stores.push(st); return { supermarket: st };
+      },
+      'supermarkets/update': function (m) {
+        var st = state.stores.filter(function (x) { return x.id === m.supermarket_id; })[0]; if (!st) throw new Error('Supermarket not found');
+        ['name', 'chain_id', 'address', 'latitude', 'longitude'].forEach(function (k) { if (k in m) st[k] = m[k]; });
+        if ((st.latitude == null) !== (st.longitude == null)) throw new Error('Give both latitude and longitude, or neither');
+        st.updated_at = now(); return { supermarket: st };
+      },
+      'supermarkets/delete': function (m) { state.stores = state.stores.filter(function (x) { return x.id !== m.supermarket_id; }); return { success: true }; },
       'groups/get_all': function () {
         var mine = state.groups.filter(function (g) { return g.members.indexOf(opts.user.id) > -1; }).map(function (g) { return g.id; });
         return { groups: JSON.parse(JSON.stringify(state.groups)), mine: mine,

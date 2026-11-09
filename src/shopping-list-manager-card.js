@@ -190,6 +190,15 @@ class ShoppingListManagerCard extends LitElement {
     return parts.join('_');
   }
 
+  // Before Auto existed everyone was saved with a fixed 3. Treat that as "never chose", once.
+  _migrateTiles(settings) {
+    if (!this.isEmbedded && !settings.tilesMigrated) {
+      if (settings.tilesPerRow === 3) settings.tilesPerRow = 'auto';
+      settings.tilesMigrated = true;
+    }
+    return settings;
+  }
+
   loadSettings() {
     const defaults = {
       uiStyle: 'fresh',     // 'fresh' (A) | 'compact' (B)
@@ -204,7 +213,7 @@ class ShoppingListManagerCard extends LitElement {
         emails: true
       },
       recentProductsCount: 8,
-      tilesPerRow: this.isEmbedded ? 8 : 3,
+      tilesPerRow: this.isEmbedded ? 8 : 'auto', // 'auto' follows the card width
       useEmojis: true,
       colorScheme: 'pastel',
       viewMode: 'list',
@@ -219,7 +228,7 @@ class ShoppingListManagerCard extends LitElement {
     const key = this._getSettingsKey();
     const saved = localStorage.getItem(key);
     if (saved) {
-      return { ...defaults, ...JSON.parse(saved) };
+      return this._migrateTiles({ ...defaults, ...JSON.parse(saved) });
     }
 
     // Migration: on first load with a card-specific key, copy from the old
@@ -228,7 +237,7 @@ class ShoppingListManagerCard extends LitElement {
       const oldKey = `slm_settings_${this._settingsUserId}`;
       const oldSaved = localStorage.getItem(oldKey);
       if (oldSaved) {
-        const migrated = { ...defaults, ...JSON.parse(oldSaved) };
+        const migrated = this._migrateTiles({ ...defaults, ...JSON.parse(oldSaved) });
         localStorage.setItem(key, JSON.stringify(migrated));
         return migrated;
       }
