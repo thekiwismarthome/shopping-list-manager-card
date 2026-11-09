@@ -1,4 +1,5 @@
 import { LitElement, html, css } from 'lit';
+import { fontInherit } from '../styles/ui-styles.js';
 import { PRODUCT_ICON_MAP } from '../icons/product-icon-map.js';
 import { PRODUCT_ICONS } from '../icons/product-icons.js';
 
@@ -41,6 +42,8 @@ class SLMItemTile extends LitElement {
     categoryColor: { type: String },
     isRecentlyUsed: { type: Boolean },
     settings: { type: Object },
+    // 'classic' | 'fresh' | 'compact' (see Appearance settings)
+    uiStyle: { type: String, attribute: 'ui-style', reflect: true },
     touchStartX: { type: Number },
     touchStartY: { type: Number },
     touchStartTime: { type: Number },
@@ -50,6 +53,7 @@ class SLMItemTile extends LitElement {
 
   constructor() {
     super();
+    this.uiStyle = 'classic';
     this.isRecentlyUsed = false;
     this.touchStartX = 0;
     this.touchStartY = 0;
@@ -369,9 +373,14 @@ class SLMItemTile extends LitElement {
 
   render() {
     const { r, g, b } = this.hexToRgb(this.categoryColor);
-    const tileBg = this.isRecentlyUsed
+    let tileBg = this.isRecentlyUsed
       ? `rgba(${r},${g},${b},0.12)`
       : `rgba(${r},${g},${b},0.25)`;
+    if (this.uiStyle === 'fresh') {
+      tileBg = `color-mix(in srgb, ${this.categoryColor} ${this.isRecentlyUsed ? 8 : 14}%, var(--slm-bg-surface))`;
+    } else if (this.uiStyle === 'compact') {
+      tileBg = 'var(--slm-bg-surface)';
+    }
     const showPrice = this.settings?.showPriceOnTile !== false;
 
     return html`
@@ -430,7 +439,7 @@ class SLMItemTile extends LitElement {
     `;
   }
 
-  static styles = css`
+  static styles = [css`
     :host {
       font-size: var(--slm-font-size-base, 16px);
       font-weight: var(--slm-font-weight-base, 400);
@@ -474,7 +483,7 @@ class SLMItemTile extends LitElement {
       justify-content: center;
       padding: 0;
       box-sizing: border-box;
-      color: white;
+      color: var(--slm-on-cat, white);
       border: none;
       font-size: 14px;
       font-weight: 700;
@@ -565,10 +574,55 @@ class SLMItemTile extends LitElement {
       background: rgba(0,0,0,0.5);
       box-shadow: 0 1px 4px rgba(0,0,0,0.4);
     }
+    /* ---------- Fresh + Compact: softer tiles, pill badges ---------- */
+    :host([ui-style="fresh"]) .tile,
+    :host([ui-style="compact"]) .tile {
+      border: 1px solid var(--slm-border-subtle);
+      box-shadow: none;
+      box-sizing: border-box;
+    }
+    :host([ui-style="fresh"]) .tile {
+      border-radius: 18px;
+    }
+    :host([ui-style="compact"]) .tile {
+      border-radius: 14px;
+    }
+    :host([ui-style="fresh"]) .checked-overlay {
+      border-radius: 17px;
+    }
+    :host([ui-style="compact"]) .checked-overlay {
+      border-radius: 13px;
+    }
+    :host([ui-style="fresh"]) .decrease-btn,
+    :host([ui-style="fresh"]) .quantity-badge,
+    :host([ui-style="compact"]) .decrease-btn,
+    :host([ui-style="compact"]) .quantity-badge {
+      top: 6px;
+      height: 26px;
+      box-shadow: none;
+    }
+    :host([ui-style="fresh"]) .decrease-btn,
+    :host([ui-style="compact"]) .decrease-btn {
+      left: 6px;
+      width: 26px;
+      border-radius: 50%;
+    }
+    :host([ui-style="fresh"]) .quantity-badge,
+    :host([ui-style="compact"]) .quantity-badge {
+      right: 6px;
+      width: auto;
+      min-width: 26px;
+      padding: 0 8px;
+      border-radius: 999px;
+    }
+    :host([ui-style="fresh"]) .name,
+    :host([ui-style="compact"]) .name {
+      font-weight: 600;
+    }
     .note-badge ha-icon { --mdc-icon-size: 17px; }
     .recipe-note { color: #9fa8da; }
     .info-note { color: #b0b0b0; }
-  `;
+  `, fontInherit];
 }
 
 customElements.define('slm-item-tile', SLMItemTile);

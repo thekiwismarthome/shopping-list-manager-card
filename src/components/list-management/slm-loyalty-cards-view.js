@@ -1,12 +1,18 @@
 import { t, I18nController } from '../../services/translator.js';
 import { LitElement, html, css } from 'lit';
+import { fontInherit } from '../../styles/ui-styles.js';
 import JsBarcode from 'jsbarcode';
 import { Html5Qrcode } from 'html5-qrcode';
 import qrcode from 'qrcode-generator';
+import { viewHeaderStyles, bottomSheetStyles } from '../../styles/ui-styles.js';
+import './slm-visibility-picker.js';
+import { visibilityToApi, defaultVisibility } from './slm-visibility-picker.js';
 
 class SLMLoyaltyCardsView extends LitElement {
   _i18n = new I18nController(this);
   static properties = {
+    // 'classic' | 'fresh' | 'compact' (see Appearance settings)
+    uiStyle: { type: String, attribute: 'ui-style', reflect: true },
     api: { type: Object },
     userId: { type: String },
     isAdmin: { type: Boolean },
@@ -21,6 +27,10 @@ class SLMLoyaltyCardsView extends LitElement {
     membersCard: { type: Object },
     newCard: { type: Object },
     allUsers: { type: Array },
+    // Households: every group, the groups the current user is in, and the choice in the add form
+    _groups: { type: Array, state: true },
+    _myGroupIds: { type: Array, state: true },
+    _visibility: { type: String, state: true },
     _viewMode: { type: String },
     _viewMenuX: { type: Number },
     _viewMenuY: { type: Number },
@@ -41,6 +51,9 @@ class SLMLoyaltyCardsView extends LitElement {
     this.fullscreenCard = null;
     this.membersCard = null;
     this.allUsers = [];
+    this._groups = [];
+    this._myGroupIds = [];
+    this._visibility = 'private';
     this._loading = false;
     this._viewMode = localStorage.getItem('slm_loyalty_view_mode') || 'card';
     this._viewMenuX = 0;
@@ -65,6 +78,7 @@ class SLMLoyaltyCardsView extends LitElement {
       if (this.userId !== this._loadedForUserId) {
         this._loadedForUserId = this.userId;
         this.loadCards();
+        this._loadGroups();
       }
     }
     if (this.showFullscreenCard && this.fullscreenCard?.barcode) {
@@ -269,7 +283,22 @@ class SLMLoyaltyCardsView extends LitElement {
 
   // ── CRUD ─────────────────────────────────────────────────────────────────────
 
+  async _loadGroups() {
+    if (!this.api) return;
+    try {
+      const res = await this.api.getGroups();
+      this._groups = res.groups || [];
+      this._myGroupIds = res.mine || [];
+    } catch (err) {
+      // An older integration has no groups: keep the original Private switch
+      this._groups = [];
+      this._myGroupIds = [];
+    }
+    this._visibility = defaultVisibility(this._groups, this._myGroupIds);
+  }
+
   handleAddCard() {
+    this._visibility = defaultVisibility(this._groups, this._myGroupIds);
     this.newCard = {
       name: '',
       number: '',
@@ -296,6 +325,11 @@ class SLMLoyaltyCardsView extends LitElement {
       color: formData.get('color') || '#9fa8da',
       private: this.newCard.private
     };
+    if (this._groups.length) {
+      const { isPrivate, groupId } = visibilityToApi(this._visibility);
+      cardData.private = isPrivate;
+      if (groupId) cardData.group_id = groupId;
+    }
     try {
       const result = await this.api.addLoyaltyCard(cardData);
       this.cards = [...this.cards, result.card];
@@ -377,8 +411,11 @@ class SLMLoyaltyCardsView extends LitElement {
     e.preventDefault();
     const checkboxes = this.shadowRoot.querySelectorAll('.member-checkbox:checked');
     const allowedUsers = Array.from(checkboxes).map(cb => cb.value);
+    // Households the card is also shared with (only sent when there are any to choose from)
+    const groupBoxes = this.shadowRoot.querySelectorAll('.group-checkbox:checked');
+    const allowedGroups = this._groups.length ? Array.from(groupBoxes).map(cb => cb.value) : undefined;
     try {
-      const result = await this.api.updateLoyaltyCardMembers(this.membersCard.id, allowedUsers);
+      const result = await this.api.updateLoyaltyCardMembers(this.membersCard.id, allowedUsers, allowedGroups);
       this.cards = this.cards.map(c => c.id === this.membersCard.id ? result.card : c);
       this.showMembersDialog = false;
       this.membersCard = null;
@@ -431,32 +468,35 @@ class SLMLoyaltyCardsView extends LitElement {
     `;
   }
 
+  _maskedNumber(number) {
+    const digits = String(number || '').replace(/\D/g, '');
+    return digits ? `•••• ${digits.slice(-4)}` : '';
+  }
+
   renderCardGrid() {
     return html`
       <div class="cards-grid">
         ${this.cards.map(card => html`
           <div class="loyalty-card" style="background: ${card.color}" @click=${() => this.handleCardClick(card)}>
-            ${card.owner_id ? html`
-              <div class="private-badge">
-                <ha-icon icon="mdi:lock"></ha-icon>
-              </div>
-            ` : ''}
-            <button class="card-menu-btn" @click=${(e) => { e.stopPropagation(); this.handleEditCard(card); }}>
+            <button class="card-menu-btn" aria-label=${t('Edit Card')} @click=${(e) => { e.stopPropagation(); this.handleEditCard(card); }}>
               <ha-icon icon="mdi:dots-vertical"></ha-icon>
             </button>
+            <div class="card-top">
+              <ha-icon icon="mdi:credit-card-outline"></ha-icon>
+              <span class="scan-hint">${t('Tap to scan')}</span>
+            </div>
             <div class="card-body">
               ${card.logo ? html`
                 <img src="${card.logo}" alt="${card.name}" class="card-logo">
               ` : ''}
               <h3>${card.name}</h3>
-              <div class="card-number">${card.number}</div>
-              ${card.barcode ? html`
-                <div class="barcode-preview">
-                  <ha-icon icon="${card.barcode_type === 'qrcode' ? 'mdi:qrcode' : 'mdi:barcode'}"></ha-icon>
-                  <span>${card.barcode}</span>
-                </div>
-              ` : ''}
+              <div class="card-number">${this._maskedNumber(card.number)}</div>
             </div>
+            ${card.owner_id ? html`
+              <div class="private-badge">
+                <ha-icon icon="mdi:lock"></ha-icon>
+              </div>
+            ` : ''}
           </div>
         `)}
       </div>
@@ -565,10 +605,20 @@ class SLMLoyaltyCardsView extends LitElement {
               Card Color
               <input type="color" name="color" .value=${card.color} />
             </label>
-            <label class="toggle-label">
-              <span>${t('Private (only visible to you)')}</span>
-              <input type="checkbox" .checked=${card.private} @change=${(e) => this.newCard = { ...this.newCard, private: e.target.checked }} />
-            </label>
+            ${this._groups.length ? html`
+              <slm-visibility-picker
+                .groups=${this._groups}
+                .myGroupIds=${this._myGroupIds}
+                .isAdmin=${this.isAdmin}
+                .value=${this._visibility}
+                @visibility-change=${(e) => { this._visibility = e.detail.value; }}
+              ></slm-visibility-picker>
+            ` : html`
+              <label class="toggle-label">
+                <span>${t('Private (only visible to you)')}</span>
+                <input type="checkbox" .checked=${card.private} @change=${(e) => this.newCard = { ...this.newCard, private: e.target.checked }} />
+              </label>
+            `}
           </div>
           <div class="dialog-footer">
             <button type="submit" class="action-btn primary">${t('Add')}</button>
@@ -655,6 +705,26 @@ class SLMLoyaltyCardsView extends LitElement {
     `;
   }
 
+  // Households the card can also be shared with (its own household already sees it)
+  _renderCardGroupShares(card) {
+    const own = this._groups.find(g => g.id === card.group_id);
+    const others = this._groups.filter(g => g.id !== card.group_id);
+    if (!own && !others.length) return '';
+    const shared = new Set(card.allowed_groups || []);
+    return html`
+      ${own ? html`<p class="members-hint">${t('Everyone in {name} can already see this card.').replace('{name}', own.name)}</p>` : ''}
+      ${others.length ? html`
+        <p class="members-hint"><b>${t('Households')}</b></p>
+        ${others.map(g => html`
+          <label class="user-row">
+            <input type="checkbox" class="group-checkbox" .value=${g.id} .checked=${shared.has(g.id)} />
+            <span>${g.name}</span>
+          </label>
+        `)}
+      ` : ''}
+    `;
+  }
+
   renderMembersDialog() {
     const card = this.membersCard;
     const otherUsers = this.allUsers.filter(u => u.id !== this.userId);
@@ -668,6 +738,8 @@ class SLMLoyaltyCardsView extends LitElement {
           </div>
           <div class="dialog-content">
             <p class="members-hint">Select which users can see "${card.name}"</p>
+            ${this._renderCardGroupShares(card)}
+            ${this._groups.length ? html`<p class="members-hint"><b>${t('People')}</b></p>` : ''}
             ${otherUsers.length === 0 ? html`
               <p class="no-users">${t('No other users found.')}</p>
             ` : otherUsers.map(user => html`
@@ -690,29 +762,35 @@ class SLMLoyaltyCardsView extends LitElement {
 
   renderFullscreen() {
     const card = this.fullscreenCard;
+    const close = () => { this.showFullscreenCard = false; };
     return html`
-      <div class="fullscreen-overlay" @click=${() => this.showFullscreenCard = false}>
-        <div class="fullscreen-card">
-          <h2>${card.name}</h2>
-          <div class="fullscreen-number">${card.number}</div>
+      <div class="sheet-layer">
+        <div class="scrim" @click=${close}></div>
+        <div class="sheet" role="dialog" aria-modal="true" aria-label=${card.name}>
+          <div class="grab"></div>
+          <div class="sheet-head">
+            <h2>${card.name}</h2>
+            <button class="done" @click=${close}>${t('Done')}</button>
+          </div>
           ${card.barcode ? html`
-            <div class="fullscreen-barcode">
+            <div class="scan-box">
               ${card.barcode_type === 'qrcode' ? html`
                 <canvas id="qrcode-canvas"></canvas>
+                <span class="scan-number">${card.number}</span>
               ` : html`
-                <div class="barcode-display">
-                  <svg id="barcode-svg"></svg>
-                </div>
+                <svg id="barcode-svg"></svg>
               `}
             </div>
-          ` : ''}
-          <p class="tap-hint">Tap anywhere to close</p>
+          ` : html`
+            <div class="scan-box"><span class="scan-number">${card.number}</span></div>
+          `}
+          <p class="scan-tip">${t('Hold the screen up to the scanner.')}</p>
         </div>
       </div>
     `;
   }
 
-  static styles = css`
+  static styles = [css`
     :host {
       display: block;
     }
@@ -1184,53 +1262,122 @@ class SLMLoyaltyCardsView extends LitElement {
     .action-btn.danger { background: var(--slm-accent-danger, #ef9a9a); color: white; }
     .action-btn ha-icon { --mdc-icon-size: 18px; }
 
-    /* ── Fullscreen ───────────────────────────────── */
-    .fullscreen-overlay {
-      position: fixed;
-      inset: 0;
-      background: rgba(0,0,0,0.95);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      z-index: 2000;
-      cursor: pointer;
+    /* ── Scan sheet ───────────────────────────────── */
+    .scan-box {
+      display: grid;
+      justify-items: center;
+      gap: 10px;
+      margin-top: 10px;
+      padding: 18px 14px;
+      border-radius: 18px;
+      background: #ffffff;
+      color: #000000;
     }
-    .fullscreen-card {
-      text-align: center;
-      color: white;
-      padding: 40px;
-      max-width: 90%;
+    .scan-box svg {
+      display: block;
+      width: 100%;
+      max-width: 100%;
+      height: auto;
     }
-    .fullscreen-card h2 {
-      margin: 0 0 20px 0;
-      font-size: 28px;
-    }
-    .fullscreen-number {
-      font-size: 32px;
-      font-weight: 700;
-      letter-spacing: 3px;
-      margin-bottom: 40px;
-    }
-    .fullscreen-barcode {
-      margin: 40px auto;
-      background: white;
-      padding: 30px;
-      border-radius: 12px;
-      max-width: 400px;
-    }
-    .barcode-display { margin-bottom: 20px; }
     #qrcode-canvas {
       display: block;
       width: 260px !important;
       height: 260px !important;
+      max-width: 100%;
       border-radius: 8px;
     }
-    .tap-hint {
-      margin-top: 40px;
-      opacity: 0.7;
-      font-size: 14px;
+    .scan-number {
+      font-size: 18px;
+      font-weight: 600;
+      letter-spacing: 0.14em;
+      font-variant-numeric: tabular-nums;
+      color: #000000;
     }
-  `;
+    .scan-tip {
+      margin: 12px 0 0;
+      text-align: center;
+      font-size: 13px;
+      color: var(--slm-text-secondary);
+    }
+    .card-top {
+      display: none;
+    }
+
+    /* ---------- Fresh + Compact ---------- */
+    :host([ui-style="fresh"]) .cards-grid,
+    :host([ui-style="compact"]) .cards-grid {
+      grid-template-columns: 1fr;
+      gap: 12px;
+    }
+    :host([ui-style="fresh"]) .loyalty-card,
+    :host([ui-style="compact"]) .loyalty-card {
+      min-height: 128px;
+      padding: 16px;
+      justify-content: space-between;
+      box-shadow: none;
+      color: #ffffff;
+    }
+    :host([ui-style="fresh"]) .card-top,
+    :host([ui-style="compact"]) .card-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      padding-right: 44px;
+    }
+    .card-top ha-icon {
+      --mdc-icon-size: 24px;
+      color: inherit;
+    }
+    .scan-hint {
+      font-size: 13px;
+      font-weight: 600;
+      opacity: 0.9;
+    }
+    :host([ui-style="fresh"]) .loyalty-card h3,
+    :host([ui-style="compact"]) .loyalty-card h3 {
+      margin: 0;
+      font-size: 20px;
+      font-weight: 800;
+    }
+    :host([ui-style="fresh"]) .card-body,
+    :host([ui-style="compact"]) .card-body {
+      flex: none;
+      justify-content: flex-start;
+    }
+    :host([ui-style="fresh"]) .card-number,
+    :host([ui-style="compact"]) .card-number {
+      margin: 2px 0 0;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      font-variant-numeric: tabular-nums;
+      opacity: 0.92;
+    }
+    :host([ui-style="fresh"]) .card-menu-btn,
+    :host([ui-style="compact"]) .card-menu-btn {
+      width: 44px;
+      height: 44px;
+      top: 4px;
+      right: 4px;
+      background: transparent;
+      color: inherit;
+    }
+    :host([ui-style="fresh"]) .private-badge ha-icon,
+    :host([ui-style="compact"]) .private-badge ha-icon {
+      color: inherit;
+    }
+    :host([ui-style="fresh"]) .loyalty-card {
+      border-radius: 22px;
+    }
+    :host([ui-style="fresh"]) .loyalty-tile {
+      border-radius: 20px;
+    }
+    :host([ui-style="compact"]) .loyalty-card,
+    :host([ui-style="compact"]) .loyalty-tile {
+      border-radius: 14px;
+      box-shadow: none;
+    }
+  `, viewHeaderStyles, bottomSheetStyles, fontInherit];
 }
 
 customElements.define('slm-loyalty-cards-view', SLMLoyaltyCardsView);

@@ -1,5 +1,7 @@
 # Themes & Colours
 
+> **Note (beta 2026.11.3-beta.4):** the eight named colour themes were replaced by two designs, **Fresh** and **Compact**, each with its own light and dark palette (Settings → Appearance). The `--slm-*` variables below are still what the card uses internally, but there is no theme picker any more, and the sections about choosing and adding named themes describe the old behaviour.
+
 The Shopping List Manager Card has a fully themeable colour system built on CSS custom properties. Every colour in the UI — backgrounds, text, borders, accents, category dots and headers — is controlled by a set of `--slm-*` variables that you can read, modify, or extend.
 
 ---

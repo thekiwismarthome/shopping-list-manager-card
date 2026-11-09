@@ -1,10 +1,16 @@
 import { LitElement, html, css } from 'lit';
+import { fontInherit } from '../../styles/ui-styles.js';
 import { t, I18nController } from '../../services/translator.js';
 import './slm-list-card.js';
+import './slm-visibility-picker.js';
+import { visibilityToApi, defaultVisibility } from './slm-visibility-picker.js';
+import { viewHeaderStyles, bottomSheetStyles } from '../../styles/ui-styles.js';
 
 class SLMListsView extends LitElement {
   _i18n = new I18nController(this);
   static properties = {
+    // 'classic' | 'fresh' | 'compact' (see Appearance settings)
+    uiStyle: { type: String, attribute: 'ui-style', reflect: true },
     api: { type: Object },
     lists: { type: Array },
     activeList: { type: Object },
@@ -22,6 +28,10 @@ class SLMListsView extends LitElement {
     _haUsers: { type: Array, state: true },
     _membersLoading: { type: Boolean, state: true },
     _membersSaving: { type: Boolean, state: true },
+    // Households: every group, the ids of the groups the current user is in, and the choice in the new-list sheet
+    _groups: { type: Array, state: true },
+    _myGroupIds: { type: Array, state: true },
+    _visibility: { type: String, state: true },
   };
 
   constructor() {
@@ -39,9 +49,32 @@ class SLMListsView extends LitElement {
     this._haUsers = [];
     this._membersLoading = false;
     this._membersSaving = false;
+    this._groups = [];
+    this._myGroupIds = [];
+    this._visibility = 'private';
+  }
+
+  connectedCallback() {
+    super.connectedCallback();
+    this._loadGroups();
+  }
+
+  async _loadGroups() {
+    if (!this.api) return;
+    try {
+      const res = await this.api.getGroups();
+      this._groups = res.groups || [];
+      this._myGroupIds = res.mine || [];
+    } catch (err) {
+      // An older integration has no groups: keep the original Private switch
+      this._groups = [];
+      this._myGroupIds = [];
+    }
+    if (!this.showCreateDialog) this._visibility = defaultVisibility(this._groups, this._myGroupIds);
   }
 
   handleCreateList() {
+    this._loadGroups();
     this.showCreateDialog = true;
   }
 
@@ -66,11 +99,15 @@ class SLMListsView extends LitElement {
 
   async handleSaveNewList() {
     if (this.newListName.trim()) {
-      const result = await this.api.createList(this.newListName, this.newListIcon, this._newListPrivate);
+      let isPrivate = this._newListPrivate;
+      let groupId = null;
+      if (this._groups.length) ({ isPrivate, groupId } = visibilityToApi(this._visibility));
+      const result = await this.api.createList(this.newListName, this.newListIcon, isPrivate, groupId);
       this.showCreateDialog = false;
       this.newListName = '';
       this.newListIcon = 'mdi:cart';
       this._newListPrivate = true;
+      this._visibility = defaultVisibility(this._groups, this._myGroupIds);
 
       // Navigate to the newly created list immediately
       if (result?.list?.id) {
@@ -118,6 +155,30 @@ class SLMListsView extends LitElement {
     return lst ? (lst.allowed_users || []).includes(userId) : false;
   }
 
+  _isGroupShared(groupId) {
+    const lst = this._managingList;
+    return lst ? (lst.allowed_groups || []).includes(groupId) : false;
+  }
+
+  async _toggleGroup(groupId) {
+    const lst = this._managingList;
+    if (!lst) return;
+    const current = lst.allowed_groups || [];
+    const updated = current.includes(groupId)
+      ? current.filter(id => id !== groupId)
+      : [...current, groupId];
+
+    this._membersSaving = true;
+    try {
+      await this.api.updateListMembers(lst.id, lst.allowed_users || [], updated);
+      this.dispatchEvent(new CustomEvent('lists-updated', { bubbles: true, composed: true }));
+    } catch (err) {
+      console.error('[SLM] Failed to update groups:', err);
+    } finally {
+      this._membersSaving = false;
+    }
+  }
+
   async _toggleMember(userId) {
     const lst = this._managingList;
     if (!lst) return;
@@ -128,7 +189,7 @@ class SLMListsView extends LitElement {
 
     this._membersSaving = true;
     try {
-      await this.api.updateListMembers(lst.id, updated);
+      await this.api.updateListMembers(lst.id, updated, lst.allowed_groups || []);
       this.dispatchEvent(new CustomEvent('lists-updated', { bubbles: true, composed: true }));
     } catch (err) {
       console.error('[SLM] Failed to update members:', err);
@@ -180,6 +241,29 @@ class SLMListsView extends LitElement {
     }
   }
 
+  // Households this list can also be shared with (its own household already sees it)
+  _renderGroupShares() {
+    const lst = this._managingList;
+    if (!lst) return '';
+    const own = this._groups.find(g => g.id === lst.group_id);
+    const others = this._groups.filter(g => g.id !== lst.group_id);
+    if (!own && !others.length) return '';
+    return html`
+      ${own ? html`<p class="members-hint own-group"><ha-icon icon="mdi:account-group"></ha-icon> ${t('Everyone in {name} can already see this list.').replace('{name}', own.name)}</p>` : ''}
+      ${others.length ? html`
+        <div class="members-subhead">${t('Households')}</div>
+        ${others.map(g => html`
+          <label class="member-row ${this._membersSaving ? 'disabled' : ''}">
+            <input type="checkbox" .checked=${this._isGroupShared(g.id)} ?disabled=${this._membersSaving}
+                   @change=${() => this._toggleGroup(g.id)} />
+            <ha-icon icon="mdi:account-group"></ha-icon>
+            <span>${g.name}</span>
+          </label>
+        `)}
+      ` : ''}
+    `;
+  }
+
   getListEmoji(icon) {
     const emojiMap = {
       'mdi:cart': '🛒',
@@ -194,6 +278,10 @@ class SLMListsView extends LitElement {
   updated(changedProps) {
     if (changedProps.has('lists')) {
       this.loadTotals();
+      this._loadGroups();
+    }
+    if (changedProps.has('showCreateDialog') && this.showCreateDialog) {
+      this.renderRoot.querySelector('#new-list-name')?.focus();
     }
   }
 
@@ -223,6 +311,7 @@ class SLMListsView extends LitElement {
             ${this.lists.map(list => html`
               <slm-list-card
                 .list=${list}
+                .uiStyle=${this.uiStyle}
                 .isActive=${list.id === this.activeList?.id}
                 .itemCount=${list.id === this.activeList?.id
                   ? this.items.filter(i => !i.checked).length
@@ -237,6 +326,7 @@ class SLMListsView extends LitElement {
                 .emoji=${this.getListEmoji(list.icon)}
                 .currentUserId=${this.currentUserId}
                 .isAdmin=${this.isAdmin}
+                .groups=${this._groups}
                 @list-select=${this.handleListSelect}
                 @list-action=${this.handleListAction}
               ></slm-list-card>
@@ -253,6 +343,8 @@ class SLMListsView extends LitElement {
               </div>
               <div class="dialog-content members-content">
                 <p class="members-hint">${t('Select who else can see and edit this list.')}</p>
+                ${this._renderGroupShares()}
+                ${this._groups.length ? html`<div class="members-subhead">${t('People')}</div>` : ''}
                 ${this._membersLoading ? html`
                   <div class="members-loading">${t('Loading users…')}</div>
                 ` : this._haUsers.filter(u => u.id !== this._managingList?.owner_id).length === 0 ? html`
@@ -281,50 +373,61 @@ class SLMListsView extends LitElement {
         ` : ''}
 
         ${this.showCreateDialog ? html`
-          <div class="overlay" @click=${() => this.showCreateDialog = false}>
-            <div class="dialog" @click=${(e) => e.stopPropagation()}>
-              <div class="dialog-header">
-                <h3>${t('Create New List')}</h3>
-                <button @click=${() => this.showCreateDialog = false}>
-                  <span class="emoji">✖️</span>
-                </button>
+          <div class="sheet-layer">
+            <div class="scrim" @click=${() => this.showCreateDialog = false}></div>
+            <div class="sheet" role="dialog" aria-modal="true" aria-label=${t('Create New List')}>
+              <div class="grab"></div>
+              <div class="sheet-head">
+                <h2>${t('New list')}</h2>
+                <button class="done" ?disabled=${!this.newListName.trim()} @click=${this.handleSaveNewList}>${t('Create')}</button>
               </div>
-              <div class="dialog-content">
-                <label>${t('List Name')}</label>
-                <input
-                  type="text"
-                  placeholder="e.g., Weekly Shopping"
-                  .value=${this.newListName}
-                  @input=${(e) => this.newListName = e.target.value}
-                  autofocus
-                />
 
-                <label>${t('Icon')}</label>
-                <div class="icon-picker">
-                  ${['mdi:cart', 'mdi:home', 'mdi:food', 'mdi:shopping', 'mdi:store'].map(icon => html`
-                    <button
-                      class="icon-option ${this.newListIcon === icon ? 'selected' : ''}"
-                      @click=${() => this.newListIcon = icon}
-                    >
-                      <span class="emoji">${this.getListEmoji(icon)}</span>
-                    </button>
-                  `)}
+              <label class="label" for="new-list-name">${t('List Name')}</label>
+              <input
+                id="new-list-name"
+                class="field"
+                type="text"
+                placeholder="e.g., Weekly Shopping"
+                maxlength="40"
+                autocomplete="off"
+                .value=${this.newListName}
+                @input=${(e) => this.newListName = e.target.value}
+                @keydown=${(e) => { if (e.key === 'Enter') this.handleSaveNewList(); }}
+              />
+
+              <div class="label">${t('Icon')}</div>
+              <div class="choices" role="radiogroup" aria-label=${t('Icon')}>
+                ${['mdi:cart', 'mdi:home', 'mdi:food', 'mdi:shopping', 'mdi:store'].map(icon => html`
+                  <button
+                    class="choice ${this.newListIcon === icon ? 'selected' : ''}"
+                    role="radio"
+                    aria-checked=${this.newListIcon === icon ? 'true' : 'false'}
+                    aria-label=${icon.replace('mdi:', '')}
+                    @click=${() => this.newListIcon = icon}
+                  >${this.getListEmoji(icon)}</button>
+                `)}
+              </div>
+
+              ${this._groups.length ? html`
+                <slm-visibility-picker
+                  .groups=${this._groups}
+                  .myGroupIds=${this._myGroupIds}
+                  .isAdmin=${this.isAdmin}
+                  .value=${this._visibility}
+                  @visibility-change=${(e) => { this._visibility = e.detail.value; }}
+                ></slm-visibility-picker>
+              ` : html`
+                <div class="card-block">
+                  <button class="toggle-row" role="switch" aria-checked=${this._newListPrivate ? 'true' : 'false'}
+                          @click=${() => this._newListPrivate = !this._newListPrivate}>
+                    <span class="tr-text">
+                      <span class="tr-title">${t('Private')}</span>
+                      <span class="tr-sub">${t('Only visible to me (and members I add)')}</span>
+                    </span>
+                    <span class="tg ${this._newListPrivate ? 'on' : ''}"></span>
+                  </button>
                 </div>
-
-                <label class="privacy-label">
-                  <input
-                    type="checkbox"
-                    .checked=${this._newListPrivate}
-                    @change=${(e) => this._newListPrivate = e.target.checked}
-                  />
-                  <ha-icon icon="mdi:lock"></ha-icon>
-                  Private — only visible to me (and members I add)
-                </label>
-              </div>
-              <div class="dialog-footer">
-                <button class="cancel-btn" @click=${() => this.showCreateDialog = false}>${t('Cancel')}</button>
-                <button class="save-btn" @click=${this.handleSaveNewList}>${t('Create')}</button>
-              </div>
+              `}
             </div>
           </div>
         ` : ''}
@@ -332,7 +435,7 @@ class SLMListsView extends LitElement {
     `;
   }
 
-  static styles = css`
+  static styles = [css`
     .lists-view {
       padding: 16px 8px;
       min-height: 100%;
@@ -541,6 +644,20 @@ class SLMListsView extends LitElement {
       font-size: 13px;
       color: var(--secondary-text-color);
     }
+    .members-subhead {
+      margin: 14px 0 2px;
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      color: var(--secondary-text-color);
+    }
+    .members-hint.own-group {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .members-hint.own-group ha-icon { --mdc-icon-size: 18px; flex-shrink: 0; }
     .members-loading {
       padding: 16px 0;
       text-align: center;
@@ -571,7 +688,7 @@ class SLMListsView extends LitElement {
       --mdc-icon-size: 20px;
       color: var(--secondary-text-color);
     }
-  `;
+  `, viewHeaderStyles, bottomSheetStyles, fontInherit];
 }
 
 customElements.define('slm-lists-view', SLMListsView);

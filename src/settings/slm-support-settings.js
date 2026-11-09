@@ -1,9 +1,12 @@
 import { t, I18nController } from '../services/translator.js';
 import { LitElement, html, css } from 'lit';
+import { subPageStyles } from '../styles/ui-styles.js';
 
 class SupportSettings extends LitElement {
   _i18n = new I18nController(this);
   static properties = {
+    // 'classic' | 'fresh' | 'compact' (set by the settings view)
+    uiStyle: { type: String, attribute: 'ui-style', reflect: true },
     slmVersion:  { type: String },
     slmcVersion: { type: String },
   };
@@ -24,7 +27,7 @@ class SupportSettings extends LitElement {
           <h2>${t('FAQ & Support')}</h2>
         </div>
 
-        <div class="support-list">
+        <div class="support-list settings-list">
           <a 
             href="https://github.com/thekiwismarthome/shopping-list-manager/wiki" 
             target="_blank"
@@ -94,7 +97,7 @@ class SupportSettings extends LitElement {
     `;
   }
 
-  static styles = css`
+  static styles = [css`
     :host {
       display: block;
     }
@@ -106,7 +109,7 @@ class SupportSettings extends LitElement {
       align-items: center;
       gap: 16px;
       padding: 20px;
-      border-bottom: 1px solid var(--divider-color);
+      border-bottom: 1px solid var(--slm-border-subtle);
     }
     .back-btn {
       background: none;
@@ -136,21 +139,21 @@ class SupportSettings extends LitElement {
       align-items: center;
       gap: 16px;
       padding: 16px 20px;
-      border-bottom: 1px solid var(--divider-color);
+      border-bottom: 1px solid var(--slm-border-subtle);
       text-decoration: none;
       color: inherit;
       cursor: pointer;
       transition: background 0.2s;
     }
     .support-item:hover {
-      background: var(--primary-background-color);
+      background: var(--slm-bg-elevated);
     }
     .item-icon {
       width: 40px;
       height: 40px;
       border-radius: 50%;
-      background: var(--primary-color);
-      color: white;
+      background: var(--slm-accent-primary);
+      color: var(--slm-accent-ink, white);
       display: flex;
       align-items: center;
       justify-content: center;
@@ -167,9 +170,36 @@ class SupportSettings extends LitElement {
     }
     .item-subtitle {
       font-size: 14px;
-      color: var(--secondary-text-color);
+      color: var(--slm-text-secondary);
     }
-  `;
+    :host([ui-style="fresh"]) .support-item,
+    :host([ui-style="compact"]) .support-item {
+      padding: 12px 16px;
+      min-height: 60px;
+      box-sizing: border-box;
+    }
+    :host([ui-style="fresh"]) .support-item:last-child,
+    :host([ui-style="compact"]) .support-item:last-child {
+      border-bottom: none;
+    }
+    :host([ui-style="fresh"]) .item-icon,
+    :host([ui-style="compact"]) .item-icon {
+      width: 38px;
+      height: 38px;
+      border-radius: 12px;
+      background: color-mix(in srgb, var(--slm-accent-primary) 18%, var(--slm-bg-surface));
+      color: var(--slm-accent-primary);
+    }
+    :host([ui-style="fresh"]) .item-icon ha-icon,
+    :host([ui-style="compact"]) .item-icon ha-icon {
+      --mdc-icon-size: 20px;
+      color: inherit;
+    }
+    :host([ui-style="fresh"]) .item-subtitle,
+    :host([ui-style="compact"]) .item-subtitle {
+      font-size: 12.5px;
+    }
+  `, subPageStyles];
 }
 
 customElements.define('slm-support-settings', SupportSettings);

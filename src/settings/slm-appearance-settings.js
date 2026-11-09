@@ -1,31 +1,31 @@
 import { LitElement, html, css } from 'lit';
+import { fontInherit } from '../styles/ui-styles.js';
 import { t, I18nController } from '../services/translator.js';
-import './slm-dark-mode-popup.js';
+import { settingsGroupStyles } from '../styles/ui-styles.js';
+import { THEMES, themeEntry } from '../styles/accents.js';
 import './slm-font-settings.js';
+
+// Interface styles the user can pick between (see styles in each component)
+const UI_STYLES = [
+  { id: 'fresh',   label: 'Fresh',   hint: 'Soft cards, summary card, floating menu' },
+  { id: 'compact', label: 'Compact', hint: 'Dense list, checkboxes, flat tab bar' },
+];
 
 class SLMAppearanceSettings extends LitElement {
   _i18n = new I18nController(this);
   static properties = {
     settings: { type: Object },
     isEmbedded: { type: Boolean },
-    showDarkModePopup: { type: Boolean },
+    // 'classic' | 'fresh' | 'compact' (current interface style)
+    uiStyle: { type: String, attribute: 'ui-style', reflect: true },
     showFontSettings: { type: Boolean }
   };
 
   constructor() {
     super();
+    this.uiStyle = 'classic';
     this.isEmbedded = false;
-    this.showDarkModePopup = false;
     this.showFontSettings = false;
-  }
-
-  _themeLabel(theme) {
-    const labels = {
-      soft: 'Soft Pastel', arctic: '🧊 Arctic', meadow: '🌿 Meadow',
-      blossom: '🌸 Blossom', midnight: '🌊 Midnight Ocean', ember: '🔥 Ember',
-      neon: '🍇 Purple & Cyan', ocean: '🌊 Ocean Blue'
-    };
-    return labels[theme] || 'Soft Pastel';
   }
 
   handleSettingChange(key, value) {
@@ -47,61 +47,78 @@ class SLMAppearanceSettings extends LitElement {
         </div>
 
         <div class="settings-list">
-          <button class="settings-item" @click=${() => this.showDarkModePopup = true}>
-            <div class="item-content">
-              <div class="item-title">${t('Dark Mode')}</div>
-              <div class="item-subtitle">${this.getDarkModeLabel()}</div>
-            </div>
-            <ha-icon icon="mdi:chevron-right"></ha-icon>
-          </button>
-
-          <div class="settings-item">
-            <div class="item-content">
-              <div class="item-title">${t('Theme')}</div>
-              <div class="item-subtitle">
-                ${this._themeLabel(this.settings.theme)}
+          ${this.isEmbedded ? '' : html`
+          <div class="section-header">${t('Interface style')}</div>
+          <div class="group">
+            <div class="settings-item">
+              <div class="item-content full-width">
+                <div class="style-options" role="radiogroup" aria-label=${t('Interface style')}>
+                  ${UI_STYLES.map(s => html`
+                    <button
+                      class="style-option ${this._style() === s.id ? 'selected' : ''}"
+                      role="radio"
+                      aria-checked=${this._style() === s.id ? 'true' : 'false'}
+                      @click=${() => this.handleSettingChange('uiStyle', s.id)}
+                    >
+                      <span class="sp sp-${s.id}" aria-hidden="true"></span>
+                      <span class="so-label">${t(s.label)}</span>
+                      <span class="so-hint">${t(s.hint)}</span>
+                    </button>
+                  `)}
+                </div>
               </div>
             </div>
-
-            <select
-              class="theme-select"
-              @change=${(e) =>
-        this.handleSettingChange('theme', e.target.value)}
-            >
-              <optgroup label="All Modes">
-                <option value="soft" ?selected=${!this.settings.theme || this.settings.theme === 'soft'}>
-                  Soft Pastel
-                </option>
-              </optgroup>
-              <optgroup label="Light Themes">
-                <option value="arctic" ?selected=${this.settings.theme === 'arctic'}>
-                  🧊 Arctic
-                </option>
-                <option value="meadow" ?selected=${this.settings.theme === 'meadow'}>
-                  🌿 Meadow
-                </option>
-                <option value="blossom" ?selected=${this.settings.theme === 'blossom'}>
-                  🌸 Blossom
-                </option>
-                <option value="ocean" ?selected=${this.settings.theme === 'ocean'}>
-                  🌊 Ocean Blue
-                </option>
-              </optgroup>
-              <optgroup label="Dark Themes">
-                <option value="midnight" ?selected=${this.settings.theme === 'midnight'}>
-                  🌊 Midnight Ocean
-                </option>
-                <option value="ember" ?selected=${this.settings.theme === 'ember'}>
-                  🔥 Ember
-                </option>
-                <option value="neon" ?selected=${this.settings.theme === 'neon'}>
-                  🍇 Purple & Cyan
-                </option>
-              </optgroup>
-            </select>
           </div>
 
+          <div class="section-header">${t('Theme')}</div>
+          <div class="group">
+            <div class="settings-item">
+              <div class="item-content full-width">
+                <div class="theme-cards" role="radiogroup" aria-label=${t('Theme')}>
+                  ${THEMES.map(th => {
+                    const pv = this._isDarkNow() ? th.preview.dark : th.preview.light;
+                    const sel = this._themeId() === th.id;
+                    return html`
+                      <button
+                        class="theme-card ${sel ? 'selected' : ''}"
+                        role="radio"
+                        aria-checked=${sel ? 'true' : 'false'}
+                        @click=${() => this.handleSettingChange('designTheme', th.id)}
+                      >
+                        <span class="theme-sw" style="background: ${pv.bg}">
+                          <i style="background: ${pv.a}; height: 14px"></i>
+                          <i style="background: ${pv.s}; height: 22px"></i>
+                        </span>
+                        <span class="theme-name">${t(th.name)}${sel ? html`<ha-icon icon="mdi:check"></ha-icon>` : ''}</span>
+                      </button>
+                    `;
+                  })}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="section-header">${t('Colour mode')}</div>
+          <div class="group">
+            <div class="settings-item">
+              <div class="item-content full-width">
+                <div class="mode-seg" role="radiogroup" aria-label=${t('Colour mode')}>
+                  ${[['light', 'Light'], ['dark', 'Dark'], ['device', 'Match device']].map(([val, label]) => html`
+                    <button
+                      role="radio"
+                      aria-checked=${this._modeValue() === val ? 'true' : 'false'}
+                      class="mode-opt ${this._modeValue() === val ? 'selected' : ''}"
+                      @click=${() => this.handleSettingChange('darkMode', val === 'dark' ? 'on' : val === 'light' ? 'off' : 'device')}
+                    >${t(label)}</button>
+                  `)}
+                </div>
+              </div>
+            </div>
+          </div>
+          `}
+
           <div class="section-header">${t('Display')}</div>
+          <div class="group">
 
           <div class="settings-item">
             <div class="item-content">
@@ -133,7 +150,10 @@ class SLMAppearanceSettings extends LitElement {
             </div>
           </div>
 
+          </div>
+
           <div class="section-header">${t('Recently Used')}</div>
+          <div class="group">
 
           <div class="settings-item">
             <div class="item-content full-width">
@@ -151,7 +171,10 @@ class SLMAppearanceSettings extends LitElement {
             </div>
           </div>
 
+          </div>
+
           <div class="section-header">${t('Product Images')}</div>
+          <div class="group">
 
           <div class="settings-item">
             <div class="item-content full-width">
@@ -167,7 +190,10 @@ class SLMAppearanceSettings extends LitElement {
             </div>
           </div>
 
+          </div>
+
           <div class="section-header">${t('Font')}</div>
+          <div class="group">
 
           <div class="settings-item">
             <div class="item-content">
@@ -218,22 +244,12 @@ class SLMAppearanceSettings extends LitElement {
           <button class="settings-item" @click=${() => this.showFontSettings = true}>
             <div class="item-content">
               <div class="item-title">Font Family</div>
-              <div class="item-subtitle">${this.settings.fontFamily}</div>
+              <div class="item-subtitle">${this.settings.fontFamily === 'system' || !this.settings.fontFamily ? t('Design default') : this.settings.fontFamily}</div>
             </div>
             <ha-icon icon="mdi:chevron-right"></ha-icon>
           </button>
+          </div>
         </div>
-
-        ${this.showDarkModePopup ? html`
-          <slm-dark-mode-popup
-            .currentMode=${this.settings.darkMode}
-            @mode-selected=${(e) => {
-          this.handleSettingChange('darkMode', e.detail.mode);
-          this.showDarkModePopup = false;
-        }}
-            @close=${() => this.showDarkModePopup = false}
-          ></slm-dark-mode-popup>
-        ` : ''}
 
         ${this.showFontSettings ? html`
           <slm-font-settings
@@ -249,16 +265,201 @@ class SLMAppearanceSettings extends LitElement {
     `;
   }
 
-  getDarkModeLabel() {
-    switch (this.settings.darkMode) {
-      case 'on': return 'On';
-      case 'off': return 'Off';
-      case 'system': return 'As on Device';
-      default: return 'As on Device';
-    }
+  // Effective colour mode shown in the selector: 'light' | 'dark' | 'device'
+  _modeValue() {
+    const m = this.settings.darkMode;
+    if (m === 'on') return 'dark';
+    if (m === 'off') return 'light';
+    if (m === 'device') return 'device';
+    return this._style() === 'compact' ? 'dark' : 'light';
   }
 
-  static styles = css`
+  _themeId() {
+    return themeEntry(this._style(), this.settings.designTheme)?.id;
+  }
+
+  _isDarkNow() {
+    const m = this._modeValue();
+    if (m === 'device') return typeof matchMedia === 'function' && matchMedia('(prefers-color-scheme: dark)').matches;
+    return m === 'dark';
+  }
+
+  _style() {
+    return this.settings.uiStyle === 'compact' ? 'compact' : 'fresh';
+  }
+
+  static styles = [css`
+    .style-options {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 8px;
+    }
+    .style-option {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      padding: 8px;
+      border: 2px solid var(--slm-border-subtle);
+      border-radius: 14px;
+      background: transparent;
+      color: var(--slm-text-primary);
+      text-align: left;
+      cursor: pointer;
+      font: inherit;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .style-option.selected {
+      border-color: var(--slm-accent-primary);
+      background: color-mix(in srgb, var(--slm-accent-primary) 10%, transparent);
+    }
+    .style-option:focus-visible {
+      outline: 2px solid var(--slm-accent-primary);
+      outline-offset: 2px;
+    }
+    .theme-cards {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 10px;
+    }
+    .theme-card {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      padding: 8px;
+      border: 2px solid var(--slm-border-subtle);
+      border-radius: 18px;
+      background: var(--slm-bg-surface);
+      color: var(--slm-text-primary);
+      font: inherit;
+      text-align: left;
+      cursor: pointer;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .theme-card.selected {
+      border-color: var(--slm-accent-primary);
+    }
+    .theme-sw {
+      display: flex;
+      align-items: flex-end;
+      gap: 4px;
+      height: 56px;
+      padding: 8px;
+      border-radius: 12px;
+      box-sizing: border-box;
+    }
+    .theme-sw i {
+      flex: 1;
+      display: block;
+      border-radius: 5px;
+    }
+    .theme-name {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 13px;
+      font-weight: 700;
+    }
+    .theme-name ha-icon {
+      --mdc-icon-size: 16px;
+      color: var(--slm-accent-primary);
+    }
+    .theme-card:focus-visible {
+      outline: 2px solid var(--slm-accent-primary);
+      outline-offset: 2px;
+    }
+    .mode-seg {
+      display: flex;
+      gap: 4px;
+      padding: 4px;
+      border-radius: 16px;
+      background: var(--slm-bg-elevated);
+    }
+    .mode-opt {
+      flex: 1;
+      min-height: 44px;
+      padding: 0 8px;
+      border: none;
+      border-radius: 12px;
+      background: transparent;
+      color: var(--slm-text-secondary);
+      font: inherit;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    .mode-opt.selected {
+      background: var(--slm-bg-surface);
+      color: var(--slm-text-primary);
+      font-weight: 700;
+      box-shadow: var(--slm-shadow-soft);
+    }
+    .so-label {
+      font-size: 13px;
+      font-weight: 700;
+    }
+    .so-hint {
+      font-size: 11px;
+      line-height: 1.25;
+      color: var(--slm-text-secondary);
+    }
+    /* tiny drawings of each style */
+    .sp {
+      position: relative;
+      display: block;
+      height: 58px;
+      border-radius: 8px;
+      background: var(--slm-bg-main);
+      border: 1px solid var(--slm-border-subtle);
+      overflow: hidden;
+    }
+    .sp::before {
+      content: "";
+      position: absolute;
+      left: 6px;
+      right: 6px;
+      top: 6px;
+      height: 8px;
+      border-radius: 3px;
+      background: var(--slm-border-subtle);
+    }
+    .sp::after {
+      content: "";
+      position: absolute;
+      left: 6px;
+      right: 6px;
+      top: 20px;
+      height: 14px;
+      border-radius: 3px;
+      background: var(--slm-bg-surface);
+      box-shadow: 0 16px 0 -2px var(--slm-bg-surface);
+    }
+    .sp-fresh::after {
+      border-radius: 7px;
+      border: 1px solid var(--slm-border-subtle);
+      box-sizing: border-box;
+      height: 16px;
+    }
+    .sp-fresh {
+      background-image: linear-gradient(var(--slm-accent-primary), var(--slm-accent-primary));
+      background-repeat: no-repeat;
+      background-size: 60% 7px;
+      background-position: center bottom 5px;
+    }
+    .sp-compact {
+      background-image: linear-gradient(var(--slm-accent-primary), var(--slm-accent-primary));
+      background-repeat: no-repeat;
+      background-size: 26% 3px;
+      background-position: 50% bottom 0;
+    }
+    .sp-compact::after {
+      border-radius: 0;
+      box-shadow: none;
+      border-bottom: 1px solid var(--slm-border-subtle);
+      background: transparent;
+      height: 8px;
+      top: 22px;
+    }
+
     .theme-select {
       background: var(--slm-bg-elevated);
       color: var(--slm-text-primary);
@@ -360,6 +561,7 @@ class SLMAppearanceSettings extends LitElement {
       border-color: var(--slm-accent-primary);
     }
     .size-slider {
+      accent-color: var(--slm-accent-primary);
       width: 100%;
       margin: 12px 0;
     }
@@ -423,7 +625,7 @@ class SLMAppearanceSettings extends LitElement {
       outline: none;
       border-color: var(--slm-accent-primary);
     }
-  `;
+  `, settingsGroupStyles, fontInherit];
 }
 
 customElements.define('slm-appearance-settings', SLMAppearanceSettings);

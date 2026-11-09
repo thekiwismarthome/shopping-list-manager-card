@@ -1,5 +1,6 @@
 import { LitElement, html, css } from 'lit';
 import { t, I18nController } from '../services/translator.js';
+import { fontInherit } from '../styles/ui-styles.js';
 
 class SLMListHeader extends LitElement {
   _i18n = new I18nController(this);
@@ -10,12 +11,20 @@ class SLMListHeader extends LitElement {
     // Embedded in another card (e.g. Recipe Manager Card) that already shows the
     // back button, title and wake-lock toggle: render only Share + the menu.
     compact: { type: Boolean, reflect: true },
+    // 'classic' | 'fresh' | 'compact' (see Appearance settings)
+    uiStyle: { type: String, attribute: 'ui-style', reflect: true },
+    // Estimated total of the list, shown in the "compact" style subtitle
+    totalAmount: { type: Number },
+    currencySymbol: { type: String },
     _menuOpen: { type: Boolean, state: true },
     _wakeLockActive: { type: Boolean, state: true },
   };
 
   constructor() {
     super();
+    this.uiStyle = 'classic';
+    this.totalAmount = 0;
+    this.currencySymbol = '$';
     this._menuOpen = false;
     this._wakeLockActive = false;
     this._wakeLock = null;
@@ -87,6 +96,86 @@ class SLMListHeader extends LitElement {
   }
 
   render() {
+    if (this.uiStyle === 'fresh') return this._renderFresh();
+    if (this.uiStyle === 'compact') return this._renderCompact();
+    return this._renderClassic();
+  }
+
+  _emit(name) {
+    this.dispatchEvent(new CustomEvent(name, { bubbles: true, composed: true }));
+  }
+
+  // Design A: list switcher pill, search button, options button (opens the sheet)
+  _renderFresh() {
+    return html`
+      <div class="header">
+        <button class="switcher" @click=${this.handleBack} aria-label=${t('Lists')}>
+          <span class="chip-ico"><ha-icon icon="mdi:cart-outline"></ha-icon></span>
+          <span class="switch-title">${this.activeList?.name || t('Shopping List')}</span>
+          <ha-icon class="muted" icon="mdi:chevron-down"></ha-icon>
+        </button>
+        <button class="round" aria-label=${t('Search products…')} @click=${() => this._emit('search-toggle')}>
+          <ha-icon icon="mdi:magnify"></ha-icon>
+        </button>
+        <button class="round" aria-label=${t('List options')} @click=${() => this._emit('open-options')}>
+          <ha-icon icon="mdi:tune-variant"></ha-icon>
+        </button>
+      </div>
+    `;
+  }
+
+  // Design B: bold title with summary line, search button, dropdown menu
+  _renderCompact() {
+    const s = this.settings || {};
+    const viewMode = s.viewMode || 'tile';
+    const sortMode = s.sortMode || 'category';
+    const showRecent = s.showRecentlyUsed !== false;
+    const showPrice = s.showPriceOnTile !== false;
+    const wake = 'wakeLock' in navigator;
+    const sw = (on) => html`<span class="sw ${on ? 'on' : ''}" aria-hidden="true"></span>`;
+    return html`
+      <div class="header">
+        <button class="title-btn" @click=${this.handleBack} aria-label=${t('Lists')}>
+          <span class="title-line">${this.activeList?.name || t('Shopping List')}<ha-icon class="muted" icon="mdi:chevron-down"></ha-icon></span>
+          <span class="subtitle">${this.itemCount} ${t('left')} · ${this.currencySymbol}${Number(this.totalAmount || 0).toFixed(2)}</span>
+        </button>
+        <button class="round" aria-label=${t('Search products…')} @click=${() => this._emit('search-toggle')}>
+          <ha-icon icon="mdi:magnify"></ha-icon>
+        </button>
+        <div class="menu-wrap">
+          <button class="round" aria-label=${t('List options')} aria-expanded=${this._menuOpen ? 'true' : 'false'} @click=${this.handleMenuToggle}>
+            <ha-icon icon="mdi:dots-horizontal"></ha-icon>
+          </button>
+          ${this._menuOpen ? html`
+            <div class="menu-dropdown" role="menu" @click=${e => e.stopPropagation()}>
+              <div class="menu-section-label">${t('View')}</div>
+              <div class="seg">
+                <button aria-pressed=${viewMode === 'list' ? 'true' : 'false'} @click=${() => { this._dispatchSetting('viewMode', 'list'); this._menuOpen = false; }}><ha-icon icon="mdi:format-list-bulleted"></ha-icon>${t('List')}</button>
+                <button aria-pressed=${viewMode === 'tile' ? 'true' : 'false'} @click=${() => { this._dispatchSetting('viewMode', 'tile'); this._menuOpen = false; }}><ha-icon icon="mdi:view-grid-outline"></ha-icon>${t('Tiles')}</button>
+              </div>
+              <div class="menu-divider"></div>
+              <div class="menu-section-label">${t('Sort')}</div>
+              <button role="menuitemradio" aria-checked=${sortMode === 'category' ? 'true' : 'false'} class="item ${sortMode === 'category' ? 'sel' : ''}" @click=${() => { this._dispatchSetting('sortMode', 'category'); this._menuOpen = false; }}>
+                <span>${t('By Category')}</span>${sortMode === 'category' ? html`<ha-icon class="tick" icon="mdi:check"></ha-icon>` : ''}
+              </button>
+              <button role="menuitemradio" aria-checked=${sortMode === 'alphabetical' ? 'true' : 'false'} class="item ${sortMode === 'alphabetical' ? 'sel' : ''}" @click=${() => { this._dispatchSetting('sortMode', 'alphabetical'); this._menuOpen = false; }}>
+                <span>${t('A–Z')}</span>${sortMode === 'alphabetical' ? html`<ha-icon class="tick" icon="mdi:check"></ha-icon>` : ''}
+              </button>
+              <div class="menu-divider"></div>
+              <button class="item" role="menuitemcheckbox" aria-checked=${showPrice ? 'true' : 'false'} @click=${() => this._dispatchSetting('showPriceOnTile', !showPrice)}><span>${t('Show Price')}</span>${sw(showPrice)}</button>
+              <button class="item" role="menuitemcheckbox" aria-checked=${showRecent ? 'true' : 'false'} @click=${() => this._dispatchSetting('showRecentlyUsed', !showRecent)}><span>${t('Recently Used')}</span>${sw(showRecent)}</button>
+              ${wake ? html`<button class="item" role="menuitemcheckbox" aria-checked=${this._wakeLockActive ? 'true' : 'false'} @click=${this._toggleWakeLock}><span>${t('Keep Screen On')}</span>${sw(this._wakeLockActive)}</button>` : ''}
+              <div class="menu-divider"></div>
+              <button class="item" role="menuitem" @click=${() => { this._menuOpen = false; this.handleShare(); }}><ha-icon icon="mdi:account-plus-outline"></ha-icon><span>${t('Share list')}</span></button>
+              <button class="item danger-soft" role="menuitem" @click=${() => { this._menuOpen = false; this._emit('clear-checked'); }}><ha-icon icon="mdi:check-all"></ha-icon><span>${t('Clear checked items')}</span></button>
+            </div>
+          ` : ''}
+        </div>
+      </div>
+    `;
+  }
+
+  _renderClassic() {
     const s = this.settings || {};
     const viewMode = s.viewMode || 'tile';
     const sortMode = s.sortMode || 'category';
@@ -167,7 +256,7 @@ class SLMListHeader extends LitElement {
     `;
   }
 
-  static styles = css`
+  static styles = [css`
     :host {
       display: block;
     }
@@ -231,6 +320,7 @@ class SLMListHeader extends LitElement {
       gap: 4px;
       position: relative;
     }
+
     .menu-wrap {
       position: relative;
     }
@@ -319,7 +409,211 @@ class SLMListHeader extends LitElement {
       background: var(--slm-border-subtle);
       color: var(--slm-text-secondary);
     }
-  `;
+
+    /* ---------- Design A (fresh) and B (compact) ---------- */
+    :host([ui-style="fresh"]) .header,
+    :host([ui-style="compact"]) .header {
+      position: static;
+      min-height: 0;
+      max-height: none;
+      background: transparent;
+      border-bottom: none;
+      box-sizing: border-box;
+    }
+    .round {
+      flex: none;
+      width: 48px;
+      height: 48px;
+      padding: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      color: var(--slm-text-primary);
+      -webkit-tap-highlight-color: transparent;
+    }
+    .round ha-icon { --mdc-icon-size: 22px; }
+    .muted { color: var(--slm-text-secondary); }
+
+    /* A */
+    :host([ui-style="fresh"]) .header {
+      padding: 20px 20px 0;
+      gap: 10px;
+      justify-content: flex-start;
+    }
+    :host([ui-style="fresh"]) .round {
+      border-radius: 50%;
+      border: 1px solid var(--slm-border-subtle);
+      background: var(--slm-bg-surface);
+    }
+    .switcher {
+      flex: 1;
+      min-width: 0;
+      height: 48px;
+      padding: 0 14px 0 8px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      border-radius: 999px;
+      border: 1px solid var(--slm-border-subtle);
+      background: var(--slm-bg-surface);
+      color: var(--slm-text-primary);
+      font-size: 15px;
+      font-weight: 700;
+      cursor: pointer;
+      text-align: left;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .switch-title {
+      flex: 1;
+      min-width: 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .chip-ico {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      flex: none;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: var(--slm-accent-soft);
+      color: var(--slm-accent-text);
+    }
+    .chip-ico ha-icon { --mdc-icon-size: 18px; color: inherit; }
+    .switcher > ha-icon { --mdc-icon-size: 18px; flex: none; }
+
+    /* B */
+    :host([ui-style="compact"]) .header {
+      padding: 20px 16px 0 20px;
+      gap: 8px;
+      justify-content: flex-start;
+    }
+    :host([ui-style="compact"]) .round {
+      width: 44px;
+      height: 44px;
+      border: none;
+      border-radius: 14px;
+      background: var(--slm-bg-elevated);
+    }
+    .title-btn {
+      flex: 1;
+      min-width: 0;
+      min-height: 48px;
+      padding: 0;
+      border: none;
+      background: transparent;
+      color: var(--slm-text-primary);
+      text-align: left;
+      cursor: pointer;
+    }
+    .title-line {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 22px;
+      font-weight: 700;
+      letter-spacing: -0.01em;
+    }
+    .title-line ha-icon { --mdc-icon-size: 20px; }
+    .subtitle {
+      display: block;
+      margin-top: 2px;
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--slm-text-secondary);
+      font-variant-numeric: tabular-nums;
+    }
+    :host([ui-style="compact"]) .menu-dropdown {
+      top: calc(100% + 8px);
+      min-width: 270px;
+      padding: 8px;
+      border-radius: 20px;
+      border: 1px solid var(--slm-border-subtle);
+      background: var(--slm-bg-surface);
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
+    }
+    :host([ui-style="compact"]) .menu-section-label {
+      padding: 8px 10px 4px;
+      font-size: 12px;
+      letter-spacing: 0.08em;
+      color: var(--slm-text-secondary);
+    }
+    .seg {
+      display: flex;
+      gap: 3px;
+      margin: 0 4px 6px;
+      padding: 3px;
+      border-radius: 12px;
+      background: var(--slm-bg-main);
+    }
+    .seg button {
+      flex: 1;
+      min-height: 40px;
+      border: none;
+      border-radius: 10px;
+      background: transparent;
+      color: var(--slm-text-secondary);
+      font-size: 14px;
+      font-weight: 500;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      cursor: pointer;
+    }
+    .seg button[aria-pressed="true"] {
+      background: var(--slm-bg-elevated);
+      color: var(--slm-text-primary);
+      font-weight: 700;
+    }
+    .seg ha-icon { --mdc-icon-size: 18px; color: inherit; }
+    .item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      width: 100%;
+      min-height: 44px;
+      padding: 0 10px;
+      border: none;
+      border-radius: 12px;
+      background: transparent;
+      color: var(--slm-text-primary);
+      font-size: 15px;
+      font-weight: 500;
+      text-align: left;
+      cursor: pointer;
+    }
+    .item span:first-of-type { flex: 1; }
+    .item.sel { background: var(--slm-bg-elevated); font-weight: 600; }
+    .item ha-icon { --mdc-icon-size: 18px; color: var(--slm-text-secondary); }
+    .item .tick { color: var(--slm-accent-primary); }
+    .item.danger-soft { color: var(--slm-accent-danger); }
+    .item.danger-soft ha-icon { color: inherit; }
+    .sw {
+      position: relative;
+      flex: none;
+      width: 44px;
+      height: 26px;
+      border-radius: 99px;
+      background: var(--slm-border-subtle);
+    }
+    .sw::after {
+      content: "";
+      position: absolute;
+      top: 3px;
+      left: 3px;
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      background: var(--slm-text-secondary);
+      transition: transform 0.2s;
+    }
+    .sw.on { background: var(--slm-accent-primary); }
+    .sw.on::after { transform: translateX(18px); background: var(--slm-accent-ink, #fff); }
+  `, fontInherit];
 }
 
 customElements.define('slm-list-header', SLMListHeader);

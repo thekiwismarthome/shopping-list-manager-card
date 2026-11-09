@@ -1,10 +1,13 @@
 import { LitElement, html, css } from 'lit';
+import { fontInherit } from '../../styles/ui-styles.js';
 import { t, I18nController } from '../../services/translator.js';
 
 class SLMListCard extends LitElement {
   _i18n = new I18nController(this);
   static properties = {
     list: { type: Object },
+    // 'classic' | 'fresh' | 'compact' (see Appearance settings)
+    uiStyle: { type: String, attribute: 'ui-style', reflect: true },
     isActive: { type: Boolean },
     itemCount: { type: Number },
     totalCost: { type: Number },
@@ -12,6 +15,7 @@ class SLMListCard extends LitElement {
     emoji: { type: String },
     currentUserId: { type: String },
     isAdmin: { type: Boolean },
+    groups: { type: Array },
     showMenu: { type: Boolean },
     menuX: { type: Number },
     menuY: { type: Number }
@@ -25,12 +29,21 @@ class SLMListCard extends LitElement {
     this.currency = 'NZD';
     this.currentUserId = '';
     this.isAdmin = false;
+    this.groups = [];
     this.menuX = 0;
     this.menuY = 0;
   }
 
   get _isPrivate() {
     return !!this.list?.owner_id;
+  }
+
+  // The household this list belongs to, and any others it is shared with, for the badge tooltip
+  get _groupLabel() {
+    const names = (this.groups || [])
+      .filter(g => g.id === this.list?.group_id || (this.list?.allowed_groups || []).includes(g.id))
+      .map(g => g.name);
+    return names.join(', ');
   }
 
   get _isOwner() {
@@ -97,13 +110,13 @@ class SLMListCard extends LitElement {
         ` : ''}
 
         ${this._isPrivate ? html`
-          <div class="private-badge">
-            <ha-icon icon="mdi:lock"></ha-icon>
+          <div class="private-badge" title=${this._groupLabel}>
+            <ha-icon icon=${this.list?.group_id || (this.list?.allowed_groups || []).length ? 'mdi:account-group' : 'mdi:lock'}></ha-icon>
           </div>
         ` : ''}
 
         <div class="card-header">
-          <ha-icon icon="${this.list.icon}"></ha-icon>
+          <span class="icon-chip"><ha-icon icon="${this.list.icon}"></ha-icon></span>
           <h3>${this.list.name}</h3>
         </div>
 
@@ -145,7 +158,7 @@ class SLMListCard extends LitElement {
     `;
   }
 
-  static styles = css`
+  static styles = [css`
     .list-card {
       position: relative;
       border-radius: 14px;
@@ -179,12 +192,83 @@ class SLMListCard extends LitElement {
       Color Gradients — driven by theme CSS variables
     ================================ */
 
-    .color-0 { background: var(--slm-list-gradient-0, linear-gradient(135deg, #7986cb, #9fa8da)); }
-    .color-1 { background: var(--slm-list-gradient-1, linear-gradient(135deg, #81c784, #a5d6a7)); }
-    .color-2 { background: var(--slm-list-gradient-2, linear-gradient(135deg, #ffb74d, #ffcc80)); }
-    .color-3 { background: var(--slm-list-gradient-3, linear-gradient(135deg, #ba68c8, #ce93d8)); }
-    .color-4 { background: var(--slm-list-gradient-4, linear-gradient(135deg, #4dd0e1, #80deea)); }
-    .color-5 { background: var(--slm-list-gradient-5, linear-gradient(135deg, #f06292, #f48fb1)); }
+    .color-0 { --lc: var(--slm-list-gradient-0, linear-gradient(135deg, #7986cb, #9fa8da)); }
+    .color-1 { --lc: var(--slm-list-gradient-1, linear-gradient(135deg, #81c784, #a5d6a7)); }
+    .color-2 { --lc: var(--slm-list-gradient-2, linear-gradient(135deg, #ffb74d, #ffcc80)); }
+    .color-3 { --lc: var(--slm-list-gradient-3, linear-gradient(135deg, #ba68c8, #ce93d8)); }
+    .color-4 { --lc: var(--slm-list-gradient-4, linear-gradient(135deg, #4dd0e1, #80deea)); }
+    .color-5 { --lc: var(--slm-list-gradient-5, linear-gradient(135deg, #f06292, #f48fb1)); }
+    .list-card { background: var(--lc); }
+    .icon-chip { display: contents; }
+
+    /* ---------- Fresh + Compact: surface cards with a coloured icon chip ---------- */
+    :host([ui-style="fresh"]) .list-card,
+    :host([ui-style="compact"]) .list-card {
+      height: auto;
+      min-height: 96px;
+      background: var(--slm-bg-surface);
+      color: var(--slm-text-primary);
+      border: 1px solid var(--slm-border-subtle);
+      box-shadow: none;
+    }
+    :host([ui-style="fresh"]) .list-card { border-radius: 22px; }
+    :host([ui-style="compact"]) .list-card { border-radius: 16px; }
+    :host([ui-style="fresh"]) .list-card.active,
+    :host([ui-style="compact"]) .list-card.active {
+      border-color: var(--slm-accent-primary);
+      box-shadow: 0 0 0 1px var(--slm-accent-primary);
+    }
+    :host([ui-style="fresh"]) .list-card.inactive,
+    :host([ui-style="compact"]) .list-card.inactive {
+      opacity: 1;
+      filter: none;
+    }
+    :host([ui-style="fresh"]) .icon-chip,
+    :host([ui-style="compact"]) .icon-chip {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 44px;
+      height: 44px;
+      flex-shrink: 0;
+      background: var(--lc);
+      color: white;
+    }
+    :host([ui-style="fresh"]) .icon-chip { border-radius: 14px; }
+    :host([ui-style="compact"]) .icon-chip { border-radius: 11px; }
+    :host([ui-style="fresh"]) .icon-chip ha-icon,
+    :host([ui-style="compact"]) .icon-chip ha-icon {
+      --mdc-icon-size: 24px;
+      color: white;
+    }
+    :host([ui-style="fresh"]) .card-stats,
+    :host([ui-style="compact"]) .card-stats {
+      color: var(--slm-text-secondary);
+      font-variant-numeric: tabular-nums;
+      opacity: 1;
+    }
+    :host([ui-style="fresh"]) .active-badge,
+    :host([ui-style="compact"]) .active-badge {
+      top: 10px;
+      left: auto;
+      right: 56px;
+      background: color-mix(in srgb, var(--slm-accent-primary) 16%, var(--slm-bg-surface));
+      color: var(--slm-accent-primary);
+    }
+    :host([ui-style="fresh"]) .menu-btn,
+    :host([ui-style="compact"]) .menu-btn {
+      width: 44px;
+      height: 44px;
+      top: 4px;
+      right: 4px;
+      background: transparent;
+    }
+    :host([ui-style="fresh"]) .menu-btn ha-icon,
+    :host([ui-style="compact"]) .menu-btn ha-icon,
+    :host([ui-style="fresh"]) .private-badge ha-icon,
+    :host([ui-style="compact"]) .private-badge ha-icon {
+      color: var(--slm-text-secondary);
+    }
 
     .active-badge {
       position: absolute;
@@ -298,7 +382,7 @@ class SLMListCard extends LitElement {
     .menu-popup ha-icon {
       --mdc-icon-size: 20px;
     }
-  `;
+  `, fontInherit];
 }
 
 customElements.define('slm-list-card', SLMListCard);

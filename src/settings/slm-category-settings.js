@@ -1,9 +1,12 @@
 import { t, I18nController } from '../services/translator.js';
 import { LitElement, html, css } from 'lit';
+import { subPageStyles } from '../styles/ui-styles.js';
 
 class CategorySettings extends LitElement {
   _i18n = new I18nController(this);
   static properties = {
+    // 'classic' | 'fresh' | 'compact' (set by the settings view)
+    uiStyle: { type: String, attribute: 'ui-style', reflect: true },
     api: { type: Object },
     categories: { type: Array },
     showAddDialog: { type: Boolean },
@@ -118,7 +121,7 @@ class CategorySettings extends LitElement {
     `;
   }
 
-  static styles = css`
+  static styles = [css`
     :host {
       display: block;
     }
@@ -279,7 +282,7 @@ class CategorySettings extends LitElement {
       background: var(--primary-color);
       color: white;
     }
-  `;
+  `, subPageStyles];
 }
 
 customElements.define('slm-category-settings', CategorySettings);

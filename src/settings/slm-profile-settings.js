@@ -1,9 +1,12 @@
 import { t, I18nController } from '../services/translator.js';
 import { LitElement, html, css } from 'lit';
+import { subPageStyles } from '../styles/ui-styles.js';
 
 class ProfileSettings extends LitElement {
   _i18n = new I18nController(this);
   static properties = {
+    // 'classic' | 'fresh' | 'compact' (set by the settings view)
+    uiStyle: { type: String, attribute: 'ui-style', reflect: true },
     hass: { type: Object }
   };
 
@@ -44,7 +47,7 @@ class ProfileSettings extends LitElement {
     `;
   }
 
-  static styles = css`
+  static styles = [css`
     :host {
       display: block;
     }
@@ -127,7 +130,7 @@ class ProfileSettings extends LitElement {
       font-size: 14px;
       text-align: center;
     }
-  `;
+  `, subPageStyles];
 }
 
 customElements.define('slm-profile-settings', ProfileSettings);

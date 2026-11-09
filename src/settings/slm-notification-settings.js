@@ -1,9 +1,12 @@
 import { t, I18nController } from '../services/translator.js';
 import { LitElement, html, css } from 'lit';
+import { subPageStyles } from '../styles/ui-styles.js';
 
 class NotificationSettings extends LitElement {
   _i18n = new I18nController(this);
   static properties = {
+    // 'classic' | 'fresh' | 'compact' (set by the settings view)
+    uiStyle: { type: String, attribute: 'ui-style', reflect: true },
     settings: { type: Object }
   };
 
@@ -65,7 +68,7 @@ class NotificationSettings extends LitElement {
     `;
   }
 
-  static styles = css`
+  static styles = [css`
     :host {
       display: block;
     }
@@ -158,7 +161,7 @@ class NotificationSettings extends LitElement {
     input:checked + .slider:before {
       transform: translateX(22px);
     }
-  `;
+  `, subPageStyles];
 }
 
 customElements.define('slm-notification-settings', NotificationSettings);

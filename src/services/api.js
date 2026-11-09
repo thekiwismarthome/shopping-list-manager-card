@@ -60,13 +60,15 @@ export class ShoppingListAPI {
     return await this._ws({ type: 'shopping_list_manager/lists/get_all' }, { timeout: STARTUP_TIMEOUT_MS });
   }
 
-  async createList(name, icon = 'mdi:cart', isPrivate = true) {
-    return await this._ws({
+  async createList(name, icon = 'mdi:cart', isPrivate = true, groupId = null) {
+    const msg = {
       type: 'shopping_list_manager/lists/create',
       name,
       icon,
       private: isPrivate
-    });
+    };
+    if (groupId) msg.group_id = groupId;
+    return await this._ws(msg);
   }
 
   async updateList(listId, data) {
@@ -291,12 +293,36 @@ export class ShoppingListAPI {
     });
   }
 
-  async updateListMembers(listId, allowedUsers) {
-    return await this._ws({
+  async updateListMembers(listId, allowedUsers, allowedGroups) {
+    const msg = {
       type: 'shopping_list_manager/lists/update_members',
       list_id: listId,
       allowed_users: allowedUsers
-    });
+    };
+    if (allowedGroups) msg.allowed_groups = allowedGroups;
+    return await this._ws(msg);
+  }
+
+  // Groups (households)
+  async getGroups() {
+    return await this._ws({ type: 'shopping_list_manager/groups/get_all' });
+  }
+
+  async createGroup(name, members = []) {
+    return await this._ws({ type: 'shopping_list_manager/groups/create', name, members });
+  }
+
+  async updateGroup(groupId, data) {
+    return await this._ws({ type: 'shopping_list_manager/groups/update', group_id: groupId, ...data });
+  }
+
+  async deleteGroup(groupId) {
+    return await this._ws({ type: 'shopping_list_manager/groups/delete', group_id: groupId });
+  }
+
+  // Move every list and card that is visible to everyone into one group (admin, once)
+  async adoptShared(groupId) {
+    return await this._ws({ type: 'shopping_list_manager/groups/adopt_shared', group_id: groupId });
   }
 
   async getHAUsers() {
@@ -347,11 +373,13 @@ export class ShoppingListAPI {
     });
   }
 
-  async updateLoyaltyCardMembers(cardId, allowedUsers) {
-    return await this._ws({
+  async updateLoyaltyCardMembers(cardId, allowedUsers, allowedGroups) {
+    const msg = {
       type: 'shopping_list_manager/loyalty/update_members',
       card_id: cardId,
       allowed_users: allowedUsers
-    });
+    };
+    if (allowedGroups) msg.allowed_groups = allowedGroups;
+    return await this._ws(msg);
   }
 }

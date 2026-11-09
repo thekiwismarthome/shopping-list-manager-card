@@ -80,6 +80,16 @@ export const UI_STRINGS = [
   'Notifications', 'List sharing, emails',
   'Preferences', 'Open last used list at launch', 'Keep screen turned on',
   'Sync settings across devices', 'Keep your theme and list options the same on all your devices',
+  // Groups (households)
+  'Who can see it', 'Everyone in this household', 'Only me', 'Everyone', 'Every household on this Home Assistant', 'People', 'Households', 'Everyone in {name} can already see this list.', 'Everyone in {name} can already see this card.', 'Groups', 'Households and who can see what', 'Group', 'Group name', 'Rename', 'Delete this group?', 'Could not create the group.', 'Could not rename the group.', 'Could not update the group.', 'Could not delete the group.', 'Could not move them.', 'Visible to everyone', 'list', 'lists', 'loyalty card', 'loyalty cards', 'and', 'can be seen by every user. Move them into a group so other households cannot see them.', 'Move them', 'No one yet', 'Choose people', 'Only a Home Assistant administrator can manage groups.', 'A group is a household. People in a group share its lists and loyalty cards, and you can also share a list with another group or with one person. Anything not shared stays private to the person who made it.', 'No groups yet. Add one for each household, for example “Our house” and “Mum’s house”.', 'New group', 'e.g., Mum’s house', 'Administrators can always see every list and card, because the data lives on your Home Assistant.',
+  // Interface styles + tidied settings
+  'Interface style', 'Classic', 'Fresh', 'Compact', 'Style, colour mode, tiles, fonts', 'New list', 'Private', 'Only visible to me (and members I add)', 'Tap to scan', 'Hold the screen up to the scanner.', 'Export or restore your lists and products',
+  'The original look', 'Soft cards, floating menu', 'Dense list, flat tab bar',
+  'Personalise', 'Behaviour', 'Connections', 'Search settings', 'No settings match',
+  'In your basket', 'Left to buy', 'Estimated', 'Estimated total', 'of', 'left', 'Main',
+  'Accent', 'Meadow', 'Slate', 'Sunset', 'Periwinkle', 'Mint', 'Amber', 'Coral',
+  'Colour mode', 'Light', 'Dark', 'Match device', 'Design default', 'Soft cards, summary card, floating menu', 'Dense list, checkboxes, flat tab bar', 'List options', 'Share list', 'Clear checked items', 'All', 'Categories', 'In basket', 'Undo', 'Decrease', 'Increase',
+  'In-store', 'Wall panel', 'HA native', 'Big rows, tap to tick off', 'List and product picker side by side', 'Flat, uses your Home Assistant theme', 'The HA native style follows your Home Assistant theme, so dark mode and colour theme are set there.', 'The Wall panel style needs a wide card (tablet or wall display). On narrow screens it shows Fresh.', 'Add items', 'Add item',
   'Region & Catalog', 'Country-specific products and pricing',
   'Manage Categories', 'categories',
   'HA Todo Sync', 'Link lists to Home Assistant todo',

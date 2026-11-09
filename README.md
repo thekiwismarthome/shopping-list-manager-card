@@ -2,6 +2,8 @@
 
 A feature-rich, multi-list shopping manager for Home Assistant Lovelace. Built as a custom card using Lit web components, it gives you a full grocery management experience — from product search and category grouping to loyalty card storage — all in a polished, real-time-synced interface.
 
+**[Website, live demo and user manual](https://thekiwismarthome.github.io/shopping-list-manager-card/)**
+
 > **Requires the [Shopping List Manager Integration](https://github.com/thekiwismarthome/shopping-list-manager)** to be installed first.
 
 [![Open your Home Assistant instance and open this repository inside the Home Assistant Community Store.](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=thekiwismarthome&repository=shopping-list-manager-card&category=plugin)
@@ -46,26 +48,21 @@ A feature-rich, multi-list shopping manager for Home Assistant Lovelace. Built a
 - Card colour, logo, and notes customisation
 - Shared or private card access per user
 
-### 🎨 Themes & Display
-- **Tile view** (category-grouped grid) and **List view**
-- Tiles per row: 2 / 3 / 4 / 5 (configurable)
-- Sort items by category or alphabetically
-- Show or hide item prices on tiles
-- **8 built-in themes:**
+### 🎨 Designs & Display
+- **Two designs** (Settings → Appearance → Interface style):
 
-| Theme | Style |
+| Design | Look |
 |---|---|
-| Soft Pastel *(default)* | Clean, modern pastels |
-| Arctic | Cool blue tones |
-| Meadow | Natural greens |
-| Blossom | Warm pink / mauve |
-| Ocean Blue | Ocean-inspired blues |
-| Midnight Ocean | Dark, GitHub-inspired blue |
-| Ember | Warm dark orange / brown |
-| Purple & Cyan | Material Design 3 vibrant dark |
+| **Fresh** *(default)* | Light, soft cards. Summary card with progress and estimated total, category chips, steppers on each row, a + button and a floating bottom bar. |
+| **Compact** | Dark, dense and list first. Checkbox rows, a progress line, collapsible categories and a flat tab bar with a total bar. |
 
-- Dark mode: **On / Off / Follow device**
-- Font family (6 options), font size, and font weight controls
+- Both designs share three themes (**Meadow**, **Slate**, **Sunset**). Fresh starts on Meadow and Compact starts on Slate
+- Colour mode: **Light / Dark / Match device** (Fresh starts light, Compact starts dark)
+- **Tile view** (category-grouped grid) and **List view**; **Recently Used** stays its own section under the categories
+- Tiles per row: 2 / 3 / 4 / 5 / 8 / 10 (configurable)
+- Sort items by category or alphabetically
+- Show or hide item prices
+- Font family, font size, and font weight controls
 - Emoji or icon display toggle
 
 ### 🔄 Real-Time Sync
