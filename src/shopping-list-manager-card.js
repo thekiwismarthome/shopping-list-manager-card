@@ -190,10 +190,12 @@ class ShoppingListManagerCard extends LitElement {
     return parts.join('_');
   }
 
-  // Before Auto existed everyone was saved with a fixed 3. Treat that as "never chose", once.
+  // Before Auto existed a card was saved with a fixed 3, or 8 when embedded in Recipe Manager.
+  // Those were defaults, not choices (8 is not even on offer), so treat them as "never chose", once.
+  // An embedded card keeps a 3, since that could have been picked.
   _migrateTiles(settings) {
-    if (!this.isEmbedded && !settings.tilesMigrated) {
-      if (settings.tilesPerRow === 3) settings.tilesPerRow = 'auto';
+    if (!settings.tilesMigrated) {
+      if (settings.tilesPerRow === 8 || (!this.isEmbedded && settings.tilesPerRow === 3)) settings.tilesPerRow = 'auto';
       settings.tilesMigrated = true;
     }
     return settings;
@@ -213,7 +215,7 @@ class ShoppingListManagerCard extends LitElement {
         emails: true
       },
       recentProductsCount: 8,
-      tilesPerRow: this.isEmbedded ? 8 : 'auto', // 'auto' follows the card width
+      tilesPerRow: 'auto', // follows the card width, also when embedded in Recipe Manager
       useEmojis: true,
       colorScheme: 'pastel',
       viewMode: 'list',
