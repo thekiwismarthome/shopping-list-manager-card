@@ -312,6 +312,11 @@ export class ShoppingListAPI {
     return await this._ws({ type: 'shopping_list_manager/supermarkets/get_all' });
   }
 
+  // Look shops up on the map. {query?, chain_id?, latitude?, longitude?} -> {results: [{name, address, latitude, longitude, distance_km}]}
+  async searchSupermarkets(params) {
+    return await this._ws({ type: 'shopping_list_manager/supermarkets/search', ...params }, { timeout: 30000 });
+  }
+
   async addSupermarket(data) {
     return await this._ws({ type: 'shopping_list_manager/supermarkets/add', ...data });
   }

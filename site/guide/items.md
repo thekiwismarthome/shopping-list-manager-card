@@ -38,6 +38,6 @@ Search matches names and common alternatives, and copes with small spelling diff
 
 ## Views and sorting
 
-- **List** and **Tile** views are in the list options. In tile view, the same place has **Tiles per row**: **Auto** (3 on a phone, 4 on a folding phone, 5 on a tablet) or a number you choose. Product pictures fill their tile, with the longer side touching the edge.
+- **List** and **Tile** views are in the list options. In tile view, the same place has **Tiles per row**: **Auto** (3 on a phone, 4 on a folding phone, 5 on a tablet) or a number you choose. A product photo fills the whole tile, edge to edge, with the name over the bottom of it. The small drawn icons keep their place above the name.
 - Sort by category or alphabetically.
 - **Keep screen on** stops a wall tablet from sleeping while the list is open.

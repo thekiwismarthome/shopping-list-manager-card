@@ -126,6 +126,29 @@
         var names = ["PAK'nSAVE", 'Woolworths', 'New World', 'Four Square', 'SuperValue', 'Fresh Choice', 'Farro Fresh', 'Costco', 'Gilmours', 'Bin Inn', "Moore Wilson's", "Night 'n Day"];
         return { country: 'NZ', chains: names.map(function (n) { return { id: n.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, ''), name: n }; }) };
       },
+      'supermarkets/search': function (m) {
+        // A few real Auckland shops stand in for the map service, so the lookup can be tried in the demo
+        var shops = [
+          { name: "PAK'nSAVE Glen Innes", address: '182 Apirana Avenue, Glen Innes, 1072', latitude: -36.875846, longitude: 174.855172 },
+          { name: "PAK'nSAVE Mount Wellington", address: '286 Mount Wellington Highway, Mount Wellington, 1060', latitude: -36.913345, longitude: 174.840009 },
+          { name: "PAK'nSAVE Pakuranga", address: 'Pakuranga Road, Highland Park, 2143', latitude: -36.899345, longitude: 174.906953 },
+          { name: 'Woolworths Highland Park', address: 'Highland Park Drive, Highland Park, 2010', latitude: -36.89941, longitude: 174.908261 },
+          { name: 'New World Kohimarama', address: 'Kohimarama Road, Kohimarama, 1071', latitude: -36.8903959, longitude: 174.8318791 },
+          { name: 'New World Victoria Park', address: 'Victoria Street West, Auckland Central, 1010', latitude: -36.8458, longitude: 174.7567 }
+        ];
+        var key = function (x) { return String(x || '').toLowerCase().replace(/[^a-z0-9]/g, ''); };
+        var chains = ["PAK'nSAVE", 'Woolworths', 'New World'], chain = null, place = String(m.query || '').trim();
+        var picked = m.chain_id ? chains.filter(function (c) { return key(c) === key(m.chain_id); })[0] : null;
+        if (picked) chain = picked; else chains.forEach(function (c) { if (!chain && key(place).indexOf(key(c)) === 0) { chain = c; place = place.replace(/^[^a-z0-9]*/i, '').slice(c.length).replace(/^[\s,'-]+/, ''); } });
+        var hasPos = m.latitude != null && m.longitude != null;
+        var km = function (a, b, c, d) { var r = Math.PI / 180, x = Math.sin((c - a) * r / 2), y = Math.sin((d - b) * r / 2); return 12742 * Math.asin(Math.sqrt(x * x + Math.cos(a * r) * Math.cos(c * r) * y * y)); };
+        var found = shops.filter(function (x) { return (!chain || key(x.name).indexOf(key(chain)) === 0) && (hasPos || !place || key(x.name + x.address).indexOf(key(place)) > -1); });
+        if (!chain && !place && !hasPos) throw new Error('Type a shop or suburb to look for, or pick a chain');
+        var centre = hasPos ? [m.latitude, m.longitude] : null;
+        found = found.map(function (x) { return Object.assign({ distance_km: centre ? Math.round(km(centre[0], centre[1], x.latitude, x.longitude) * 10) / 10 : null }, x); });
+        if (centre) found.sort(function (a, b) { return a.distance_km - b.distance_km; });
+        return { results: found.slice(0, 8) };
+      },
       'supermarkets/get_all': function () { return { supermarkets: JSON.parse(JSON.stringify(state.stores)) }; },
       'supermarkets/add': function (m) {
         var lat = m.latitude == null ? null : m.latitude, lng = m.longitude == null ? null : m.longitude;

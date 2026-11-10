@@ -27,6 +27,11 @@ class SLMSupermarketsSettings extends LitElement {
     _form: { type: Object, state: true },
     _visibility: { type: String, state: true },
     _message: { type: String, state: true },
+    _find: { type: Object, state: true },
+    _ask: { type: String, state: true },
+    _locating: { type: Boolean, state: true },
+    _locNote: { type: String, state: true },
+    _locFail: { type: Object, state: true },
   };
 
   constructor() {
@@ -42,6 +47,12 @@ class SLMSupermarketsSettings extends LitElement {
     this._form = null;
     this._visibility = 'private';
     this._message = '';
+    this._find = { query: '', busy: false, results: null, note: '' };
+    this._ask = '';          // 'nearest' | 'fill' while we are asking permission to use the location
+    this._locationOk = false; // allowed for as long as this page stays open
+    this._locating = false;
+    this._locNote = '';
+    this._locFail = null;
   }
 
   connectedCallback() {
@@ -76,6 +87,14 @@ class SLMSupermarketsSettings extends LitElement {
     this._message = '';
     this._visibility = defaultVisibility(this._groups, this._myGroupIds);
     this._form = { id: null, chain_id: null, name: '', address: '', latitude: '', longitude: '' };
+    this._resetFind();
+  }
+
+  _resetFind() {
+    this._find = { query: '', busy: false, results: null, note: '' };
+    this._ask = '';
+    this._locNote = '';
+    this._locFail = null;
   }
 
   _openEdit(shop) {
@@ -85,6 +104,7 @@ class SLMSupermarketsSettings extends LitElement {
       latitude: shop.latitude == null ? '' : String(shop.latitude),
       longitude: shop.longitude == null ? '' : String(shop.longitude),
     };
+    this._resetFind();
   }
 
   _closeForm() {
@@ -102,23 +122,132 @@ class SLMSupermarketsSettings extends LitElement {
     this._form = { ...this._form, chain_id: chain.id, name: keepName ? this._form.name : chain.name };
   }
 
-  _useMyLocation() {
-    if (!navigator.geolocation) {
-      this._message = `error:${t('Your browser cannot share its location.')}`;
+  // -- Location -------------------------------------------------------------------
+  // We always ask first. The position comes from this device when the page is secure (HTTPS), and
+  // otherwise from the phone's Home Assistant app, through the person linked to this user.
+
+  _askLocation(purpose) {
+    this._message = '';
+    this._locFail = null;
+    if (this._locationOk) { this._locate(purpose); return; }
+    this._ask = purpose;
+  }
+
+  _allowLocation() {
+    const purpose = this._ask;
+    this._ask = '';
+    this._locationOk = true;
+    this._locate(purpose);
+  }
+
+  _personLocation() {
+    const hass = this.api?.hass;
+    const uid = hass?.user?.id;
+    for (const [id, st] of Object.entries(hass?.states || {})) {
+      if (!id.startsWith('person.') || !uid || st.attributes?.user_id !== uid) continue;
+      const { latitude, longitude } = st.attributes;
+      if (Number.isFinite(latitude) && Number.isFinite(longitude)) {
+        return { latitude, longitude, name: st.attributes.friendly_name || id };
+      }
+    }
+    return null;
+  }
+
+  _homeLocation() {
+    const c = this.api?.hass?.config;
+    return c && Number.isFinite(c.latitude) && Number.isFinite(c.longitude)
+      ? { latitude: c.latitude, longitude: c.longitude } : null;
+  }
+
+  async _getLocation() {
+    let why = '';
+    if (navigator.geolocation && window.isSecureContext) {
+      try {
+        const pos = await new Promise((resolve, reject) =>
+          navigator.geolocation.getCurrentPosition(resolve, reject, { enableHighAccuracy: true, timeout: 10000, maximumAge: 60000 }));
+        return { latitude: pos.coords.latitude, longitude: pos.coords.longitude, source: 'device' };
+      } catch (err) {
+        why = err && err.code === 1
+          ? t('Location was not allowed for this page. Allow it in your browser or app settings.')
+          : t('Your device could not work out where you are.');
+      }
+    } else if (navigator.geolocation) {
+      why = t('This page is not on a secure (HTTPS) address, so the browser will not share its location.');
+    } else {
+      why = t('This device cannot share its location with the page.');
+    }
+    // The Home Assistant app on your phone reports where you are, through your person
+    const person = this._personLocation();
+    if (person) return { ...person, source: 'app' };
+    throw new Error(`${why} ${t('Link your phone to your person in the Home Assistant app, or type the coordinates.')}`);
+  }
+
+  async _locate(purpose) {
+    this._locating = true;
+    this._locNote = '';
+    this._locFail = null;
+    try {
+      const loc = await this._getLocation();
+      this._locNote = loc.source === 'app'
+        ? t('Using the location your phone last sent to Home Assistant.')
+        : t('Using this device\'s location.');
+      await this._withLocation(purpose, loc);
+    } catch (err) {
+      this._locFail = { purpose, text: (err && err.message) || t('Could not get your location.') };
+    } finally {
+      this._locating = false;
+    }
+  }
+
+  async _withLocation(purpose, loc) {
+    if (purpose === 'fill') {
+      this._form = { ...this._form, latitude: Number(loc.latitude).toFixed(6), longitude: Number(loc.longitude).toFixed(6) };
+    } else {
+      await this._search(loc);
+    }
+  }
+
+  async _useHome() {
+    const home = this._homeLocation();
+    const purpose = this._locFail?.purpose;
+    if (!home || !purpose) return;
+    this._locFail = null;
+    this._locNote = t('Using your Home Assistant home location.');
+    await this._withLocation(purpose, home);
+  }
+
+  // -- Finding a shop on the map ------------------------------------------------------
+
+  async _search(near) {
+    const query = (this._find.query || '').trim();
+    if (!query && !this._form.chain_id && !near) {
+      this._find = { ...this._find, results: null, note: t('Type a suburb or shop name, or pick a chain.') };
       return;
     }
-    this._message = '';
-    navigator.geolocation.getCurrentPosition(
-      (pos) => {
-        this._form = {
-          ...this._form,
-          latitude: pos.coords.latitude.toFixed(6),
-          longitude: pos.coords.longitude.toFixed(6),
-        };
-      },
-      () => { this._message = `error:${t('Could not get your location. Location needs a secure (HTTPS) connection and your permission.')}`; },
-      { enableHighAccuracy: true, timeout: 10000 },
-    );
+    this._find = { ...this._find, busy: true, results: null, note: '' };
+    try {
+      const params = { query };
+      if (this._form.chain_id) params.chain_id = this._form.chain_id;
+      if (near) { params.latitude = near.latitude; params.longitude = near.longitude; }
+      const res = await this.api.searchSupermarkets(params);
+      const results = res.results || [];
+      this._find = { ...this._find, busy: false, results, note: results.length ? '' : t('No shops found. Try the chain and a suburb, like PAK\'nSAVE Glen Innes.') };
+    } catch (err) {
+      console.error('[SLM] Supermarket search:', err);
+      this._find = { ...this._find, busy: false, results: null, note: t('The map search is not available right now.') };
+    }
+  }
+
+  _applyResult(r) {
+    const key = (x) => (x || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+    const chain = this._chains.find(c => key(r.name).startsWith(key(c.name)));
+    this._form = {
+      ...this._form,
+      name: r.name, address: r.address || '',
+      latitude: Number(r.latitude).toFixed(6), longitude: Number(r.longitude).toFixed(6),
+      chain_id: chain ? chain.id : this._form.chain_id,
+    };
+    this._find = { ...this._find, results: null, note: '' };
   }
 
   // Both coordinates, or neither. Returns the numbers, null for none, or false if they are not valid.
@@ -202,6 +331,67 @@ class SLMSupermarketsSettings extends LitElement {
     `;
   }
 
+  _renderFind() {
+    const f = this._find;
+    const chain = this._chains.find(c => c.id === this._form.chain_id);
+    return html`
+      <div class="label" id="find-label">${t('Find it on the map')}</div>
+      <form class="find" role="search" aria-labelledby="find-label" @submit=${(e) => { e.preventDefault(); this._search(null); }}>
+        <input class="field" type="search" maxlength="100" enterkeyhint="search"
+               aria-label=${t('Suburb or town')}
+               placeholder=${chain ? t('Suburb or town, e.g. Glen Innes') : t('e.g., PAK\'nSAVE Glen Innes')}
+               .value=${f.query} @input=${(e) => { this._find = { ...this._find, query: e.target.value }; }} />
+        <button type="submit" class="action-btn small" ?disabled=${f.busy || this._locating}>
+          <ha-icon icon="mdi:magnify"></ha-icon>${t('Search')}
+        </button>
+      </form>
+      ${this._ask ? this._renderConsent() : html`
+        <button type="button" class="link-btn" ?disabled=${this._locating || f.busy} @click=${() => this._askLocation('nearest')}>
+          <ha-icon icon="mdi:map-marker-radius-outline"></ha-icon>${chain ? t('Find the closest {chain}').replace('{chain}', chain.name) : t('Find the closest to me')}
+        </button>`}
+      ${f.busy || this._locating ? html`<div class="hint">${t('Searching…')}</div>` : ''}
+      ${this._locNote && !this._locFail ? html`<div class="hint">${this._locNote}</div>` : ''}
+      ${this._locFail ? html`
+        <div class="message error">${this._locFail.text}</div>
+        ${this._homeLocation() ? html`
+          <button type="button" class="link-btn" @click=${this._useHome}>
+            <ha-icon icon="mdi:home-map-marker"></ha-icon>${t('Use my Home Assistant home location instead')}
+          </button>` : ''}` : ''}
+      ${f.note ? html`<div class="hint">${f.note}</div>` : ''}
+      ${f.results && f.results.length ? html`
+        <ul class="results" aria-label=${t('Shops found')}>
+          ${f.results.map(r => html`
+            <li>
+              <button type="button" class="result" @click=${() => this._applyResult(r)}>
+                <ha-icon icon="mdi:storefront-outline"></ha-icon>
+                <span class="result-main">
+                  <span class="result-name">${r.name}</span>
+                  <span class="result-addr">${r.address}</span>
+                </span>
+                ${r.distance_km != null ? html`<span class="result-dist">${r.distance_km} km</span>` : ''}
+              </button>
+            </li>`)}
+        </ul>` : ''}
+      <p class="hint">${t('Searches use OpenStreetMap through your Home Assistant.')}</p>
+    `;
+  }
+
+  _renderConsent() {
+    const nearest = this._ask === 'nearest';
+    return html`
+      <div class="consent" role="alertdialog" aria-labelledby="consent-title" aria-describedby="consent-body">
+        <div id="consent-title" class="consent-title"><ha-icon icon="mdi:map-marker-question-outline"></ha-icon>${t('Use your location?')}</div>
+        <p id="consent-body">${nearest
+          ? t('Your location is used to find the closest shops. It is sent to the OpenStreetMap search through your Home Assistant for this search only, and is not saved.')
+          : t('Your location is used to fill in the coordinates. It stays on your device until you save the supermarket.')}</p>
+        <div class="consent-actions">
+          <button type="button" class="chip" @click=${() => { this._ask = ''; }}>${t('Not now')}</button>
+          <button type="button" class="chip on" @click=${this._allowLocation}>${t('Allow')}</button>
+        </div>
+      </div>
+    `;
+  }
+
   _renderForm() {
     const f = this._form;
     const editing = !!f.id;
@@ -225,6 +415,8 @@ class SLMSupermarketsSettings extends LitElement {
             </div>
           ` : html`<p class="hint">${t('There are no built-in chains for this region. Type the name of the shop.')}</p>`}
 
+          ${this._renderFind()}
+
           <label class="label" for="shop-name">${t('Name')}</label>
           <input id="shop-name" class="field" type="text" maxlength="80" placeholder=${t('e.g., PAK\'nSAVE Albany')}
                  .value=${f.name} @input=${(e) => this._set('name', e.target.value)} />
@@ -240,7 +432,7 @@ class SLMSupermarketsSettings extends LitElement {
             <input class="field" type="text" inputmode="decimal" aria-label=${t('Longitude')} placeholder=${t('Longitude')}
                    .value=${f.longitude} @input=${(e) => this._set('longitude', e.target.value)} />
           </div>
-          <button type="button" class="link-btn" @click=${this._useMyLocation}>
+          <button type="button" class="link-btn" ?disabled=${this._locating} @click=${() => this._askLocation('fill')}>
             <ha-icon icon="mdi:crosshairs-gps"></ha-icon>${t('Use my current location')}
           </button>
 
@@ -328,6 +520,22 @@ class SLMSupermarketsSettings extends LitElement {
     .link-btn { display: inline-flex; align-items: center; gap: 6px; margin-top: 8px; min-height: 40px; padding: 0 4px; border: none; background: none; cursor: pointer; color: var(--slm-accent-text, var(--slm-accent-primary)); font-size: 14px; font-weight: 600; }
     .link-btn ha-icon { --mdc-icon-size: 18px; color: inherit; --icon-primary-color: currentColor; }
     .sheet .message { margin: 12px 0 0; }
+    .link-btn:disabled { opacity: 0.5; cursor: default; }
+    .find { display: flex; gap: 8px; align-items: stretch; }
+    .find .field { flex: 1; min-width: 0; }
+    .action-btn.small { min-height: 44px; padding: 0 14px; flex-shrink: 0; }
+    .consent { margin-top: 10px; padding: 12px 14px; border-radius: 12px; border: 1px solid var(--slm-border-subtle); background: var(--slm-bg-elevated, var(--slm-bg-surface)); }
+    .consent-title { display: flex; align-items: center; gap: 8px; font-weight: 700; font-size: 15px; color: var(--slm-text-primary); }
+    .consent-title ha-icon { --mdc-icon-size: 20px; }
+    .consent p { margin: 8px 0 12px; font-size: 13.5px; line-height: 1.5; color: var(--slm-text-secondary); }
+    .consent-actions { display: flex; gap: 8px; justify-content: flex-end; }
+    .results { list-style: none; margin: 10px 0 0; padding: 0; display: flex; flex-direction: column; gap: 6px; }
+    .result { width: 100%; display: flex; align-items: center; gap: 10px; min-height: 52px; padding: 8px 12px; border-radius: 12px; cursor: pointer; text-align: left; border: 1px solid var(--slm-border-subtle); background: var(--slm-bg-surface); color: var(--slm-text-primary); font: inherit; }
+    .result ha-icon { --mdc-icon-size: 22px; flex-shrink: 0; color: var(--slm-accent-text, var(--slm-accent-primary)); --icon-primary-color: currentColor; }
+    .result-main { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+    .result-name { font-weight: 700; font-size: 14.5px; overflow-wrap: anywhere; }
+    .result-addr { font-size: 12.5px; color: var(--slm-text-secondary); overflow-wrap: anywhere; }
+    .result-dist { flex-shrink: 0; font-size: 13px; font-weight: 700; color: var(--slm-accent-text, var(--slm-accent-primary)); }
   `, subPageStyles, bottomSheetStyles, fontInherit];
 }
 

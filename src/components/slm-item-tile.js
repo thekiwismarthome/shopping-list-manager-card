@@ -321,11 +321,13 @@ class SLMItemTile extends LitElement {
     const name = this.item?.name;
     const categoryId = this.item?.category_id;
     const exts = LOCAL_IMG_EXTS;
+    this._isPhoto = false; // true when a real picture (not a small icon or emoji) is shown
 
     // 1. Explicit product image URL (highest priority)
     if (this.item?.image_url) {
+      this._isPhoto = true;
       return html`
-        <div class="image-area">
+        <div class="image-area photo">
           <img src="${this.item.image_url}" alt="${name}" class="product-icon">
         </div>`;
     }
@@ -336,8 +338,9 @@ class SLMItemTile extends LitElement {
       const cached = _localImgCache.get(localBase);
       const idx = cached === undefined ? this._localImgExtIdx : (cached < 0 ? exts.length : cached);
       if (idx < exts.length) {
+        this._isPhoto = true;
         return html`
-          <div class="image-area">
+          <div class="image-area photo">
             <img
               src="${localBase}.${exts[idx]}"
               alt="${name}"
@@ -382,10 +385,12 @@ class SLMItemTile extends LitElement {
       tileBg = 'var(--slm-bg-surface)';
     }
     const showPrice = this.settings?.showPriceOnTile !== false;
+    const image = this.renderImage();
+    const hasPhoto = this._isPhoto;
 
     return html`
       <div
-        class="tile ${this.item.checked ? 'checked' : ''} ${this.isRecentlyUsed ? 'recently-used' : ''} ${this.item._pending ? 'pending' : ''}"
+        class="tile ${this.item.checked ? 'checked' : ''} ${this.isRecentlyUsed ? 'recently-used' : ''} ${this.item._pending ? 'pending' : ''} ${hasPhoto ? 'has-photo' : ''}"
         style="background: ${tileBg}"
         @click=${this.handleTileClick}
         @mousedown=${this.handleMouseDown}
@@ -411,7 +416,7 @@ class SLMItemTile extends LitElement {
           ` : ''}
         `}
 
-        ${this.renderImage()}
+        ${image}
 
         <div class="info">
           <div class="name">${this.item.name}</div>
@@ -509,12 +514,34 @@ class SLMItemTile extends LitElement {
       justify-content: center;
       overflow: hidden;
     }
-    /* The picture fills the card. Whichever side is longer reaches the edge and the other side
-       keeps its proportion, so nothing is cropped or stretched. */
+    /* Small drawn icons sit above the name. Whichever side is longer reaches the edge and the other
+       side keeps its proportion, so nothing is cropped or stretched. */
     .product-icon {
       width: 100%;
       height: 100%;
       object-fit: contain;
+    }
+    /* A real picture (a product photo, or one from your own folder) fills the whole tile, edge to
+       edge, behind the name. Tiles are square, so a normal square photo is not cropped at all. */
+    .image-area.photo {
+      position: absolute;
+      inset: 0;
+      z-index: 0;
+    }
+    .image-area.photo .product-icon {
+      object-fit: cover;
+    }
+    .tile.has-photo .info {
+      position: relative;
+      z-index: 1;
+      margin-top: auto;
+      padding-top: 22px;
+      background: linear-gradient(to bottom, transparent, rgba(0, 0, 0, 0.72));
+    }
+    .tile.has-photo .name,
+    .tile.has-photo .price {
+      color: #fff;
+      text-shadow: 0 1px 3px rgba(0, 0, 0, 0.6);
     }
     .emoji {
       font-size: clamp(20px, 40cqi, 60px);
