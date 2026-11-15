@@ -15,7 +15,11 @@ The integration ships with a product catalogue for each supported country, with 
 | United States | USD |
 | United Kingdom | GBP |
 | Canada | CAD |
-| Belgium, France and Spain | EUR (Belgium has a smaller catalogue) |
+| Belgium, France, Germany and Spain | EUR (Belgium has a smaller catalogue) |
+
+## Language
+
+When you pick Spain, France or Germany, the card shows its text in Spanish, French or German, with no internet lookup needed. Germany also uses German category names, German product names and brands (Aldi, Lidl, Rewe, Edeka and more), and Open Food Facts Germany for barcode and product lookups.
 
 ## Switching region
 
