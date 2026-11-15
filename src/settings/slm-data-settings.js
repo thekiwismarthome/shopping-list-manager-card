@@ -4,7 +4,7 @@ import { subPageStyles } from '../styles/ui-styles.js';
 
 // Fallback only: the real list comes from the integration (available_countries minus custom_regions),
 // so regions added to the integration appear without a card update.
-const BUILT_IN_COUNTRIES = ['NZ', 'AU', 'US', 'GB', 'CA', 'BE', 'ES', 'FR'];
+const BUILT_IN_COUNTRIES = ['NZ', 'AU', 'US', 'GB', 'CA', 'BE', 'ES', 'FR', 'DE'];
 
 class SLMDataSettings extends LitElement {
   _i18n = new I18nController(this);
